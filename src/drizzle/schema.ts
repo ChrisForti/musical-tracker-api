@@ -21,6 +21,7 @@ export const UserTable = pgTable(
       .default(false)
       .notNull(),
     isAdmin: boolean("is_admin").default(false).notNull(),
+    passwordHash: text("password_hash").notNull(),
   },
   (table) => {
     return [uniqueIndex("emailUniqueIndex").on(lower(table.email))];
