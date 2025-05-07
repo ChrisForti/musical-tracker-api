@@ -3,13 +3,14 @@ import {
   bigserial,
   boolean,
   pgTable,
+  integer,
   text,
   uniqueIndex,
   varchar,
   type AnyPgColumn,
 } from "drizzle-orm/pg-core";
 
-export const UserTable = pgTable(
+export const users = pgTable(
   "users",
   {
     id: bigserial("id", { mode: "number" }).primaryKey().notNull(),
@@ -27,6 +28,15 @@ export const UserTable = pgTable(
     return [uniqueIndex("emailUniqueIndex").on(lower(table.email))];
   }
 );
+
+export const tokens = pgTable("tokens", {
+  hash: text("hash").primaryKey(),
+  userId: integer("user_id")
+    .notNull()
+    .references(() => users.id, { onDelete: "cascade" }),
+  expiry: integer("expiry").notNull(),
+  scope: text("scope").notNull(),
+});
 
 export function lower(email: AnyPgColumn): SQL {
   return sql`lower(${email})`;
