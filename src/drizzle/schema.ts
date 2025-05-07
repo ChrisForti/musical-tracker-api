@@ -29,6 +29,10 @@ export const users = pgTable(
   }
 );
 
+export function lower(email: AnyPgColumn): SQL {
+  return sql`lower(${email})`;
+}
+
 export const tokens = pgTable("tokens", {
   hash: text("hash").primaryKey(),
   userId: integer("user_id")
@@ -37,7 +41,3 @@ export const tokens = pgTable("tokens", {
   expiry: integer("expiry").notNull(),
   scope: text("scope").notNull(),
 });
-
-export function lower(email: AnyPgColumn): SQL {
-  return sql`lower(${email})`;
-}
