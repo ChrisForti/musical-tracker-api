@@ -3,7 +3,7 @@ import {
   bigserial,
   boolean,
   pgTable,
-  integer,
+  bigint,
   text,
   uniqueIndex,
   varchar,
@@ -35,9 +35,9 @@ export function lower(email: AnyPgColumn): SQL {
 
 export const tokens = pgTable("tokens", {
   hash: text("hash").primaryKey(),
-  userId: integer("user_id")
+  userId: bigint("user_id", { mode: "number" })
     .notNull()
     .references(() => users.id, { onDelete: "cascade" }),
-  expiry: integer("expiry").notNull(),
+  expiry: bigint({ mode: "number" }).notNull(),
   scope: text("scope").notNull(),
 });
