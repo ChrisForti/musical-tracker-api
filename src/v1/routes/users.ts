@@ -14,7 +14,7 @@ type CreateUserBody = {
 };
 
 async function createUserHandler(
-  req: Request<{}, {}, CreateUserBody, {}, {}>,
+  req: Request<{}, {}, CreateUserBody>,
   res: Response
 ): Promise<any> {
   const { firstName, lastName, email, password } = req.body;
@@ -56,8 +56,10 @@ async function createUserHandler(
     return res.json({ message: "User created successfully" });
   } catch (error) {
     if (error instanceof Error) {
-      return res.status(400).json({ error: error.message });
+      res.status(400).json({ error: error.message });
+      return;
     }
-    return res.status(500).json({ error: "Unknown error occurred" });
+    res.status(500).json({ error: "Unknown error occurred" });
+    return;
   }
 }
