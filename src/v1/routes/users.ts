@@ -75,10 +75,7 @@ async function deleteUserHandler(req: Request, res: Response): Promise<any> {
       throw new Error("User does not exist");
     }
 
-    const result = await db
-      .delete(UserTable)
-      .where(eq(UserTable.id, userId))
-      .returning(); // Use `.returning()` to get the deleted rows (if supported by your database)
+    const result = await db.delete(UserTable).returning(); // Use `.returning()` to get the deleted rows (if supported by your database)
 
     if (result.length === 0) {
       throw new Error("User not found or already deleted");
@@ -94,7 +91,4 @@ async function deleteUserHandler(req: Request, res: Response): Promise<any> {
       res.status(500).json({ message: "Failed to delete user" }); //
     }
   }
-}
-function where(arg0: any) {
-  throw new Error("Function not implemented.");
 }
