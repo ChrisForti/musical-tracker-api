@@ -1,10 +1,13 @@
 import { Router, type Request, type Response } from "express";
 import { db } from "../../drizzle/db.js";
-import { UserTable } from "../../drizzle/schema.js";
+import { TokenTable, UserTable } from "../../drizzle/schema.js";
 import { hash } from "bcrypt";
+import { eq } from "drizzle-orm";
 
 export const userRouter = Router();
 userRouter.post("/user", createUserHandler);
+// userRouter.get("/", getUserByEmailHandler);
+userRouter.delete("/user", deleteUserHandler);
 
 type CreateUserBody = {
   firstName?: string;
@@ -62,4 +65,36 @@ async function createUserHandler(
     res.status(500).json({ error: "Unknown error occurred" });
     return;
   }
+}
+
+async function deleteUserHandler(req: Request, res: Response): Promise<any> {
+  const userId = req.user?.id;
+
+  try {
+    if (!userId) {
+      throw new Error("User does not exist");
+    }
+
+    const result = await db
+      .delete(UserTable)
+      .where(eq(UserTable.id, userId))
+      .returning(); // Use `.returning()` to get the deleted rows (if supported by your database)
+
+    if (result.length === 0) {
+      throw new Error("User not found or already deleted");
+    }
+
+    res
+      .status(200)
+      .json({ message: "User deleted successfully", deletedUser: result[0] });
+  } catch (err) {
+    if (err instanceof Error) {
+      res.status(400).json({ message: err.message });
+    } else {
+      res.status(500).json({ message: "Failed to delete user" }); //
+    }
+  }
+}
+function where(arg0: any) {
+  throw new Error("Function not implemented.");
 }
