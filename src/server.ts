@@ -1,10 +1,9 @@
 import express from "express";
+import { v1Router } from "./v1/router.js";
 
 const app = express();
 
-app.get("/", (req, res) => {
-  res.json({ message: "Hello world" });
-});
+app.use("/v1", v1Router);
 
 app.listen(3000, (err) => {
   if (err) {
