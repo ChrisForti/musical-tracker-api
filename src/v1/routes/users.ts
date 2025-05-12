@@ -82,6 +82,7 @@ async function loginUserHandler(
   res: Response
 ) {
   const { email, password } = req.body;
+  console.log("Request body:", req.body);
 
   if (!email || !password) {
     res.status(400).json({ error: "Email and password are required" });
@@ -89,6 +90,8 @@ async function loginUserHandler(
   }
 
   try {
+    console.log("Querying user with email:", email);
+
     const user = await db.query.UserTable.findFirst({
       where: (users, { eq }) => {
         return eq(users.email, email); // TODO: can be used for get user by id
@@ -165,6 +168,7 @@ async function updateUserHandler(
 ) {
   const userId = req.user!.id;
   const { firstName, lastName, email, password } = req.body as UpdateUserBody;
+  console.log("Request body:", req.body);
 
   if (!firstName && !lastName && !email && !password) {
     res.status(400).json({ error: "Must provide some fields to update" });
