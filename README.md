@@ -18,8 +18,8 @@ Welcome to the Musical Tracker API! This is a robust js-based API built using Ty
 
 1. **Clone the Repository**
    ```bash
-   git clone <repository-url>
-   cd <repository-folder>
+   git clone git@github.com:ChrisForti/musical-tracker-api.git
+   cd musical-tracker-api
    ```
 2. Install Dependencies
    `npm install`
