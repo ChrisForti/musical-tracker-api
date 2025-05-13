@@ -22,13 +22,13 @@ Welcome to the Musical Tracker API! This is a robust js-based API built using Ty
    cd musical-tracker-api
    ```
 2. Install Dependencies
-   ```bash
-   npm install
-   ```
-   or
-   ```bash
-   yarn install
-   ```
+
+`npm install`
+
+or
+
+` yarn install`
+
 3. Configure Environment Variables Create a `.env` file in the root directory and add the following:
 
 ```env
@@ -37,11 +37,11 @@ PORT=3000
 JWT_SECRET=<your-jwt-secret>
 ```
 
-<details> 
-<summary>1 Vulnerability</summary>
-- hardcoded-credentials
-   Embedding credentials in source code risks unauthorized access
-</details>
+- <details>
+    <summary>1 Vulnerability</summary>
+     - hardcoded-credentials
+  Embedding credentials in source code risks unauthorized access
+  </details>
 
 4. Run Database Migrations Ensure your database is set up and run migrations (if applicable):
    `npm run migrate`
@@ -90,5 +90,9 @@ This project is licensed under the MIT License.
 ```
 
 Replace `<repository-url> `and `<your-database-connection-string>` with the actual values for your project. Let me know if you need further customization!
+
+```
+
+```
 
 ```
