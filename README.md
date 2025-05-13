@@ -6,7 +6,8 @@ Welcome to the Musical Tracker API! This is a robust js-based API built using Ty
 ## Prerequisites
 
 - [Node.js](https://nodejs.org/) (v16 or higher)
-- `docker` we used a a `postgres` image
+- [docker](https://docs.docker.com/) we used a [postgres](https://www.postgresql.org/docs/) image running in a docker container
+- [drizzle](https://orm.drizzle.team/docs/get-started/postgresql-new)
 
 ## Setup Instructions
 
