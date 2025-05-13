@@ -1,6 +1,7 @@
 # musical-tracker-api
 
 Welcome to the Musical Tracker API! This is a robust js-based API built using TypeScript, Node.js, and Express, with Drizzle ORM for database management. It's designed to help you effectively manage and track musical data, offering a seamless integration for developers and music enthusiasts alike.
+[Schema Graph](https://drawsql.app/teams/david-ruvinskiy/diagrams/musical-tracker-app)
 
 ## Features
 
