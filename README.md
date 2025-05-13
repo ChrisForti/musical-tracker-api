@@ -31,8 +31,9 @@ Welcome to the Musical Tracker API! This is a robust js-based API built using Ty
 DATABASE_URL=<your-database-connection-string>
 PORT=3000
 JWT_SECRET=<your-jwt-secret>
-<summary>1 Vulnerability
-- ***hardcoded-credentials ***Embedding credentials in source code risks unauthorized access</summary>
+<summary>1 Vulnerability</summary>
+- ***hardcoded-credentials***
+Embedding credentials in source code risks unauthorized access
 ```
 
 4. Run Database Migrations Ensure your database is set up and run migrations (if applicable):
