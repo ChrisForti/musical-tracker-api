@@ -3,17 +3,10 @@
 Welcome to the Musical Tracker API! This is a robust js-based API built using TypeScript, Node.js, and Express, with Drizzle ORM for database management. It's designed to help you effectively manage and track musical data, offering a seamless integration for developers and music enthusiasts alike.
 [Schema Graph](https://drawsql.app/teams/david-ruvinskiy/diagrams/musical-tracker-app)
 
-## Features
-
-- User login with email and password
-- Database integration for user data
-- Error handling for invalid inputs
-
 ## Prerequisites
 
 - [Node.js](https://nodejs.org/) (v16 or higher)
-- [npm](https://www.npmjs.com/) or [yarn](https://yarnpkg.com/)
-- A database (e.g., PostgreSQL, MySQL, etc.) configured for the project
+- `docker` we used a a `postgres` image
 
 ## Setup Instructions
 
@@ -22,60 +15,40 @@ Welcome to the Musical Tracker API! This is a robust js-based API built using Ty
    git clone git@github.com:ChrisForti/musical-tracker-api.git
    cd musical-tracker-api
    ```
-2. Install Dependencies
+2. Install Dependencies:
 
-`npm install`
+- `npm install`
 
-or
+3. Configure Environment Variables Create a file in the root directory and add the following:
 
-` yarn install`
-
-3. Configure Environment Variables Create a `.env` file in the root directory and add the following:
+- `cp .env.example .env`
 
 ```env
 DATABASE_URL=<your-database-connection-string>
 PORT=3000
-JWT_SECRET=<your-jwt-secret>
+
 ```
 
-<details>
-    <summary>Possible Vulnerability</summary>
-     - hardcoded-credential-risk
-  Embedding credentials in source code risks unauthorized access
-  </details>
+4. Get your Database running, we used a docker container with a postgres image.
 
-4. Run Database Migrations Ensure your database is set up and run migrations (if applicable):
-   `npm run migrate`
-5. start the server
-   `npm run dev`
-   The server will start on `http://localhost:3000`.
+```bash
+docker compose up
+# If you want to run in the background, start detached:
+# docker compose up -d
+```
 
-## Api Endpoints
-
-login user
-
-- **Endpoint**: `POST /v1/login`
-- **Request Body**:
-  - **Success**:
-  ```json
-  {
-    "email": "user@example.com",
-    "password": "password123"
-  }
-  ```
-  - **Failure**:
-  ```json
-  {
-    "error": "Invalid email or password"
-  }
-  ```
+5.  Run Database Migrations Ensure your database is set up and run migrations (if applicable):
+    `npm run migrate`
+6.  start the server
+    `npm run dev`
+    The server will start on `http://localhost:3000`.
 
 ### Development
 
 #### Code Structure
 
 - `users.ts`: Contains user-related handlers like login.
-- `Database`: Queries are handled using a database abstraction layer.
+- `drizzle`: Allows for handling user-related operations such as authentication, retrieval, updates, and deletions with minimal boilerplate.
 
 #### Scripts
 
