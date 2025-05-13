@@ -39,7 +39,7 @@ JWT_SECRET=<your-jwt-secret>
 
 <details>
     <summary>Possible Vulnerability</summary>
-     - hardcoded-credentials
+     - hardcoded-credential-risk
   Embedding credentials in source code risks unauthorized access
   </details>
 
