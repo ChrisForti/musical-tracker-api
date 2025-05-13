@@ -37,7 +37,7 @@ PORT=3000
 JWT_SECRET=<your-jwt-secret>
 ```
 
-- <details>
+<details>
     <summary>1 Vulnerability</summary>
      - hardcoded-credentials
   Embedding credentials in source code risks unauthorized access
@@ -83,16 +83,8 @@ login user
 - Ensure the database connection string in `.env` is correct.
 - Check logs for errors during API requests.
 
-##### License
-
-This project is licensed under the MIT License.
-
-```
+<details>
 
 Replace `<repository-url> `and `<your-database-connection-string>` with the actual values for your project. Let me know if you need further customization!
 
-```
-
-```
-
-```
+</details>
