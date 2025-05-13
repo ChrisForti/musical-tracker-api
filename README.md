@@ -53,21 +53,21 @@ JWT_SECRET=<your-jwt-secret>
 
 login user
 
-- Endpoint: `POST /v1/login`
-- Request Body:
-  - Success
-  ````json
+- **Endpoint**: `POST /v1/login`
+- **Request Body**:
+  - **Success**:
+  ```json
   {
     "email": "user@example.com",
     "password": "password123"
-    }
-    ```
-  - Failure
-   ```json
-   {
+  }
+  ```
+  - **Failure**:
+  ```json
+  {
     "error": "Invalid email or password"
-    }
-  ````
+  }
+  ```
 
 ### Development
 
@@ -81,14 +81,10 @@ login user
 - `npm run dev`: Starts the development server.
 - `npm run build`: Builds the project for production.
 - `npm run test`: Runs tests.
+- `db:generate`: Used to generate migration files based on changes in your schema.
+- `db:migrate`: Compiles typescript and runs the migrations script, leveraging **Drizzle ORM**.
 
 #### Troubleshooting
 
 - Ensure the database connection string in `.env` is correct.
 - Check logs for errors during API requests.
-
-<details>
-
-Replace `<repository-url> `and `<your-database-connection-string>` with the actual values for your project. Let me know if you need further customization!
-
-</details>
