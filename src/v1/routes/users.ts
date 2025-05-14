@@ -120,6 +120,10 @@ async function loginUserHandler(
   }
 }
 
+type GetUserByEmailBody = {
+  email: string;
+};
+
 async function getUserByEmailHandler(req: Request, res: Response) {
   const email = req.query.email as string;
 

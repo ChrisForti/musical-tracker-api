@@ -10,12 +10,12 @@ theaterRouter.get("/", getTheaterById);
 theaterRouter.put("/", updateTheaterHandler);
 theaterRouter.delete("/", deleteTheaterHandler);
 
-type createTheaterBody = {
+type CreateTheaterBody = {
   name: string;
 };
 
 async function createTheaterHandler(req: Request, res: Response) {
-  const { name } = req.body as createTheaterBody; // May need id here too
+  const { name } = req.body as CreateTheaterBody; // May need id here too
 
   try {
     if (!name) {
@@ -40,18 +40,18 @@ async function createTheaterHandler(req: Request, res: Response) {
   }
 }
 
-type getTheaterByIdBody = {
+type GetTheaterByIdBody = {
   id: number;
 };
 
 async function getTheaterById(req: Request, res: Response) {
-  const { id } = req.body;
+  const { id } = req.body as GetTheaterByIdBody;
 
   try {
     const theater = await db
       .select()
       .from(TheaterTable)
-      .where(eq(TheaterTable.id, Number(id))) // should be able to pass in theaterId here
+      .where(eq(TheaterTable.id, id))
       .limit(1);
 
     if (theater.length === 0) {
@@ -69,13 +69,13 @@ async function getTheaterById(req: Request, res: Response) {
   }
 }
 
-type updatedTheaterBody = {
+type UpdatedTheaterBody = {
   id: number;
   name: string;
 };
 
 async function updateTheaterHandler(req: Request, res: Response) {
-  const { id, name } = req.body as updatedTheaterBody;
+  const { id, name } = req.body as UpdatedTheaterBody;
 
   try {
     if (!id) {
@@ -111,15 +111,14 @@ async function updateTheaterHandler(req: Request, res: Response) {
   }
 }
 
-type deleteTheaterBody = {
+type DeleteTheaterBody = {
   id: number;
-  name: string;
 };
 
 async function deleteTheaterHandler(req: Request, res: Response) {
-  const { id, name } = req.body.id as deleteTheaterBody; // pattern used in users.ts
+  const { id } = req.body.id as DeleteTheaterBody; // pattern used in users.ts
 
-  if (!id || !name) {
+  if (!id) {
     res.status(400).json({ error: "Theater ID is required" });
     return;
   }
@@ -131,7 +130,6 @@ async function deleteTheaterHandler(req: Request, res: Response) {
 
     if (deletedTheater.rowCount === 0) {
       throw new Error("Theater not found or already deleted");
-      return;
     }
 
     res.status(200).json({
