@@ -18,16 +18,13 @@ async function createTheaterHandler(req: Request, res: Response) {
       throw new Error("Name is required");
     }
 
-    const newTheater = await db
-      .insert(TheaterTable)
-      .values({
-        name,
-      })
-      .returning(); // Optional: Get the inserted row back
+    const newTheater = await db.insert(TheaterTable).values({
+      name,
+    });
 
     res.status(201).json({
       message: "Theater created successfully",
-      theater: newTheater[0],
+      theater: newTheater,
     });
   } catch (error) {
     if (error instanceof Error) {
@@ -65,33 +62,32 @@ async function getTheaterById(req: Request, res: Response) {
 }
 
 async function updateTheaterHandler(req: Request, res: Response) {
-  const { id } = req.params; // Extract `id` from request parameters
-  const { name } = req.body; // Extract updated data from request body
+  const { id, name } = req.body;
 
   try {
-    // Validate input
+    if (!id) {
+      res.status(400).json({ error: "id is required" });
+      return;
+    }
+
     if (!name) {
       res.status(400).json({ error: "Name is required" });
       return;
     }
 
-    // Update the theater in the database
     const updatedTheater = await db
       .update(TheaterTable)
       .set({ name }) // Set the new values
-      .where(eq(TheaterTable.id, Number(id))) // Match the theater by ID
-      .returning(); // Return the updated row(s)
+      .where(eq(TheaterTable.id, Number(id))); // Match the theater by ID
 
-    if (updatedTheater.length === 0) {
-      // If no theater was updated, it means the ID does not exist
+    if (updatedTheater.rowCount === 0) {
       res.status(404).json({ error: "Theater not found" });
       return;
     }
 
-    // Return the updated theater details
     res.status(200).json({
       message: "Theater updated successfully",
-      theater: updatedTheater[0],
+      theater: updatedTheater,
     });
   } catch (error) {
     if (error instanceof Error) {
@@ -103,16 +99,20 @@ async function updateTheaterHandler(req: Request, res: Response) {
 }
 
 async function deleteTheaterHandler(req: Request, res: Response) {
-  const { id } = req.params; // Extract `id` from request parameters
+  const theaterId = req.theater?.id;
+
+  if (!theaterId) {
+    res.status(400).json({ error: "Theater ID is required" });
+    return;
+  }
 
   try {
     // Delete the theater from the database
     const deletedTheater = await db
       .delete(TheaterTable)
-      .where(eq(TheaterTable.id, Number(id))) // Match the theater by ID
-      .returning(); // Return the deleted row(s)
+      .where(eq(TheaterTable.id, theaterId)); // Match the theater by ID
 
-    if (deletedTheater.length === 0) {
+    if (deletedTheater.rowCount === 0) {
       // If no theater was deleted, it means the ID does not exist
       res.status(404).json({ error: "Theater not found" });
       return;
@@ -121,13 +121,13 @@ async function deleteTheaterHandler(req: Request, res: Response) {
     // Return a success message
     res.status(200).json({
       message: "Theater deleted successfully",
-      theater: deletedTheater[0],
+      theater: deletedTheater,
     });
   } catch (error) {
     if (error instanceof Error) {
       res.status(400).json({ error: error.message });
       return;
     }
-    res.status(500).json({ error: "Unknown error occurred" });
+    res.status(500).json({ error: "Failed to delete theater" });
   }
 }
