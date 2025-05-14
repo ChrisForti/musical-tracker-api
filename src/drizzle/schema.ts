@@ -41,3 +41,8 @@ export const TokenTable = pgTable("tokens", {
   expiry: bigint({ mode: "number" }).notNull(),
   scope: text("scope").notNull(),
 });
+
+export const TheaterTable = pgTable("theaters", {
+  id: bigserial("id", { mode: "number" }).primaryKey().notNull(),
+  name: varchar("name", { length: 255 }).notNull(),
+});

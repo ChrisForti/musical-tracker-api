@@ -4,7 +4,6 @@ import { UserTable } from "../../drizzle/schema.js";
 import { compare, hash } from "bcrypt";
 import { eq } from "drizzle-orm";
 import { generateAuthenticationToken } from "../../lib/tokens.js";
-import { error } from "console";
 
 export const userRouter = Router();
 
