@@ -42,7 +42,7 @@ export const TokenTable = pgTable("tokens", {
   scope: text("scope").notNull(),
 });
 
-export const TheaterTable = pgTable("theaters", {
+export const TheaterTable = pgTable("theater", {
   id: bigserial("id", { mode: "number" }).primaryKey().notNull(),
   name: varchar("name", { length: 255 }).notNull(),
 });

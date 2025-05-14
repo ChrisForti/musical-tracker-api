@@ -10,8 +10,12 @@ theaterRouter.get("/", getTheaterById);
 theaterRouter.put("/", updateTheaterHandler);
 theaterRouter.delete("/", deleteTheaterHandler);
 
+type createTheaterBody = {
+  name: string;
+};
+
 async function createTheaterHandler(req: Request, res: Response) {
-  const { name } = req.body; // May need id here too
+  const { name } = req.body as createTheaterBody; // May need id here too
 
   try {
     if (!name) {
@@ -35,6 +39,10 @@ async function createTheaterHandler(req: Request, res: Response) {
     return;
   }
 }
+
+type getTheaterByIdBody = {
+  id: number;
+};
 
 async function getTheaterById(req: Request, res: Response) {
   const { id } = req.body;
@@ -61,8 +69,13 @@ async function getTheaterById(req: Request, res: Response) {
   }
 }
 
+type updatedTheaterBody = {
+  id: number;
+  name: string;
+};
+
 async function updateTheaterHandler(req: Request, res: Response) {
-  const { id, name } = req.body;
+  const { id, name } = req.body as updatedTheaterBody;
 
   try {
     if (!id) {
@@ -98,10 +111,15 @@ async function updateTheaterHandler(req: Request, res: Response) {
   }
 }
 
-async function deleteTheaterHandler(req: Request, res: Response) {
-  const theaterId = req.theater?.id; // pattern used in users.ts
+type deleteTheaterBody = {
+  id: number;
+  name: string;
+};
 
-  if (!theaterId) {
+async function deleteTheaterHandler(req: Request, res: Response) {
+  const { id, name } = req.body.id as deleteTheaterBody; // pattern used in users.ts
+
+  if (!id || !name) {
     res.status(400).json({ error: "Theater ID is required" });
     return;
   }
@@ -109,7 +127,7 @@ async function deleteTheaterHandler(req: Request, res: Response) {
   try {
     const deletedTheater = await db
       .delete(TheaterTable)
-      .where(eq(TheaterTable.id, theaterId));
+      .where(eq(TheaterTable.id, id));
 
     if (deletedTheater.rowCount === 0) {
       throw new Error("Theater not found or already deleted");
