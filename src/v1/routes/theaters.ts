@@ -1,5 +1,5 @@
 import { Router, type Request, type Response } from "express";
-import { db } from "../../drizzle/db.js"; // Ensure the correct path
+import { db } from "../../drizzle/db.js";
 import { TheaterTable } from "../../drizzle/schema.js";
 import { eq } from "drizzle-orm";
 
@@ -11,7 +11,7 @@ theaterRouter.put("/", updateTheaterHandler);
 theaterRouter.delete("/", deleteTheaterHandler);
 
 async function createTheaterHandler(req: Request, res: Response) {
-  const { name } = req.body;
+  const { name } = req.body; // May need id here too
 
   try {
     if (!name) {
@@ -43,7 +43,7 @@ async function getTheaterById(req: Request, res: Response) {
     const theater = await db
       .select()
       .from(TheaterTable)
-      .where(eq(TheaterTable.id, Number(id)))
+      .where(eq(TheaterTable.id, Number(id))) // should be able to pass in theaterId here
       .limit(1);
 
     if (theater.length === 0) {
@@ -77,8 +77,8 @@ async function updateTheaterHandler(req: Request, res: Response) {
 
     const updatedTheater = await db
       .update(TheaterTable)
-      .set({ name }) // Set the new values
-      .where(eq(TheaterTable.id, Number(id))); // Match the theater by ID
+      .set({ name })
+      .where(eq(TheaterTable.id, Number(id))); // should be able to pass in theaterId here
 
     if (updatedTheater.rowCount === 0) {
       res.status(404).json({ error: "Theater not found" });
@@ -94,12 +94,12 @@ async function updateTheaterHandler(req: Request, res: Response) {
       res.status(400).json({ error: error.message });
       return;
     }
-    res.status(500).json({ error: "Unknown error occurred" });
+    res.status(500).json({ error: "Failed to update Theater" });
   }
 }
 
 async function deleteTheaterHandler(req: Request, res: Response) {
-  const theaterId = req.theater?.id;
+  const theaterId = req.theater?.id; // pattern used in users.ts
 
   if (!theaterId) {
     res.status(400).json({ error: "Theater ID is required" });
@@ -107,18 +107,15 @@ async function deleteTheaterHandler(req: Request, res: Response) {
   }
 
   try {
-    // Delete the theater from the database
     const deletedTheater = await db
       .delete(TheaterTable)
-      .where(eq(TheaterTable.id, theaterId)); // Match the theater by ID
+      .where(eq(TheaterTable.id, theaterId));
 
     if (deletedTheater.rowCount === 0) {
-      // If no theater was deleted, it means the ID does not exist
-      res.status(404).json({ error: "Theater not found" });
+      throw new Error("Theater not found or already deleted");
       return;
     }
 
-    // Return a success message
     res.status(200).json({
       message: "Theater deleted successfully",
       theater: deletedTheater,
