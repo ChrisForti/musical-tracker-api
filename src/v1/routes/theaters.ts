@@ -14,8 +14,11 @@ type CreateTheaterBody = {
   name: string;
 };
 
-async function createTheaterHandler(req: Request, res: Response) {
-  const { name } = req.body; // May need id here too
+async function createTheaterHandler(
+  req: Request<{}, {}, CreateTheaterBody>,
+  res: Response
+) {
+  const { name } = req.body;
 
   try {
     if (!name) {
