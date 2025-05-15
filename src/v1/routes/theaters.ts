@@ -47,8 +47,11 @@ type GetTheaterByIdBody = {
   id: number;
 };
 
-async function getTheaterById(req: Request, res: Response) {
-  const { id } = req.body as GetTheaterByIdBody;
+async function getTheaterById(
+  req: Request<{}, {}, GetTheaterByIdBody>,
+  res: Response
+) {
+  const { id } = req.body;
 
   try {
     const theater = await db
@@ -77,8 +80,11 @@ type UpdatedTheaterBody = {
   name: string;
 };
 
-async function updateTheaterHandler(req: Request, res: Response) {
-  const { id, name } = req.body as UpdatedTheaterBody;
+async function updateTheaterHandler(
+  req: Request<{}, {}, UpdatedTheaterBody>,
+  res: Response
+) {
+  const { id, name } = req.body;
 
   try {
     if (!id) {
@@ -118,8 +124,11 @@ type DeleteTheaterBody = {
   id: number;
 };
 
-async function deleteTheaterHandler(req: Request, res: Response) {
-  const { id } = req.body.id as DeleteTheaterBody; // pattern used in users.ts
+async function deleteTheaterHandler(
+  req: Request<{}, {}, DeleteTheaterBody>,
+  res: Response
+) {
+  const id = req.body.id;
 
   if (!id) {
     res.status(400).json({ error: "Theater ID is required" });
