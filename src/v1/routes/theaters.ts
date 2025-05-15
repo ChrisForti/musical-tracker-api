@@ -75,13 +75,13 @@ async function getTheaterById(
   }
 }
 
-type UpdatedTheaterBody = {
+type UpdateTheaterBody = {
   id: number;
   name: string;
 };
 
 async function updateTheaterHandler(
-  req: Request<{}, {}, UpdatedTheaterBody>,
+  req: Request<{}, {}, UpdateTheaterBody>,
   res: Response
 ) {
   const { id, name } = req.body;
