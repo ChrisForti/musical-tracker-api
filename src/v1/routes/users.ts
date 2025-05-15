@@ -4,7 +4,6 @@ import { UserTable } from "../../drizzle/schema.js";
 import { compare, hash } from "bcrypt";
 import { eq } from "drizzle-orm";
 import { generateAuthenticationToken } from "../../lib/tokens.js";
-import { error } from "console";
 
 export const userRouter = Router();
 
@@ -120,6 +119,10 @@ async function loginUserHandler(
     }
   }
 }
+
+type GetUserByEmailBody = {
+  email: string;
+};
 
 async function getUserByEmailHandler(req: Request, res: Response) {
   const email = req.query.email as string;
