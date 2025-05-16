@@ -100,7 +100,7 @@ async function updateTheaterHandler(
     const updatedTheater = await db
       .update(TheaterTable)
       .set({ name })
-      .where(eq(TheaterTable.id, Number(id))); // should be able to pass in theaterId here
+      .where(eq(TheaterTable.id, Number(id)));
 
     if (updatedTheater.rowCount === 0) {
       res.status(404).json({ error: "Theater not found" });

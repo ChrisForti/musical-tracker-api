@@ -100,7 +100,7 @@ async function updateRoleHandler(
     const updatedRole = await db
       .update(RoleTable)
       .set({ name })
-      .where(eq(RoleTable.id, Number(id))); // should be able to pass in theaterId here
+      .where(eq(RoleTable.id, Number(id)));
 
     if (updatedRole.rowCount === 0) {
       res.status(404).json({ error: "Role not found" });
