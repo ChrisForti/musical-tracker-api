@@ -1,21 +1,21 @@
 import { Router, type Request, type Response } from "express";
 import { db } from "../../drizzle/db.js";
-import { TheaterTable } from "../../drizzle/schema.js";
+import { RoleTable } from "../../drizzle/schema.js";
 import { eq } from "drizzle-orm";
 
-export const theaterRouter = Router();
+export const roleRouter = Router();
 
-theaterRouter.post("/", createTheaterHandler);
-theaterRouter.get("/", getTheaterById);
-theaterRouter.put("/", updateTheaterHandler);
-theaterRouter.delete("/", deleteTheaterHandler);
+roleRouter.post("/", createRoleHandler);
+roleRouter.get("/", getRoleById);
+roleRouter.put("/", updateRoleHandler);
+roleRouter.delete("/", deleteRoleHandler);
 
-type CreateTheaterBody = {
+type CreateRoleBody = {
   name: string;
 };
 
-async function createTheaterHandler(
-  req: Request<{}, {}, CreateTheaterBody>,
+async function createRoleHandler(
+  req: Request<{}, {}, CreateRoleBody>,
   res: Response
 ) {
   const { name } = req.body;
@@ -25,13 +25,13 @@ async function createTheaterHandler(
       throw new Error("Name is required");
     }
 
-    const newTheater = await db.insert(TheaterTable).values({
+    const newRole = await db.insert(RoleTable).values({
       name,
     });
 
     res.status(201).json({
-      message: "Theater created successfully",
-      theater: newTheater,
+      message: "Role created successfully",
+      role: newRole,
     });
   } catch (error) {
     if (error instanceof Error) {
@@ -43,12 +43,12 @@ async function createTheaterHandler(
   }
 }
 
-type GetTheaterByIdBody = {
+type GetRoleByIdBody = {
   id: number;
 };
 
-async function getTheaterById(
-  req: Request<{}, {}, GetTheaterByIdBody>,
+async function getRoleById(
+  req: Request<{}, {}, GetRoleByIdBody>,
   res: Response
 ) {
   const { id } = req.body;
@@ -56,12 +56,12 @@ async function getTheaterById(
   try {
     const theater = await db
       .select()
-      .from(TheaterTable)
-      .where(eq(TheaterTable.id, id))
+      .from(RoleTable)
+      .where(eq(RoleTable.id, id))
       .limit(1);
 
     if (theater.length === 0) {
-      res.status(404).json({ error: "Theater not found" });
+      res.status(404).json({ error: "Role not found" });
       return;
     }
 
@@ -75,13 +75,13 @@ async function getTheaterById(
   }
 }
 
-type UpdateTheaterBody = {
+type UpdateRoleBody = {
   id: number;
   name: string;
 };
 
-async function updateTheaterHandler(
-  req: Request<{}, {}, UpdateTheaterBody>,
+async function updateRoleHandler(
+  req: Request<{}, {}, UpdateRoleBody>,
   res: Response
 ) {
   const { id, name } = req.body;
@@ -97,62 +97,60 @@ async function updateTheaterHandler(
       return;
     }
 
-    const updatedTheater = await db
-      .update(TheaterTable)
+    const updatedRole = await db
+      .update(RoleTable)
       .set({ name })
-      .where(eq(TheaterTable.id, Number(id)));
+      .where(eq(RoleTable.id, Number(id)));
 
-    if (updatedTheater.rowCount === 0) {
-      res.status(404).json({ error: "Theater not found" });
+    if (updatedRole.rowCount === 0) {
+      res.status(404).json({ error: "Role not found" });
       return;
     }
 
     res.status(200).json({
-      message: "Theater updated successfully",
-      theater: updatedTheater,
+      message: "Role updated successfully",
+      role: updatedRole,
     });
   } catch (error) {
     if (error instanceof Error) {
       res.status(400).json({ error: error.message });
       return;
     }
-    res.status(500).json({ error: "Failed to update Theater" });
+    res.status(500).json({ error: "Failed to update role" });
   }
 }
 
-type DeleteTheaterBody = {
+type DeleteRoleBody = {
   id: number;
 };
 
-async function deleteTheaterHandler(
-  req: Request<{}, {}, DeleteTheaterBody>,
+async function deleteRoleHandler(
+  req: Request<{}, {}, DeleteRoleBody>,
   res: Response
 ) {
   const id = req.body.id;
 
   if (!id) {
-    res.status(400).json({ error: "Theater ID is required" });
+    res.status(400).json({ error: "Role ID is required" });
     return;
   }
 
   try {
-    const deletedTheater = await db
-      .delete(TheaterTable)
-      .where(eq(TheaterTable.id, id));
+    const deletedRole = await db.delete(RoleTable).where(eq(RoleTable.id, id));
 
-    if (deletedTheater.rowCount === 0) {
-      throw new Error("Theater not found or already deleted");
+    if (deletedRole.rowCount === 0) {
+      throw new Error("Role not found or already deleted");
     }
 
     res.status(200).json({
-      message: "Theater deleted successfully",
-      theater: deletedTheater,
+      message: "Role deleted successfully",
+      role: deletedRole,
     });
   } catch (error) {
     if (error instanceof Error) {
       res.status(400).json({ error: error.message });
       return;
     }
-    res.status(500).json({ error: "Failed to delete theater" });
+    res.status(500).json({ error: "Failed to delete role" });
   }
 }
