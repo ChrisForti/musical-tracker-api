@@ -2,27 +2,29 @@ import { Router, type Request, type Response } from "express";
 import { db } from "../../drizzle/db.js";
 import { TheaterTable } from "../../drizzle/schema.js";
 import { eq } from "drizzle-orm";
+import { SERVER_ERROR } from "../../lib/errors.js";
 
 export const theaterRouter = Router();
 
 theaterRouter.post("/", createTheaterHandler);
-theaterRouter.get("/", getTheaterById);
+theaterRouter.get("/", getTheaterByIdHandler);
 theaterRouter.put("/", updateTheaterHandler);
 theaterRouter.delete("/", deleteTheaterHandler);
 
-type CreateTheaterBody = {
+type CreateTheaterBodyParams = {
   name: string;
 };
 
 async function createTheaterHandler(
-  req: Request<{}, {}, CreateTheaterBody>,
-  res: Response
+  req: Request<{}, {}, CreateTheaterBodyParams>,
+  res: Response,
 ) {
-  const { name } = req.body;
+  const name = req.body.name;
 
   try {
     if (!name) {
-      throw new Error("Name is required");
+      res.status(400).json({ error: "'name' is required" });
+      return;
     }
 
     const newTheater = await db.insert(TheaterTable).values({
@@ -31,69 +33,68 @@ async function createTheaterHandler(
 
     res.status(201).json({
       message: "Theater created successfully",
-      theater: newTheater,
+      theaterId: newTheater.oid,
     });
   } catch (error) {
-    if (error instanceof Error) {
-      res.status(400).json({ error: "Bad request" });
-      return;
-    }
-    res.status(500).json({ error: "Unknown error occurred" });
-    return;
+    console.error("Error in createTheaterHandler:", error);
+    res.status(500).json({ error: SERVER_ERROR });
   }
 }
 
-type GetTheaterByIdBody = {
-  id: number;
+type GetTheaterByIdQueryParams = {
+  id: string | number;
 };
 
-async function getTheaterById(
-  req: Request<{}, {}, GetTheaterByIdBody>,
-  res: Response
+async function getTheaterByIdHandler(
+  req: Request<GetTheaterByIdQueryParams>,
+  res: Response,
 ) {
-  const { id } = req.body;
+  const id = Number(req.body);
+
+  if (isNaN(id) || id < 1) {
+    res
+      .status(400)
+      .json({ error: "'id' is required and must be a valid number" });
+    return;
+  }
 
   try {
-    const theater = await db
-      .select()
-      .from(TheaterTable)
-      .where(eq(TheaterTable.id, id))
-      .limit(1);
+    const theater = await db.query.TheaterTable.findFirst({
+      where: eq(TheaterTable.id, id),
+    });
 
-    if (theater.length === 0) {
-      res.status(404).json({ error: "Theater not found" });
+    if (!theater) {
+      res.status(404).json({ error: "'id' is invalid" });
       return;
     }
 
-    res.status(200).json({ theater: theater[0] });
+    res.status(200).json({ theater });
   } catch (error) {
-    if (error instanceof Error) {
-      res.status(400).json({ error: "Bad request" });
-      return;
-    }
-    res.status(500).json({ error: "Unknown error occurred" });
+    console.error("Error in getTheaterByIdHandler:", error);
+    res.status(500).json({ error: SERVER_ERROR });
   }
 }
 
-type UpdateTheaterBody = {
-  id: number;
+type UpdateTheaterBodyParams = {
+  id: string | number;
   name: string;
 };
 
 async function updateTheaterHandler(
-  req: Request<{}, {}, UpdateTheaterBody>,
-  res: Response
+  req: Request<{}, {}, UpdateTheaterBodyParams>,
+  res: Response,
 ) {
-  const { id, name } = req.body;
+  const name = req.body.name;
+  const id = Number(req.body.id);
 
   try {
-    if (!id) {
-      res.status(400).json({ error: "id is required" });
+    if (isNaN(id) || id < 1) {
+      res.status(400).json({ error: "'id' is required and must be a number" });
       return;
     }
 
     if (!name) {
-      res.status(400).json({ error: "Name is required" });
+      res.status(400).json({ error: "'name' is required" });
       return;
     }
 
@@ -103,35 +104,33 @@ async function updateTheaterHandler(
       .where(eq(TheaterTable.id, Number(id)));
 
     if (updatedTheater.rowCount === 0) {
-      res.status(404).json({ error: "Theater not found" });
+      res.status(404).json({ error: "'id' is invalid" });
       return;
     }
 
     res.status(200).json({
       message: "Theater updated successfully",
-      theater: updatedTheater,
     });
   } catch (error) {
-    if (error instanceof Error) {
-      res.status(400).json({ error: error.message });
-      return;
-    }
-    res.status(500).json({ error: "Failed to update Theater" });
+    console.error("Error in updateTheaterHandler:", error);
+    res.status(500).json({ error: SERVER_ERROR });
   }
 }
 
-type DeleteTheaterBody = {
-  id: number;
+type DeleteTheaterBodyParams = {
+  id: string | number;
 };
 
 async function deleteTheaterHandler(
-  req: Request<{}, {}, DeleteTheaterBody>,
-  res: Response
+  req: Request<{}, {}, DeleteTheaterBodyParams>,
+  res: Response,
 ) {
-  const id = req.body.id;
+  const id = Number(req.body.id);
 
-  if (!id) {
-    res.status(400).json({ error: "Theater ID is required" });
+  if (isNaN(id) || id < 1) {
+    res
+      .status(400)
+      .json({ error: "'id' is required and must be a valid number" });
     return;
   }
 
@@ -141,18 +140,14 @@ async function deleteTheaterHandler(
       .where(eq(TheaterTable.id, id));
 
     if (deletedTheater.rowCount === 0) {
-      throw new Error("Theater not found or already deleted");
+      throw new Error("'id' is invalid");
     }
 
     res.status(200).json({
       message: "Theater deleted successfully",
-      theater: deletedTheater,
     });
   } catch (error) {
-    if (error instanceof Error) {
-      res.status(400).json({ error: error.message });
-      return;
-    }
-    res.status(500).json({ error: "Failed to delete theater" });
+    console.error("Error in deleteTheaterHandler:", error);
+    res.status(500).json({ error: SERVER_ERROR });
   }
 }
