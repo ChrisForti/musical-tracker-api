@@ -11,7 +11,7 @@ actorRouter.put("/", updateActorHandler);
 actorRouter.delete("/", deleteActorHandler);
 
 type CreateActorBody = {
-  id: number;
+  id?: string | number;
   name: string;
 };
 
@@ -19,10 +19,11 @@ async function createActorHandler(
   req: Request<{}, {}, CreateActorBody>,
   res: Response
 ) {
-  const { id, name } = req.body;
+  const { name } = req.body;
+  const id = Number(req.body.id);
 
   try {
-    if (!id || isNaN(id)) {
+    if (isNaN(id) || id < 1) {
       throw new Error("ID must be a valid number");
     }
 
@@ -40,7 +41,7 @@ async function createActorHandler(
     });
   } catch (error) {
     if (error instanceof Error) {
-      res.status(400).json({ error: "Bad request" });
+      res.status(400).json({ error: "ID must be a valid number" });
       return;
     }
     res.status(500).json({ error: "Unknown error occurred" });
@@ -49,17 +50,17 @@ async function createActorHandler(
 }
 
 type GetActorByIdBody = {
-  id: number;
+  id: string | number;
 };
 
 async function getActorById(
   req: Request<{}, {}, GetActorByIdBody>,
   res: Response
 ) {
-  const { id } = req.body;
+  const id = Number(req.body.id);
 
   try {
-    if (!id || isNaN(id)) {
+    if (isNaN(Number(id))) {
       throw new Error("ID must be a valid number");
     }
 
@@ -77,7 +78,7 @@ async function getActorById(
     res.status(200).json({ Actor: actor[0] });
   } catch (error) {
     if (error instanceof Error) {
-      res.status(400).json({ error: "Bad request" });
+      res.status(400).json({ error: "ID must be a valid number" });
       return;
     }
     res.status(500).json({ error: "Unknown error occurred" });
@@ -85,7 +86,7 @@ async function getActorById(
 }
 
 type UpdateActorBody = {
-  id: number;
+  id?: string;
   name: string;
 };
 
@@ -93,10 +94,11 @@ async function updateActorHandler(
   req: Request<{}, {}, UpdateActorBody>,
   res: Response
 ) {
-  const { id, name } = req.body;
+  const { name } = req.body;
+  const id = Number(req.body.id);
 
   try {
-    if (!id || isNaN(id)) {
+    if (isNaN(id) || id < 1) {
       res.status(400).json({ error: "Id must be a valid number" });
       return;
     }
@@ -130,18 +132,17 @@ async function updateActorHandler(
 }
 
 type DeleteActorBody = {
-  id: number;
+  id: string | number;
 };
 
 async function deleteActorHandler(
   req: Request<{}, {}, DeleteActorBody>,
   res: Response
 ) {
-  const id = req.body.id;
+  const id = Number(req.body.id);
 
-  if (!id || isNaN(id)) {
-    res.status(400).json({ error: "Id must be a valid number" });
-    return;
+  if (isNaN(id) || id < 1) {
+    throw new Error("ID must be a valid number");
   }
 
   try {
