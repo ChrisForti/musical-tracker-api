@@ -51,3 +51,8 @@ export const RoleTable = pgTable("role", {
   id: bigserial("id", { mode: "number" }).primaryKey().notNull(),
   name: varchar("name", { length: 255 }).notNull(),
 });
+
+export const ActorTable = pgTable("Actor", {
+  id: bigserial("id", { mode: "number" }).primaryKey().notNull(),
+  name: varchar("name", { length: 255 }).notNull(),
+});

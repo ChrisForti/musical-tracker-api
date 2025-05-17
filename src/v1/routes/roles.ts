@@ -2,27 +2,29 @@ import { Router, type Request, type Response } from "express";
 import { db } from "../../drizzle/db.js";
 import { RoleTable } from "../../drizzle/schema.js";
 import { eq } from "drizzle-orm";
+import { SERVER_ERROR } from "../../lib/errors.js";
 
 export const roleRouter = Router();
 
 roleRouter.post("/", createRoleHandler);
-roleRouter.get("/", getRoleById);
+roleRouter.get("/:id", getRoleByIdHandler);
 roleRouter.put("/", updateRoleHandler);
 roleRouter.delete("/", deleteRoleHandler);
 
-type CreateRoleBody = {
+type CreateRoleBodyParams = {
   name: string;
 };
 
 async function createRoleHandler(
-  req: Request<{}, {}, CreateRoleBody>,
-  res: Response
+  req: Request<{}, {}, CreateRoleBodyParams>,
+  res: Response,
 ) {
-  const { name } = req.body;
+  const name = req.body.name;
 
   try {
     if (!name) {
-      throw new Error("Name is required");
+      res.status(400).json({ error: "'name' is required" });
+      return;
     }
 
     const newRole = await db.insert(RoleTable).values({
@@ -31,69 +33,69 @@ async function createRoleHandler(
 
     res.status(201).json({
       message: "Role created successfully",
-      role: newRole,
+      roleId: newRole.oid,
     });
   } catch (error) {
-    if (error instanceof Error) {
-      res.status(400).json({ error: "Bad request" });
-      return;
-    }
-    res.status(500).json({ error: "Unknown error occurred" });
-    return;
+    console.error("Error in createRoleHandler:", error);
+    res.status(500).json({ error: SERVER_ERROR });
   }
 }
 
-type GetRoleByIdBody = {
-  id: number;
+type GetRoleByIdQueryParams = {
+  id: string | number;
 };
 
-async function getRoleById(
-  req: Request<{}, {}, GetRoleByIdBody>,
-  res: Response
+async function getRoleByIdHandler(
+  req: Request<GetRoleByIdQueryParams>,
+  res: Response,
 ) {
-  const { id } = req.body;
+  const id = Number(req.params.id);
+
+  if (isNaN(id) || id < 1) {
+    res
+      .status(400)
+      .json({ error: "'id' is required and must be a valid number" });
+  }
 
   try {
-    const theater = await db
-      .select()
-      .from(RoleTable)
-      .where(eq(RoleTable.id, id))
-      .limit(1);
+    const theater = await db.query.TheaterTable.findFirst({
+      where: eq(RoleTable.id, id),
+    });
 
-    if (theater.length === 0) {
-      res.status(404).json({ error: "Role not found" });
+    if (!theater) {
+      res.status(404).json({ error: "'id' is invalid" });
       return;
     }
 
-    res.status(200).json({ theater: theater[0] });
+    res.status(200).json({ theater });
   } catch (error) {
-    if (error instanceof Error) {
-      res.status(400).json({ error: "Bad request" });
-      return;
-    }
-    res.status(500).json({ error: "Unknown error occurred" });
+    console.error("Error in getRoleByIdHandler:", error);
+    res.status(500).json({ error: SERVER_ERROR });
   }
 }
 
-type UpdateRoleBody = {
-  id: number;
+type UpdateRoleBodyParams = {
+  id: string | number;
   name: string;
 };
 
 async function updateRoleHandler(
-  req: Request<{}, {}, UpdateRoleBody>,
-  res: Response
+  req: Request<{}, {}, UpdateRoleBodyParams>,
+  res: Response,
 ) {
-  const { id, name } = req.body;
+  const name = req.body.name;
+  const id = Number(req.body.id);
 
   try {
-    if (!id) {
-      res.status(400).json({ error: "id is required" });
+    if (isNaN(id) || id < 1) {
+      res
+        .status(400)
+        .json({ error: "'id' is required and must be a valid number" });
       return;
     }
 
     if (!name) {
-      res.status(400).json({ error: "Name is required" });
+      res.status(400).json({ error: "'name' is required" });
       return;
     }
 
@@ -103,35 +105,33 @@ async function updateRoleHandler(
       .where(eq(RoleTable.id, Number(id)));
 
     if (updatedRole.rowCount === 0) {
-      res.status(404).json({ error: "Role not found" });
+      res.status(404).json({ error: "'id' is invalid" });
       return;
     }
 
     res.status(200).json({
       message: "Role updated successfully",
-      role: updatedRole,
     });
   } catch (error) {
-    if (error instanceof Error) {
-      res.status(400).json({ error: error.message });
-      return;
-    }
-    res.status(500).json({ error: "Failed to update role" });
+    console.error("Error in updateRoleHandler:", error);
+    res.status(500).json({ error: SERVER_ERROR });
   }
 }
 
-type DeleteRoleBody = {
-  id: number;
+type DeleteRoleBodyParams = {
+  id: string | number;
 };
 
 async function deleteRoleHandler(
-  req: Request<{}, {}, DeleteRoleBody>,
-  res: Response
+  req: Request<{}, {}, DeleteRoleBodyParams>,
+  res: Response,
 ) {
-  const id = req.body.id;
+  const id = Number(req.body.id);
 
-  if (!id) {
-    res.status(400).json({ error: "Role ID is required" });
+  if (isNaN(id) || id < 1) {
+    res
+      .status(400)
+      .json({ error: "'id' is required and must be a valid number" });
     return;
   }
 
@@ -139,18 +139,15 @@ async function deleteRoleHandler(
     const deletedRole = await db.delete(RoleTable).where(eq(RoleTable.id, id));
 
     if (deletedRole.rowCount === 0) {
-      throw new Error("Role not found or already deleted");
+      res.status(404).json({ error: "'id' is invalid" });
+      return;
     }
 
     res.status(200).json({
       message: "Role deleted successfully",
-      role: deletedRole,
     });
   } catch (error) {
-    if (error instanceof Error) {
-      res.status(400).json({ error: error.message });
-      return;
-    }
-    res.status(500).json({ error: "Failed to delete role" });
+    console.error("Error in deleteRoleHandler:", error);
+    res.status(500).json({ error: SERVER_ERROR });
   }
 }
