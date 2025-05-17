@@ -41,7 +41,7 @@ docker compose up
 5.  Run Database Migrations:
 
 ```sh
-npm run migrate
+npm run db:migrate
 ```
 
 6.  Start the dev server
