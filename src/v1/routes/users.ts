@@ -13,47 +13,65 @@ userRouter.get("/", getUserByEmailHandler); // TODO: change to look up by id aft
 userRouter.put("/", updateUserHandler);
 userRouter.delete("/", deleteUserHandler);
 
-type CreateUserBody = {
-  firstName?: string;
-  lastName?: string;
-  email?: string;
-  password?: string;
+type CreateUserBodyParams = {
+  firstName: string;
+  lastName: string;
+  email: string;
+  password: string;
 };
 
 async function createUserHandler(
-  req: Request<{}, {}, CreateUserBody>,
-  res: Response
+  req: Request<{}, {}, CreateUserBodyParams>,
+  res: Response,
 ): Promise<any> {
   const { firstName, lastName, email, password } = req.body;
+
+  const errors: string[] = [];
 
   const emailRx =
     "^[a-zA-Z0-9.!#$%&'*+/=?^_`{|}~-]+@[a-zA-Z0-9](?:[a-zA-Z0-9-]{0,61}[a-zA-Z0-9])?(?:\\.[a-zA-Z0-9](?:[a-zA-Z0-9-]{0,61}[a-zA-Z0-9])?)*$";
   try {
-    if (!firstName || !lastName) {
-      throw new Error("First and last name are required");
+    if (!firstName) {
+      errors.push("'firstName' is required");
     }
-    if (firstName.length < 3 || lastName.length < 3) {
-      throw new Error("First and last shoud be a minimum of three characters");
+    if (firstName && firstName.length < 3) {
+      errors.push("'firstName' must be at least 3 characters");
+    }
+
+    if (!lastName) {
+      errors.push("'lastName' is required");
+    }
+    if (lastName && lastName.length < 3) {
+      errors.push("'lastName' must be at least 3 characters");
     }
 
     if (!email) {
-      throw new Error("Email address is required");
+      errors.push("'email' is required");
     }
-    if (!email.match(emailRx)) {
-      throw new Error("Invalid email format");
+    if (email && !email.match(emailRx)) {
+      errors.push("'email' must be a valid email address");
     }
 
     if (!password) {
-      throw new Error("password is missing");
+      errors.push("'password' is required");
     }
-    if (password.length < 8 || password.length > 32) {
-      throw new Error("password must be between 8, and 32 characters");
+    if (password && password.length < 8) {
+      errors.push("'password' must be at least 8 digits");
+    }
+
+    if (errors.length > 0) {
+      res.status(400).json({ error: errors.join(",") });
+      return;
     }
 
     // hash password then check for a falsy password hash
-    const passwordHash = await hash(password, 10);
+    const passwordHash = await hash(password!, 10);
     if (!passwordHash) {
-      throw new Error("Error hashing the password");
+      res.status(500).json({
+        error:
+          "The server encountered an error and cannot complete your request",
+      });
+      return;
     }
 
     await db
@@ -62,10 +80,6 @@ async function createUserHandler(
 
     return res.json({ message: "User created successfully" });
   } catch (error) {
-    if (error instanceof Error) {
-      res.status(400).json({ error: "Bad request" });
-      return;
-    }
     res.status(500).json({ error: "Unknown error occurred" });
     return;
   }
@@ -78,7 +92,7 @@ type LoginUserBody = {
 
 async function loginUserHandler(
   req: Request<{}, {}, LoginUserBody>,
-  res: Response
+  res: Response,
 ) {
   const { email, password } = req.body;
   console.log("Request body:", req.body);
@@ -167,7 +181,7 @@ type UpdateUserBody = {
 
 async function updateUserHandler(
   req: Request<{}, {}, UpdateUserBody>,
-  res: Response
+  res: Response,
 ) {
   const userId = req.user!.id;
   const { firstName, lastName, email, password } = req.body as UpdateUserBody;
