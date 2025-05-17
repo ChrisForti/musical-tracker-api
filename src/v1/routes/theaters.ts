@@ -7,7 +7,7 @@ import { SERVER_ERROR } from "../../lib/errors.js";
 export const theaterRouter = Router();
 
 theaterRouter.post("/", createTheaterHandler);
-theaterRouter.get("/", getTheaterByIdHandler);
+theaterRouter.get("/:id", getTheaterByIdHandler);
 theaterRouter.put("/", updateTheaterHandler);
 theaterRouter.delete("/", deleteTheaterHandler);
 

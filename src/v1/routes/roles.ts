@@ -7,7 +7,7 @@ import { SERVER_ERROR } from "../../lib/errors.js";
 export const roleRouter = Router();
 
 roleRouter.post("/", createRoleHandler);
-roleRouter.get("/", getRoleByIdHandler);
+roleRouter.get("/:id", getRoleByIdHandler);
 roleRouter.put("/", updateRoleHandler);
 roleRouter.delete("/", deleteRoleHandler);
 
@@ -38,7 +38,6 @@ async function createRoleHandler(
   } catch (error) {
     console.error("Error in createRoleHandler:", error);
     res.status(500).json({ error: SERVER_ERROR });
-    return;
   }
 }
 
