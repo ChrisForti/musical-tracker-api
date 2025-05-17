@@ -61,7 +61,8 @@ async function getActorById(
 
   try {
     if (isNaN(Number(id))) {
-      throw new Error("ID must be a valid number");
+      res.status(400).json({ error: "ID must be a valid number" });
+      return;
     }
 
     const actor = await db
@@ -142,7 +143,8 @@ async function deleteActorHandler(
   const id = Number(req.body.id);
 
   if (isNaN(id) || id < 1) {
-    throw new Error("ID must be a valid number");
+    res.status(400).json({ error: "ID must be a valid number" });
+    return;
   }
 
   try {
