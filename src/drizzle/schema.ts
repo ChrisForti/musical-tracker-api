@@ -52,7 +52,14 @@ export const RoleTable = pgTable("role", {
   name: varchar("name", { length: 255 }).notNull(),
 });
 
-export const ActorTable = pgTable("Actor", {
+export const ActorTable = pgTable("actor", {
   id: bigserial("id", { mode: "number" }).primaryKey().notNull(),
   name: varchar("name", { length: 255 }).notNull(),
+});
+
+export const MusicalTable = pgTable("musical", {
+  id: bigserial("id", { mode: "number" }).primaryKey().notNull(),
+  composer: varchar("name", { length: 255 }).notNull(),
+  lyricist: varchar("name", { length: 255 }).notNull(),
+  title: varchar("name", { length: 255 }).notNull(),
 });
