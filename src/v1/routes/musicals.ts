@@ -100,7 +100,7 @@ async function getMusicalByIdHandler(
 }
 
 type UpdateMusicalBodyParams = {
-  id?: string | number;
+  id: string | number;
   composer?: string;
   lyricist?: string;
   title?: string;
@@ -120,16 +120,22 @@ async function updateMusicalHandler(
   };
 
   try {
-    const updatedData: UpdatedData = {};
-    if (composer) updatedData.composer = composer;
-    if (lyricist) updatedData.lyricist = lyricist;
-    if (title) updatedData.title = title;
-
-    if (isNaN(Number(id)) || id < 1) {
+    if (!id || isNaN(Number(id)) || id < 1) {
       res
         .status(400)
         .json({ error: "'id' required and must be a valid number" });
       return;
+    }
+
+    const updatedData: UpdatedData = {};
+    if (composer) {
+      updatedData.composer = composer;
+    }
+    if (lyricist) {
+      updatedData.lyricist = lyricist;
+    }
+    if (title) {
+      updatedData.title = title;
     }
 
     const updatedMusical = await db
