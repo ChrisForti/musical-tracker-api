@@ -136,7 +136,7 @@ async function getUserByEmailHandler(req: Request, res: Response) {
     const emailRx =
       "^[a-zA-Z0-9.!#$%&'*+/=?^_`{|}~-]+@[a-zA-Z0-9](?:[a-zA-Z0-9-]{0,61}[a-zA-Z0-9])?(?:\\.[a-zA-Z0-9](?:[a-zA-Z0-9-]{0,61}[a-zA-Z0-9])?)*$";
     validator.check(!email, "email", "is required");
-    validator.check(!!!email.match(emailRx), "email", "is invalid format");
+    validator.check(!!email.match(emailRx), "email", "is invalid format");
 
     const user = await db
       .select()
@@ -176,9 +176,8 @@ async function updateUserHandler(
 
   const emailRx =
     "^[a-zA-Z0-9.!#$%&'*+/=?^_`{|}~-]+@[a-zA-Z0-9](?:[a-zA-Z0-9-]{0,61}[a-zA-Z0-9])?(?:\\.[a-zA-Z0-9](?:[a-zA-Z0-9-]{0,61}[a-zA-Z0-9])?)*$";
-  validator.check(!email, "email", "is required");
   validator.check(
-    !!email && !email.match(emailRx),
+    !!email && !!email.match(emailRx),
     "email",
     "is invalid format"
   );
@@ -195,10 +194,11 @@ async function updateUserHandler(
     if (firstName) updatedData.firstName = firstName;
     if (lastName) updatedData.lastName = lastName;
     if (email) updatedData.email = email;
-
+    validator.check(!password, "password", "is required");
     if (password) {
       if (password.length < 8 || password.length > 32) {
-        throw new Error("Password must be between 8 and 32 characters");
+        res.status(400).json(validator.errors);
+        return;
       }
       updatedData.passwordHash = await hash(password, 10);
     }
@@ -208,10 +208,7 @@ async function updateUserHandler(
       .set(updatedData)
       .where(eq(UserTable.id, userId));
 
-    if (result.rowCount === 0) {
-      res.status(404).json({ message: "User not found" });
-      return;
-    }
+    validator.check(result.rowCount === 0, "user", "not found");
 
     res.status(200).json({ message: "User updated successfully" });
   } catch (error) {
@@ -227,10 +224,14 @@ async function updateUserHandler(
 
 async function deleteUserHandler(req: Request, res: Response) {
   const userId = req.user?.id;
+  const validator = new Validator();
 
   try {
+    validator.check(!userId, "userId", "does not exist");
+
     if (!userId) {
-      throw new Error("User does not exist");
+      res.status(400).json(validator.errors);
+      return;
     }
 
     const result = await db.delete(UserTable).where(eq(UserTable.id, userId));
