@@ -5,6 +5,7 @@ import { compare, hash } from "bcrypt";
 import { eq } from "drizzle-orm";
 import { generateAuthenticationToken } from "../../lib/tokens.js";
 import { Validator } from "../../lib/validator.js";
+import { SERVER_ERROR } from "../../lib/errors.js";
 
 export const userRouter = Router();
 
@@ -24,7 +25,7 @@ type CreateUserBodyParams = {
 async function createUserHandler(
   req: Request<{}, {}, CreateUserBodyParams>,
   res: Response
-): Promise<any> {
+) {
   const { firstName, lastName, email, password } = req.body;
   const emailRx =
     "^[a-zA-Z0-9.!#$%&'*+/=?^_`{|}~-]+@[a-zA-Z0-9](?:[a-zA-Z0-9-]{0,61}[a-zA-Z0-9])?(?:\\.[a-zA-Z0-9](?:[a-zA-Z0-9-]{0,61}[a-zA-Z0-9])?)*$";
@@ -56,6 +57,11 @@ async function createUserHandler(
       "must be at least 8 digits"
     );
 
+    if (!validator.valid) {
+      res.status(400).json({ errors: validator.errors });
+      return;
+    }
+
     // hash password then check for a falsy password hash
     const passwordHash = await hash(password!, 10);
     if (!passwordHash) {
@@ -70,9 +76,10 @@ async function createUserHandler(
       .insert(UserTable)
       .values({ firstName, lastName, email, passwordHash });
 
-    return res.json(validator.errors);
+    res.json({ message: "User created successfully" });
+    return;
   } catch (error) {
-    res.status(500).json(validator.errors);
+    res.status(500).json({ error: "Unknown error occurred" });
     return;
   }
 }
@@ -88,17 +95,14 @@ async function loginUserHandler(
 ) {
   const { email, password } = req.body;
   const validator = new Validator();
-  console.log("Request body:", req.body);
 
   validator.check(!email, "email", "is required");
   validator.check(!password, "password", "is required");
 
   try {
-    console.log("Querying user with email:", email);
-
     const user = await db.query.UserTable.findFirst({
       where: (users, { eq }) => {
-        return eq(users.email, email); // TODO: can be used for get user by id
+        return eq(users.email, email);
       },
     });
 
@@ -119,9 +123,10 @@ async function loginUserHandler(
   } catch (error) {
     if (error instanceof Error) {
       res.status(500).json(validator.errors);
-    } else {
-      res.status(500).json(validator.errors);
     }
+    console.error;
+    res.status(500).json({ error: SERVER_ERROR });
+    return;
   }
 }
 
@@ -151,10 +156,11 @@ async function getUserByEmailHandler(req: Request, res: Response) {
     res.status(200).json(user[0]);
   } catch (error) {
     if (error instanceof Error) {
-      res.status(400).json(validator.errors);
-    } else {
-      res.status(500).json(validator.errors);
+      res.status(400).json({ errors: validator.errors });
     }
+    console.error;
+    res.status(500).json({ error: SERVER_ERROR });
+    return;
   }
 }
 
@@ -213,12 +219,12 @@ async function updateUserHandler(
     res.status(200).json({ message: "User updated successfully" });
   } catch (error) {
     if (error instanceof Error) {
-      res.status(400).json(validator.errors);
-      return;
-    } else {
-      res.status(500).json(validator.errors);
+      res.status(400).json({ erroras: validator.errors });
       return;
     }
+    console.error;
+    res.status(500).json({ error: SERVER_ERROR });
+    return;
   }
 }
 
@@ -230,7 +236,7 @@ async function deleteUserHandler(req: Request, res: Response) {
     validator.check(!userId, "userId", "does not exist");
 
     if (!userId) {
-      res.status(400).json(validator.errors);
+      res.status(400).json({ errors: validator.errors });
       return;
     }
 
@@ -243,7 +249,7 @@ async function deleteUserHandler(req: Request, res: Response) {
     res.status(200).json({ message: "User deleted successfully" });
   } catch (err) {
     if (err instanceof Error) {
-      res.status(400).json({ message: err.message });
+      res.status(400).json({ errors: validator.errors });
     } else {
       res.status(500).json({ message: "Failed to delete user" }); //
     }
