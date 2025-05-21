@@ -99,6 +99,11 @@ async function loginUserHandler(
   validator.check(!email, "email", "is required");
   validator.check(!password, "password", "is required");
 
+  if (!validator.valid) {
+    res.status(400).json({ errors: validator.errors });
+    return;
+  }
+
   try {
     const user = await db.query.UserTable.findFirst({
       where: (users, { eq }) => {
@@ -219,7 +224,7 @@ async function updateUserHandler(
     res.status(200).json({ message: "User updated successfully" });
   } catch (error) {
     if (error instanceof Error) {
-      res.status(400).json({ erroras: validator.errors });
+      res.status(400).json({ errors: validator.errors });
       return;
     }
     console.error;
