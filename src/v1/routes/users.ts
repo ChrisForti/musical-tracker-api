@@ -4,6 +4,8 @@ import { UserTable } from "../../drizzle/schema.js";
 import { compare, hash } from "bcrypt";
 import { eq } from "drizzle-orm";
 import { generateAuthenticationToken } from "../../lib/tokens.js";
+import { Validator } from "../../lib/validator.js";
+import { SERVER_ERROR } from "../../lib/errors.js";
 
 export const userRouter = Router();
 
@@ -22,45 +24,41 @@ type CreateUserBodyParams = {
 
 async function createUserHandler(
   req: Request<{}, {}, CreateUserBodyParams>,
-  res: Response,
-): Promise<any> {
+  res: Response
+) {
   const { firstName, lastName, email, password } = req.body;
-
-  const errors: string[] = [];
-
   const emailRx =
     "^[a-zA-Z0-9.!#$%&'*+/=?^_`{|}~-]+@[a-zA-Z0-9](?:[a-zA-Z0-9-]{0,61}[a-zA-Z0-9])?(?:\\.[a-zA-Z0-9](?:[a-zA-Z0-9-]{0,61}[a-zA-Z0-9])?)*$";
+  const validator = new Validator();
+
   try {
-    if (!firstName) {
-      errors.push("'firstName' is required");
-    }
-    if (firstName && firstName.length < 3) {
-      errors.push("'firstName' must be at least 3 characters");
-    }
+    validator.check(!firstName, "firstName", "is required");
+    validator.check(
+      !!firstName && firstName.length < 3,
+      "firstName",
+      "must be 3 characters"
+    );
+    validator.check(!lastName, "lastName", "is required");
+    validator.check(
+      !!lastName && lastName.length < 3,
+      "lastName",
+      " must be at least 3 characters"
+    );
+    validator.check(!email, "email", "is required");
+    validator.check(
+      !!email && !email.match(emailRx),
+      "email",
+      "must be a valid email address"
+    );
+    validator.check(!password, "password", "is required");
+    validator.check(
+      !!password && password.length < 8,
+      "password",
+      "must be at least 8 digits"
+    );
 
-    if (!lastName) {
-      errors.push("'lastName' is required");
-    }
-    if (lastName && lastName.length < 3) {
-      errors.push("'lastName' must be at least 3 characters");
-    }
-
-    if (!email) {
-      errors.push("'email' is required");
-    }
-    if (email && !email.match(emailRx)) {
-      errors.push("'email' must be a valid email address");
-    }
-
-    if (!password) {
-      errors.push("'password' is required");
-    }
-    if (password && password.length < 8) {
-      errors.push("'password' must be at least 8 digits");
-    }
-
-    if (errors.length > 0) {
-      res.status(400).json({ error: errors.join(",") });
+    if (!validator.valid) {
+      res.status(400).json({ errors: validator.errors });
       return;
     }
 
@@ -78,7 +76,8 @@ async function createUserHandler(
       .insert(UserTable)
       .values({ firstName, lastName, email, passwordHash });
 
-    return res.json({ message: "User created successfully" });
+    res.json({ message: "User created successfully" });
+    return;
   } catch (error) {
     res.status(500).json({ error: "Unknown error occurred" });
     return;
@@ -92,22 +91,23 @@ type LoginUserBody = {
 
 async function loginUserHandler(
   req: Request<{}, {}, LoginUserBody>,
-  res: Response,
+  res: Response
 ) {
   const { email, password } = req.body;
-  console.log("Request body:", req.body);
+  const validator = new Validator();
 
-  if (!email || !password) {
-    res.status(400).json({ error: "Email and password are required" });
+  validator.check(!email, "email", "is required");
+  validator.check(!password, "password", "is required");
+
+  if (!validator.valid) {
+    res.status(400).json({ errors: validator.errors });
     return;
   }
 
   try {
-    console.log("Querying user with email:", email);
-
     const user = await db.query.UserTable.findFirst({
       where: (users, { eq }) => {
-        return eq(users.email, email); // TODO: can be used for get user by id
+        return eq(users.email, email);
       },
     });
 
@@ -127,10 +127,11 @@ async function loginUserHandler(
     res.status(200).json({ message: "Login successful", token });
   } catch (error) {
     if (error instanceof Error) {
-      res.status(500).json({ error: error.message });
-    } else {
-      res.status(500).json({ error: "Unknown error occurred" });
+      res.status(500).json(validator.errors);
     }
+    console.error;
+    res.status(500).json({ error: SERVER_ERROR });
+    return;
   }
 }
 
@@ -140,17 +141,12 @@ type GetUserByEmailBody = {
 
 async function getUserByEmailHandler(req: Request, res: Response) {
   const email = req.query.email as string;
-
+  const validator = new Validator();
   try {
-    if (!email) {
-      throw new Error("Email is required");
-    }
-
     const emailRx =
       "^[a-zA-Z0-9.!#$%&'*+/=?^_`{|}~-]+@[a-zA-Z0-9](?:[a-zA-Z0-9-]{0,61}[a-zA-Z0-9])?(?:\\.[a-zA-Z0-9](?:[a-zA-Z0-9-]{0,61}[a-zA-Z0-9])?)*$";
-    if (!email.match(emailRx)) {
-      throw new Error("Invalid email format");
-    }
+    validator.check(!email, "email", "is required");
+    validator.check(!!email.match(emailRx), "email", "is invalid format");
 
     const user = await db
       .select()
@@ -165,10 +161,11 @@ async function getUserByEmailHandler(req: Request, res: Response) {
     res.status(200).json(user[0]);
   } catch (error) {
     if (error instanceof Error) {
-      res.status(400).json({ error: error.message });
-    } else {
-      res.status(500).json({ error: "Unknown error occurred" });
+      res.status(400).json({ errors: validator.errors });
     }
+    console.error;
+    res.status(500).json({ error: SERVER_ERROR });
+    return;
   }
 }
 
@@ -181,24 +178,20 @@ type UpdateUserBody = {
 
 async function updateUserHandler(
   req: Request<{}, {}, UpdateUserBody>,
-  res: Response,
+  res: Response
 ) {
   const userId = req.user!.id;
   const { firstName, lastName, email, password } = req.body as UpdateUserBody;
+  const validator = new Validator();
   console.log("Request body:", req.body);
-
-  if (!firstName && !lastName && !email && !password) {
-    res.status(400).json({ error: "Must provide some fields to update" });
-    return;
-  }
 
   const emailRx =
     "^[a-zA-Z0-9.!#$%&'*+/=?^_`{|}~-]+@[a-zA-Z0-9](?:[a-zA-Z0-9-]{0,61}[a-zA-Z0-9])?(?:\\.[a-zA-Z0-9](?:[a-zA-Z0-9-]{0,61}[a-zA-Z0-9])?)*$";
-  if (email && !email.match(emailRx)) {
-    res.status(400).json({ error: "Invalid email format" });
-    return;
-  }
-  // TODO: validate password
+  validator.check(
+    !!email && !!email.match(emailRx),
+    "email",
+    "is invalid format"
+  );
 
   type UpdateData = {
     firstName?: string;
@@ -212,10 +205,11 @@ async function updateUserHandler(
     if (firstName) updatedData.firstName = firstName;
     if (lastName) updatedData.lastName = lastName;
     if (email) updatedData.email = email;
-
+    validator.check(!password, "password", "is required");
     if (password) {
       if (password.length < 8 || password.length > 32) {
-        throw new Error("Password must be between 8 and 32 characters");
+        res.status(400).json(validator.errors);
+        return;
       }
       updatedData.passwordHash = await hash(password, 10);
     }
@@ -225,29 +219,30 @@ async function updateUserHandler(
       .set(updatedData)
       .where(eq(UserTable.id, userId));
 
-    if (result.rowCount === 0) {
-      res.status(404).json({ message: "User not found" });
-      return;
-    }
+    validator.check(result.rowCount === 0, "user", "not found");
 
     res.status(200).json({ message: "User updated successfully" });
   } catch (error) {
     if (error instanceof Error) {
-      res.status(400).json({ error: error.message });
-      return;
-    } else {
-      res.status(500).json({ error: "Unknown error occurred" });
+      res.status(400).json({ errors: validator.errors });
       return;
     }
+    console.error;
+    res.status(500).json({ error: SERVER_ERROR });
+    return;
   }
 }
 
 async function deleteUserHandler(req: Request, res: Response) {
   const userId = req.user?.id;
+  const validator = new Validator();
 
   try {
+    validator.check(!userId, "userId", "does not exist");
+
     if (!userId) {
-      throw new Error("User does not exist");
+      res.status(400).json({ errors: validator.errors });
+      return;
     }
 
     const result = await db.delete(UserTable).where(eq(UserTable.id, userId));
@@ -259,7 +254,7 @@ async function deleteUserHandler(req: Request, res: Response) {
     res.status(200).json({ message: "User deleted successfully" });
   } catch (err) {
     if (err instanceof Error) {
-      res.status(400).json({ message: err.message });
+      res.status(400).json({ errors: validator.errors });
     } else {
       res.status(500).json({ message: "Failed to delete user" }); //
     }
