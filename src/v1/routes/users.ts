@@ -6,14 +6,15 @@ import { eq } from "drizzle-orm";
 import { generateAuthenticationToken } from "../../lib/tokens.js";
 import { Validator } from "../../lib/validator.js";
 import { SERVER_ERROR } from "../../lib/errors.js";
+import { ensureAuthenticated } from "../../lib/auth.js";
 
 export const userRouter = Router();
 
 userRouter.post("/", createUserHandler);
 userRouter.post("/login", loginUserHandler);
-userRouter.get("/", getUserByEmailHandler); // TODO: change to look up by id after authentication is completed
-userRouter.put("/", updateUserHandler);
-userRouter.delete("/", deleteUserHandler);
+userRouter.get("/", ensureAuthenticated, getUserByIdHandler); // TODO: get user by id
+userRouter.put("/", ensureAuthenticated, updateUserHandler);
+userRouter.delete("/", ensureAuthenticated, deleteUserHandler);
 
 type CreateUserBodyParams = {
   firstName: string;
@@ -32,27 +33,27 @@ async function createUserHandler(
   const validator = new Validator();
 
   try {
-    validator.check(!firstName, "firstName", "is required");
+    validator.check(!!firstName, "firstName", "is required");
     validator.check(
-      !!firstName && firstName.length < 3,
+      firstName.length < 3,
       "firstName",
-      "must be 3 characters"
+      "must be at least 3 characters"
     );
-    validator.check(!lastName, "lastName", "is required");
+    validator.check(!!lastName, "lastName", "is required");
     validator.check(
-      !!lastName && lastName.length < 3,
+      lastName.length < 3,
       "lastName",
       " must be at least 3 characters"
     );
-    validator.check(!email, "email", "is required");
+    validator.check(!!email, "email", "is required");
     validator.check(
-      !!email && !email.match(emailRx),
+      !!email.match(emailRx),
       "email",
       "must be a valid email address"
     );
-    validator.check(!password, "password", "is required");
+    validator.check(!!password, "password", "is required");
     validator.check(
-      !!password && password.length < 8,
+      password.length < 8,
       "password",
       "must be at least 8 digits"
     );
@@ -96,8 +97,8 @@ async function loginUserHandler(
   const { email, password } = req.body;
   const validator = new Validator();
 
-  validator.check(!email, "email", "is required");
-  validator.check(!password, "password", "is required");
+  validator.check(!!email, "email", "is required");
+  validator.check(!!password, "password", "is required");
 
   if (!validator.valid) {
     res.status(400).json({ errors: validator.errors });
@@ -112,13 +113,17 @@ async function loginUserHandler(
     });
 
     if (!user) {
-      res.status(401).json({ error: "Invalid email or password" });
+      res
+        .status(401)
+        .json({ errors: { message: "Invalid email or password" } });
       return;
     }
 
     const isPasswordValid = await compare(password, user.passwordHash);
     if (!isPasswordValid) {
-      res.status(401).json({ error: "Invalid email or password" });
+      res
+        .status(401)
+        .json({ errors: { message: "Invalid email or password" } });
       return;
     }
 
@@ -135,23 +140,26 @@ async function loginUserHandler(
   }
 }
 
-type GetUserByEmailBody = {
-  email: string;
+type GetUserByIdBody = {
+  id: string;
 };
 
-async function getUserByEmailHandler(req: Request, res: Response) {
-  const email = req.query.email as string;
+async function getUserByIdHandler(req: Request, res: Response) {
+  const userId = parseInt(req.query.id as string);
   const validator = new Validator();
+
   try {
-    const emailRx =
-      "^[a-zA-Z0-9.!#$%&'*+/=?^_`{|}~-]+@[a-zA-Z0-9](?:[a-zA-Z0-9-]{0,61}[a-zA-Z0-9])?(?:\\.[a-zA-Z0-9](?:[a-zA-Z0-9-]{0,61}[a-zA-Z0-9])?)*$";
-    validator.check(!email, "email", "is required");
-    validator.check(!!email.match(emailRx), "email", "is invalid format");
+    validator.check(!isNaN(userId), "id", "must be a valid number");
+
+    if (!validator.valid) {
+      res.status(400).json({ errors: validator.errors });
+      return;
+    }
 
     const user = await db
       .select()
       .from(UserTable)
-      .where(eq(UserTable.email, email));
+      .where(eq(UserTable.id, userId));
 
     if (user.length === 0) {
       res.status(404).json({ message: "User not found" });
