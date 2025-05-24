@@ -185,7 +185,7 @@ async function deleteMusicalHandler(
       message: "Musical deleted successfully",
     });
   } catch (error) {
-    console.error("Error in deleteActorHandler:", error);
+    console.error("Error in deletemusicalHandler:", error);
     res.status(500).json({ error: SERVER_ERROR });
   }
 }

@@ -63,3 +63,10 @@ export const MusicalTable = pgTable("musical", {
   lyricist: varchar("name", { length: 255 }).notNull(),
   title: varchar("name", { length: 255 }).notNull(),
 });
+
+export const CastingTable = pgTable("casting", {
+  id: bigserial("id", { mode: "number" }).primaryKey().notNull(),
+  roleId: bigserial("id", { mode: "number" }).primaryKey().notNull(),
+  actorId: bigserial("id", { mode: "number" }).primaryKey().notNull(),
+  performanceId: bigserial("id", { mode: "number" }).primaryKey().notNull(),
+});
