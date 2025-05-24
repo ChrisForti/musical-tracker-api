@@ -144,12 +144,19 @@ type GetUserByIdBody = {
   id: string;
 };
 
-async function getUserByIdHandler(req: Request, res: Response) {
+async function getUserByIdHandler(
+  req: Request<GetUserByIdBody>,
+  res: Response
+) {
   const userId = parseInt(req.query.id as string);
   const validator = new Validator();
 
   try {
-    validator.check(!isNaN(userId), "id", "must be a valid number");
+    validator.check(
+      !isNaN(userId) && userId > 1,
+      "id",
+      "must be a valid number"
+    );
 
     if (!validator.valid) {
       res.status(400).json({ errors: validator.errors });
@@ -172,7 +179,7 @@ async function getUserByIdHandler(req: Request, res: Response) {
       res.status(400).json({ errors: validator.errors });
     }
     console.error;
-    res.status(500).json({ error: SERVER_ERROR });
+    res.status(500).json({ errors: SERVER_ERROR });
     return;
   }
 }

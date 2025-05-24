@@ -6,7 +6,7 @@ import { actorRouter } from "./routes/actors.js";
 import { musicalRouter } from "./routes/musicals.js";
 import { castingRouter } from "./routes/castings.js";
 
-export const v1Router = Router();
+export const v1Router = Router(); // Can add auth logig here too encompass whole router
 v1Router.use("/user", userRouter);
 v1Router.use("/theater", theaterRouter);
 v1Router.use("/role", roleRouter);
