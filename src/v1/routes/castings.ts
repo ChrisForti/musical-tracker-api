@@ -3,14 +3,14 @@ import { CastingTable } from "../../drizzle/schema.js";
 import { Validator } from "../../lib/validator.js";
 import { db } from "../../drizzle/db.js";
 import { SERVER_ERROR } from "../../lib/errors.js";
-import { eq } from "drizzle-orm";
+import { and, eq } from "drizzle-orm";
 
 export const castingRouter = Router();
 
 castingRouter.post("/", createCastingHandler);
-castingRouter.get("/:id", getCastingByIdHandler);
-castingRouter.put("/", updateCastingHandler);
-castingRouter.delete("/", deleteCastingHandler);
+castingRouter.get("/:roleId/:actorId/:performanceId", getCastingByIdHandler);
+castingRouter.put("/:roleId/:actorId/:performanceId", updateCastingHandler);
+castingRouter.delete("/:roleId/:actorId/:performanceId", deleteCastingHandler);
 
 type CreateCastingBodyParams = {
   roleId: string | number;
@@ -41,7 +41,7 @@ async function createCastingHandler(
       return;
     }
 
-    const newCasting = await db.insert(CastingTable).values({
+    await db.insert(CastingTable).values({
       roleId,
       actorId,
       performanceId,
@@ -49,29 +49,50 @@ async function createCastingHandler(
 
     res.status(201).json({
       message: "Created successfully",
-      CastingId: newCasting.oid,
+      casting: { roleId, actorId, performanceId },
     });
-  } catch (error) {
+  } catch (error: any) {
+    if (error.code === "23505") {
+      // Handle duplicate insert errors: unique_violation
+      res.status(409).json({ error: "Casting already exists" });
+      return;
+    }
     console.error("Error in createActorHandler:", error);
     res.status(500).json({ error: SERVER_ERROR });
     return;
   }
 }
 
-type GetCastingbyIdParams = {
-  id: string | number;
+type GetCastingByKeyParams = {
+  roleId: string | number;
+  actorId: string | number;
+  performanceId: string | number;
 };
 
 async function getCastingByIdHandler(
-  req: Request<GetCastingbyIdParams>,
+  req: Request<GetCastingByKeyParams>,
   res: Response
 ) {
+  const { roleId, actorId, performanceId } = req.params;
+  const rId = Number(roleId);
+  const aId = Number(actorId);
+  const pId = Number(performanceId);
   const validator = new Validator();
-  const id = Number(req.params.id);
+
   try {
     validator.check(
-      !isNaN(id) && id > 1,
-      "id",
+      !isNaN(rId) && rId > 0,
+      "roleId",
+      "is required and must be a number"
+    );
+    validator.check(
+      !isNaN(aId) && aId > 0,
+      "actorId",
+      "is required and must be a number"
+    );
+    validator.check(
+      !isNaN(pId) && pId > 0,
+      "performanceId",
       "is required and must be a number"
     );
 
@@ -80,13 +101,18 @@ async function getCastingByIdHandler(
       return;
     }
 
-    const casting = await db.query.CastingTable.findFirst({
-      where: eq(CastingTable.id, id),
+    const result = await db.query.CastingTable.findFirst({
+      where: and(
+        eq(CastingTable.roleId, rId),
+        eq(CastingTable.actorId, aId),
+        eq(CastingTable.performanceId, pId)
+      ),
     });
 
-    validator.check(!casting, "casting", "not found");
-    if (!validator.valid) {
-      res.status(404).json({ errors: validator.errors });
+    if (!result) {
+      res
+        .status(404)
+        .json({ errors: [{ field: "casting", message: "not found" }] });
       return;
     }
   } catch (error) {
@@ -96,7 +122,6 @@ async function getCastingByIdHandler(
 }
 
 type UpdateCastinghBodyParams = {
-  id: string | number;
   roleId: string | number;
   actorId: string | number;
   performanceId: string | number;
@@ -106,7 +131,6 @@ async function updateCastingHandler(
   req: Request<{}, {}, UpdateCastinghBodyParams>,
   res: Response
 ) {
-  const id = Number(req.body.id);
   const roleId = Number(req.body.roleId);
   const actorId = Number(req.body.actorId);
   const performanceId = Number(req.body.performanceId);
@@ -119,12 +143,6 @@ async function updateCastingHandler(
   };
 
   try {
-    validator.check(
-      !isNaN(id) && id > 1,
-      "id",
-      "is required and must be a number"
-    );
-
     const updatedData: UpdatedData = {};
     if (roleId) {
       updatedData.roleId = roleId;
@@ -139,12 +157,17 @@ async function updateCastingHandler(
     const result = await db
       .update(CastingTable)
       .set({ roleId, actorId, performanceId })
-      .where(eq(CastingTable.id, Number(id)));
-
-    validator.check(result.rowCount === 0, "id", "not found");
-
-    if (!validator.valid) {
-      res.json({ errors: validator.errors });
+      .where(
+        and(
+          eq(CastingTable.roleId, roleId),
+          eq(CastingTable.actorId, actorId),
+          eq(CastingTable.performanceId, performanceId)
+        )
+      );
+    if (result.rowCount === 0) {
+      res
+        .status(404)
+        .json({ errors: [{ field: "casting", message: "not found" }] });
       return;
     }
 
@@ -158,29 +181,55 @@ async function updateCastingHandler(
 }
 
 type DeleteCastingBodyParams = {
-  id: string | number;
+  roleId: string | number;
+  actorId: string | number;
+  performanceId: string | number;
 };
 
 async function deleteCastingHandler(
   req: Request<{}, {}, DeleteCastingBodyParams>,
   res: Response
 ) {
-  const id = Number(req.body.id);
+  const roleId = Number(req.body.roleId);
+  const actorId = Number(req.body.actorId);
+  const performanceId = Number(req.body.performanceId);
   const validator = new Validator();
 
-  validator.check(
-    !isNaN(id) && id > 1,
-    "id",
-    "is required and must be a number"
-  );
-
   try {
-    const result = await db.delete(CastingTable).where(eq(CastingTable.id, id));
-
-    validator.check(result.rowCount === 0, "id", "invalid");
+    validator.check(
+      !isNaN(roleId) && roleId > 0,
+      "roleId",
+      "is required and must be a number > 0"
+    );
+    validator.check(
+      !isNaN(actorId) && actorId > 0,
+      "actorId",
+      "is required and must be a number > 0"
+    );
+    validator.check(
+      !isNaN(performanceId) && performanceId > 0,
+      "performanceId",
+      "is required and must be a number > 0"
+    );
 
     if (!validator.valid) {
       res.json({ errors: validator.errors });
+      return;
+    }
+
+    const result = await db
+      .delete(CastingTable)
+      .where(
+        and(
+          eq(CastingTable.roleId, roleId),
+          eq(CastingTable.actorId, actorId),
+          eq(CastingTable.performanceId, performanceId)
+        )
+      );
+    if (result.rowCount === 0) {
+      res
+        .status(404)
+        .json({ errors: [{ field: "casting", message: "not found" }] });
       return;
     }
 
