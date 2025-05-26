@@ -8,6 +8,7 @@ import {
   uniqueIndex,
   varchar,
   type AnyPgColumn,
+  date,
 } from "drizzle-orm/pg-core";
 
 export const UserTable = pgTable(
@@ -59,7 +60,14 @@ export const ActorTable = pgTable("actor", {
 
 export const MusicalTable = pgTable("musical", {
   id: bigserial("id", { mode: "number" }).primaryKey().notNull(),
-  composer: varchar("name", { length: 255 }).notNull(),
-  lyricist: varchar("name", { length: 255 }).notNull(),
-  title: varchar("name", { length: 255 }).notNull(),
+  composer: varchar("composer", { length: 255 }).notNull(),
+  lyricist: varchar("lyricist", { length: 255 }).notNull(),
+  title: varchar("title", { length: 255 }).notNull(),
+});
+
+export const PerformanceTable = pgTable("performance", {
+  id: bigserial("id", { mode: "number" }).primaryKey().notNull(),
+  productionId: bigint("production_id", { mode: "number" }).notNull(),
+  date: date({ mode: "date" }).notNull(),
+  theaterId: bigint("theater_id", { mode: "number" }).notNull(),
 });
