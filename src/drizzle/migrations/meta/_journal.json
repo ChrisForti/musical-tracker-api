@@ -36,6 +36,20 @@
       "when": 1747601612786,
       "tag": "0004_nosy_wendell_rand",
       "breakpoints": true
+    },
+    {
+      "idx": 5,
+      "version": "7",
+      "when": 1747874376721,
+      "tag": "0005_parallel_chimera",
+      "breakpoints": true
+    },
+    {
+      "idx": 6,
+      "version": "7",
+      "when": 1748278115069,
+      "tag": "0006_magical_boomer",
+      "breakpoints": true
     }
   ]
 }

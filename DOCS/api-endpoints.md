@@ -17,3 +17,8 @@ login user
     "error": "Invalid email or password"
   }
   ```
+  GET endpoint in casting handler
+
+```sh
+GET /casting/:roleId/:actorId/:performanceId
+```
