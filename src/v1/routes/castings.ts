@@ -9,8 +9,8 @@ export const castingRouter = Router();
 
 castingRouter.post("/", createCastingHandler);
 castingRouter.get("/:roleId/:actorId/:performanceId", getCastingByIdHandler);
-castingRouter.put("/:roleId/:actorId/:performanceId", updateCastingHandler);
-castingRouter.delete("/:roleId/:actorId/:performanceId", deleteCastingHandler);
+castingRouter.put("/", updateCastingHandler);
+castingRouter.delete("/", deleteCastingHandler);
 
 type CreateCastingBodyParams = {
   roleId: string | number;
