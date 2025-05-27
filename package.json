@@ -7,6 +7,7 @@
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
     "dev": "nodemon",
+    "psql": "psql -U postgres -d postgres",
     "db:generate": "drizzle-kit generate",
     "db:migrate": "tsc && node build/drizzle/migrate.js"
   },
