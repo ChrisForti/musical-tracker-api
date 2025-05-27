@@ -1,4 +1,6 @@
+import { table } from "console";
 import { sql, type SQL } from "drizzle-orm";
+import { primaryKey } from "drizzle-orm/pg-core";
 import {
   bigserial,
   boolean,
@@ -71,3 +73,15 @@ export const PerformanceTable = pgTable("performance", {
   date: date({ mode: "date" }).notNull(),
   theaterId: bigint("theater_id", { mode: "number" }).notNull(),
 });
+
+export const CastingTable = pgTable(
+  "casting",
+  {
+    roleId: bigint("role_id", { mode: "number" }).notNull(),
+    actorId: bigint("actor_id", { mode: "number" }).notNull(),
+    performanceId: bigint("performance_id", { mode: "number" }).notNull(),
+  },
+  (table) => [
+    primaryKey({ columns: [table.roleId, table.actorId, table.performanceId] }),
+  ]
+);
