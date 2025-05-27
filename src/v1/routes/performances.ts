@@ -14,14 +14,19 @@ performanceRouter.delete("/", deletePerformanceHandler);
 
 type CreatePerformanceBodyParams = {
   id: string | number;
-  performanceId: string | number;
+  productionId: string | number;
   date: string | Date;
   theaterId: string | number;
 };
 
-async function createPerformanceHandler(req: Request, res: Response) {
-  const { productionId, date, theaterId } = req.body;
+async function createPerformanceHandler(
+  req: Request<{}, {}, CreatePerformanceBodyParams>,
+  res: Response
+) {
+  const { date } = req.body;
   const id = Number(req.body.id);
+  const productionId = Number(req.body.productionId);
+  const theaterId = Number(req.body.theaterId);
   const validator = new Validator();
 
   try {
@@ -171,7 +176,7 @@ type DeletePerformanceBodyParams = {
 };
 
 async function deletePerformanceHandler(
-  req: Request<DeletePerformanceBodyParams>,
+  req: Request<{}, {}, DeletePerformanceBodyParams>,
   res: Response
 ) {
   const id = Number(req.body.id);
