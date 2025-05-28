@@ -23,7 +23,7 @@ async function createPerformanceHandler(
   req: Request<{}, {}, CreatePerformanceBodyParams>,
   res: Response
 ) {
-  const { date } = req.body;
+  const { date } = req.body; // this is not right
   const id = Number(req.body.id);
   const productionId = Number(req.body.productionId);
   const theaterId = Number(req.body.theaterId);

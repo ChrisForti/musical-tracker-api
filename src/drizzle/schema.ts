@@ -1,4 +1,3 @@
-import { table } from "console";
 import { sql, type SQL } from "drizzle-orm";
 import { primaryKey } from "drizzle-orm/pg-core";
 import {
@@ -85,3 +84,11 @@ export const CastingTable = pgTable(
     primaryKey({ columns: [table.roleId, table.actorId, table.performanceId] }),
   ]
 );
+
+export const ProductionTable = pgTable("production", {
+  id: bigserial("id", { mode: "number" }).primaryKey().notNull(),
+  musicalId: bigint("musical_id", { mode: "number" }).notNull(),
+  startDate: date("start_date").notNull(),
+  endDate: date("end_date").notNull(),
+  posterUrl: text("poster_url").notNull(),
+});
