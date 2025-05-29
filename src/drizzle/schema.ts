@@ -40,7 +40,7 @@ export const TokenTable = pgTable("tokens", {
   userId: bigint("user_id", { mode: "number" })
     .notNull()
     .references(() => UserTable.id, { onDelete: "cascade" }),
-  expiry: bigint({ mode: "number" }).notNull(),
+  expiry: bigint("expiry", { mode: "number" }).notNull(),
   scope: text("scope").notNull(),
 });
 
@@ -68,17 +68,27 @@ export const MusicalTable = pgTable("musical", {
 
 export const PerformanceTable = pgTable("performance", {
   id: bigserial("id", { mode: "number" }).primaryKey().notNull(),
-  productionId: bigint("production_id", { mode: "number" }).notNull(),
-  date: date({ mode: "date" }).notNull(),
-  theaterId: bigint("theater_id", { mode: "number" }).notNull(),
+  productionId: bigint("production_id", { mode: "number" })
+    .notNull()
+    .references(() => ProductionTable.id),
+  date: date("date", { mode: "date" }).notNull(),
+  theaterId: bigint("theater_id", { mode: "number" })
+    .notNull()
+    .references(() => TheaterTable.id),
 });
 
 export const CastingTable = pgTable(
   "casting",
   {
-    roleId: bigint("role_id", { mode: "number" }).notNull(),
-    actorId: bigint("actor_id", { mode: "number" }).notNull(),
-    performanceId: bigint("performance_id", { mode: "number" }).notNull(),
+    roleId: bigint("role_id", { mode: "number" })
+      .notNull()
+      .references(() => RoleTable.id),
+    actorId: bigint("actor_id", { mode: "number" })
+      .notNull()
+      .references(() => ActorTable.id),
+    performanceId: bigint("performance_id", { mode: "number" })
+      .notNull()
+      .references(() => ProductionTable.id),
   },
   (table) => [
     primaryKey({ columns: [table.roleId, table.actorId, table.performanceId] }),
@@ -87,8 +97,10 @@ export const CastingTable = pgTable(
 
 export const ProductionTable = pgTable("production", {
   id: bigserial("id", { mode: "number" }).primaryKey().notNull(),
-  musicalId: bigint("musical_id", { mode: "number" }).notNull(),
-  startDate: date("start_date").notNull(),
-  endDate: date("end_date").notNull(),
+  musicalId: bigint("musical_id", { mode: "number" })
+    .notNull()
+    .references(() => MusicalTable.id),
+  startDate: date("start_date", { mode: "date" }).notNull(),
+  endDate: date("end_date", { mode: "date" }).notNull(),
   posterUrl: text("poster_url").notNull(),
 });

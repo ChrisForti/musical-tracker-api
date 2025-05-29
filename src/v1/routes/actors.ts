@@ -1,6 +1,6 @@
 import { Router, type Request, type Response } from "express";
 import { db } from "../../drizzle/db.js";
-import { ActorTable, TheaterTable } from "../../drizzle/schema.js";
+import { ActorTable } from "../../drizzle/schema.js";
 import { eq } from "drizzle-orm";
 import { SERVER_ERROR } from "../../lib/errors.js";
 
@@ -18,7 +18,7 @@ type CreateActorBodyParams = {
 
 async function createActorHandler(
   req: Request<{}, {}, CreateActorBodyParams>,
-  res: Response,
+  res: Response
 ) {
   const name = req.body.name;
   const id = Number(req.body.id);
@@ -57,7 +57,7 @@ type GetActorByIdParams = {
 
 async function getActorByIdHandler(
   req: Request<GetActorByIdParams>,
-  res: Response,
+  res: Response
 ) {
   const id = Number(req.params.id);
 
@@ -93,7 +93,7 @@ type UpdateActorBodyParams = {
 
 async function updateActorHandler(
   req: Request<{}, {}, UpdateActorBodyParams>,
-  res: Response,
+  res: Response
 ) {
   const name = req.body.name;
   const id = Number(req.body.id);
@@ -136,7 +136,7 @@ type DeleteActorBodyParams = {
 
 async function deleteActorHandler(
   req: Request<{}, {}, DeleteActorBodyParams>,
-  res: Response,
+  res: Response
 ) {
   const id = Number(req.body.id);
 
