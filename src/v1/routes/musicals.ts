@@ -3,6 +3,7 @@ import { MusicalTable } from "../../drizzle/schema.js";
 import { db } from "../../drizzle/db.js";
 import { SERVER_ERROR } from "../../lib/errors.js";
 import { eq } from "drizzle-orm";
+import { Validator } from "../../lib/validator.js";
 
 export const musicalRouter = Router();
 
@@ -25,31 +26,20 @@ async function createMusicalHandler(
   const { composer, lyricist, title } = req.body;
 
   const id = Number(req.body.id);
+  const validator = new Validator();
 
   try {
-    if (isNaN(Number(id)) || id < 1) {
-      res
-        .status(400)
-        .json({ error: "'id' required and must be a valid number" });
-      return;
-    }
+    validator.check(
+      !isNaN(id) && id > 0,
+      "id",
+      "is required and must be a valid number"
+    );
+    validator.check(!composer, "composer", "is required");
+    validator.check(!lyricist, "lyricist", "is required");
+    validator.check(!title, "title", "is required");
 
-    if (!composer) {
-      res
-        .status(400)
-        .json({ error: "'composer' required and must be a valid number" });
-      return;
-    }
-
-    if (!lyricist) {
-      res.status(400).json({ error: "'lyricist' is required" });
-      return;
-    }
-
-    if (!title) {
-      res
-        .status(400)
-        .json({ error: "'title' required and must be a valid number" });
+    if (!validator.valid) {
+      res.status(400).json({ errors: validator.errors });
       return;
     }
 
@@ -77,14 +67,20 @@ async function getMusicalByIdHandler(
   res: Response
 ) {
   const id = Number(req.params.id);
+  const validator = new Validator();
 
   try {
-    if (isNaN(id) || id < 1) {
-      res
-        .status(400)
-        .json({ error: "'id' required and must be a valid number" });
+    validator.check(
+      !isNaN(id) && id > 0,
+      "id",
+      "is required and must be a valid number"
+    );
+
+    if (!validator.valid) {
+      res.status(400).json({ errors: validator.errors });
       return;
     }
+
     const musical = await db.query.MusicalTable.findFirst({
       where: eq(MusicalTable.id, id),
     });
@@ -112,6 +108,7 @@ async function updateMusicalHandler(
 ) {
   const { composer, lyricist, title } = req.body;
   const id = Number(req.body.id);
+  const validator = new Validator();
 
   type UpdatedData = {
     composer?: string;
@@ -120,10 +117,14 @@ async function updateMusicalHandler(
   };
 
   try {
-    if (!id || isNaN(Number(id)) || id < 1) {
-      res
-        .status(400)
-        .json({ error: "'id' required and must be a valid number" });
+    validator.check(
+      !isNaN(id) && id > 0,
+      "id",
+      "is required and must be a valid number"
+    );
+
+    if (!validator.valid) {
+      res.status(400).json({ errors: validator.errors });
       return;
     }
 
@@ -165,13 +166,15 @@ async function deleteMusicalHandler(
   res: Response
 ) {
   const id = Number(req.body.id);
+  const validator = new Validator();
 
-  if (isNaN(id) || id < 1) {
-    res
-      .status(400)
-      .json({ error: "'id' is required and must be a valid number" });
-    return;
-  }
+  validator.check(!id, "id", "does not exist");
+
+  validator.check(
+    !isNaN(id) && id > 0,
+    "id",
+    "is required and must be a valid number"
+  );
 
   try {
     const result = await db.delete(MusicalTable).where(eq(MusicalTable.id, id));

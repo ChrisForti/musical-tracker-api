@@ -3,7 +3,6 @@ import type { Request, Response, NextFunction } from "express";
 import { db } from "../drizzle/db.js";
 import { TokenTable, UserTable } from "../drizzle/schema.js";
 import { eq } from "drizzle-orm";
-import { SERVER_ERROR } from "./errors.js";
 
 export function ensureAuthenticated(
   req: Request,

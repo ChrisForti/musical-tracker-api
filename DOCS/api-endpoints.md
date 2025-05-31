@@ -22,3 +22,43 @@ login user
 ```sh
 GET /casting/:roleId/:actorId/:performanceId
 ```
+
+## User flow schema
+
+### Elements
+
+1. User Actions:
+   Add/Edit Performance (No approval required; tied to user)
+   Add/Edit Casting (No approval required; tied to user)
+2. Admin Actions:
+   Approve CRUD for Musicals
+   Approve CRUD for Productions
+   Approve CRUD for Theaters
+   Approve CRUD for Roles/Actors
+3. Approval Process:
+   Request: Add Role/Actor (If not in DB, requires admin approval)
+   Request: Add Theater (If not in DB, requires admin approval)
+
+### Flow
+
+1. User:
+2. Performance
+   Direct Action → “Add/Edit Performance” → Personal Database
+3. Casting
+   Direct Action → “Add/Edit Casting” → Personal Database
+4. Admin Approval Needed:
+5. Role/Actor (If not in DB)
+   User Request → “Add Role/Actor” → Admin Approval → Central DB
+6. Theater (If not in DB)
+   User Request → “Add Theater” → Admin Approval → Central DB
+7. Central Database Actions (Admin Only):
+   CRUD for Musicals, Productions, Theaters, Roles/Actors
+
+### Admin approval required
+
+- Musical
+  - User Request → “Add/Edit Musical” → Admin Approval → Central Database
+- Role/Actor (if not in DB)
+  - User Request → “Add Role/Actor” → Admin Approval → Central Database
+- Theater (if not in DB)
+  - User Request → “Add Theater” → Admin Approval → Central Database

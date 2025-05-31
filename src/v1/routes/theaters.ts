@@ -3,6 +3,7 @@ import { db } from "../../drizzle/db.js";
 import { TheaterTable } from "../../drizzle/schema.js";
 import { eq } from "drizzle-orm";
 import { SERVER_ERROR } from "../../lib/errors.js";
+import { Validator } from "../../lib/validator.js";
 
 export const theaterRouter = Router();
 
@@ -17,13 +18,16 @@ type CreateTheaterBodyParams = {
 
 async function createTheaterHandler(
   req: Request<{}, {}, CreateTheaterBodyParams>,
-  res: Response,
+  res: Response
 ) {
   const name = req.body.name;
+  const validator = new Validator();
 
   try {
-    if (!name) {
-      res.status(400).json({ error: "'name' is required" });
+    validator.check(!name, "name", "is required");
+
+    if (!validator.valid) {
+      res.status(400).json({ errors: validator.errors });
       return;
     }
 
@@ -47,18 +51,23 @@ type GetTheaterByIdQueryParams = {
 
 async function getTheaterByIdHandler(
   req: Request<GetTheaterByIdQueryParams>,
-  res: Response,
+  res: Response
 ) {
   const id = Number(req.body);
-
-  if (isNaN(id) || id < 1) {
-    res
-      .status(400)
-      .json({ error: "'id' is required and must be a valid number" });
-    return;
-  }
+  const validator = new Validator();
 
   try {
+    validator.check(
+      !isNaN(id) && id > 0,
+      "id",
+      "is required and must be a valid number"
+    );
+
+    if (!validator.valid) {
+      res.status(400).json({ errors: validator.errors });
+      return;
+    }
+
     const theater = await db.query.TheaterTable.findFirst({
       where: eq(TheaterTable.id, id),
     });
@@ -82,19 +91,22 @@ type UpdateTheaterBodyParams = {
 
 async function updateTheaterHandler(
   req: Request<{}, {}, UpdateTheaterBodyParams>,
-  res: Response,
+  res: Response
 ) {
   const name = req.body.name;
   const id = Number(req.body.id);
+  const validator = new Validator();
 
   try {
-    if (isNaN(id) || id < 1) {
-      res.status(400).json({ error: "'id' is required and must be a number" });
-      return;
-    }
+    validator.check(
+      !isNaN(id) && id > 0,
+      "id",
+      "is required and must be a valid number"
+    );
+    validator.check(!name, "name", "is required");
 
-    if (!name) {
-      res.status(400).json({ error: "'name' is required" });
+    if (!validator.valid) {
+      res.status(400).json({ errors: validator.errors });
       return;
     }
 
@@ -123,23 +135,26 @@ type DeleteTheaterBodyParams = {
 
 async function deleteTheaterHandler(
   req: Request<{}, {}, DeleteTheaterBodyParams>,
-  res: Response,
+  res: Response
 ) {
   const id = Number(req.body.id);
-
-  if (isNaN(id) || id < 1) {
-    res
-      .status(400)
-      .json({ error: "'id' is required and must be a valid number" });
-    return;
-  }
+  const validator = new Validator();
 
   try {
-    const deletedTheater = await db
-      .delete(TheaterTable)
-      .where(eq(TheaterTable.id, id));
+    validator.check(
+      !isNaN(id) && id > 0,
+      "id",
+      "is required and must be a valid number"
+    );
 
-    if (deletedTheater.rowCount === 0) {
+    if (!validator.valid) {
+      res.status(400).json({ errors: validator.errors });
+      return;
+    }
+
+    const result = await db.delete(TheaterTable).where(eq(TheaterTable.id, id));
+
+    if (result.rowCount === 0) {
       throw new Error("'id' is invalid");
     }
 
