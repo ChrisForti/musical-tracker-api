@@ -1,8 +1,9 @@
 import { Router, type Request, type Response } from "express";
 import { db } from "../../drizzle/db.js";
-import { ActorTable, TheaterTable } from "../../drizzle/schema.js";
+import { ActorTable } from "../../drizzle/schema.js";
 import { eq } from "drizzle-orm";
 import { SERVER_ERROR } from "../../lib/errors.js";
+import { Validator } from "../../lib/validator.js";
 
 export const actorRouter = Router();
 
@@ -18,21 +19,22 @@ type CreateActorBodyParams = {
 
 async function createActorHandler(
   req: Request<{}, {}, CreateActorBodyParams>,
-  res: Response,
+  res: Response
 ) {
   const name = req.body.name;
   const id = Number(req.body.id);
+  const validator = new Validator();
 
   try {
-    if (isNaN(id) || id < 1) {
-      res
-        .status(400)
-        .json({ error: "'id' required and must be a valid number" });
-      return;
-    }
+    validator.check(
+      !isNaN(id) && id > 0,
+      "id",
+      "is required and must be a valid number"
+    );
+    validator.check(!name, "name", "is required");
 
-    if (!name) {
-      res.status(400).json({ error: "'name' is required" });
+    if (!validator.valid) {
+      res.status(400).json({ errors: validator.errors });
       return;
     }
 
@@ -57,18 +59,17 @@ type GetActorByIdParams = {
 
 async function getActorByIdHandler(
   req: Request<GetActorByIdParams>,
-  res: Response,
+  res: Response
 ) {
   const id = Number(req.params.id);
+  const validator = new Validator();
 
   try {
-    // Must be a number > 0
-    if (isNaN(id) || id < 1) {
-      res
-        .status(400)
-        .json({ error: "'id' required and must be a valid number" });
-      return;
-    }
+    validator.check(
+      !isNaN(id) && id > 0,
+      "id",
+      "is required and must be a valid number"
+    );
 
     const actor = await db.query.ActorTable.findFirst({
       where: eq(ActorTable.id, id),
@@ -93,21 +94,22 @@ type UpdateActorBodyParams = {
 
 async function updateActorHandler(
   req: Request<{}, {}, UpdateActorBodyParams>,
-  res: Response,
+  res: Response
 ) {
   const name = req.body.name;
   const id = Number(req.body.id);
+  const validator = new Validator();
 
   try {
-    if (isNaN(id) || id < 1) {
-      res
-        .status(400)
-        .json({ error: "'id' required and must be a valid number" });
-      return;
-    }
+    validator.check(
+      !isNaN(id) && id > 0,
+      "id",
+      "is required and must be a valid number"
+    );
+    validator.check(!name, "name", "is required");
 
-    if (!name) {
-      res.status(400).json({ error: "'name' is required" });
+    if (!validator.valid) {
+      res.status(400).json({ errors: validator.errors });
       return;
     }
 
@@ -136,18 +138,23 @@ type DeleteActorBodyParams = {
 
 async function deleteActorHandler(
   req: Request<{}, {}, DeleteActorBodyParams>,
-  res: Response,
+  res: Response
 ) {
   const id = Number(req.body.id);
-
-  if (isNaN(id) || id < 1) {
-    res
-      .status(400)
-      .json({ error: "'id' is required and must be a valid number" });
-    return;
-  }
+  const validator = new Validator();
 
   try {
+    validator.check(
+      !isNaN(id) && id > 0,
+      "id",
+      "is required and must be a valid number"
+    );
+
+    if (!validator.valid) {
+      res.status(400).json({ errors: validator.errors });
+      return;
+    }
+
     const result = await db.delete(ActorTable).where(eq(ActorTable.id, id));
 
     if (result.rowCount === 0) {

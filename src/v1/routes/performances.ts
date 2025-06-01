@@ -23,7 +23,7 @@ async function createPerformanceHandler(
   req: Request<{}, {}, CreatePerformanceBodyParams>,
   res: Response
 ) {
-  const { date } = req.body;
+  const date = new Date(req.body.date);
   const id = Number(req.body.id);
   const productionId = Number(req.body.productionId);
   const theaterId = Number(req.body.theaterId);
@@ -49,7 +49,7 @@ async function createPerformanceHandler(
 
     const newPerformance = await db
       .insert(PerformanceTable)
-      .values({ productionId, date, theaterId });
+      .values({ productionId, date: new Date(date), theaterId });
 
     res.status(201).json({
       message: "Created successfully",
@@ -209,7 +209,7 @@ async function deletePerformanceHandler(
       message: "'Performance' deleted successfully",
     });
   } catch (error) {
-    console.error("Error in deleteActorHandler:", error);
+    console.error("Error in deletePerformanceHandler:", error);
     res.status(500).json({ error: SERVER_ERROR });
   }
 }
