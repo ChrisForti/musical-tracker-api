@@ -4,6 +4,7 @@ import { RoleTable } from "../../drizzle/schema.js";
 import { eq } from "drizzle-orm";
 import { SERVER_ERROR } from "../../lib/errors.js";
 import { Validator } from "../../lib/validator.js";
+import { ensureAdmin } from "../../lib/auth.js";
 
 export const roleRouter = Router();
 
@@ -11,6 +12,67 @@ roleRouter.post("/", createRoleHandler);
 roleRouter.get("/:id", getRoleByIdHandler);
 roleRouter.put("/", updateRoleHandler);
 roleRouter.delete("/", deleteRoleHandler);
+// New routes for approval workflow
+roleRouter.post<ApproveRoleParams>(
+  "/:id/approve",
+  ensureAdmin,
+  approveRoleHandler
+);
+roleRouter.get("/pending", ensureAdmin, getPendingRolesHandler);
+
+type ApproveRoleParams = {
+  id: string | number;
+};
+
+async function approveRoleHandler(
+  req: Request<ApproveRoleParams>,
+  res: Response
+) {
+  const id = Number(req.params.id);
+  const validator = new Validator();
+
+  try {
+    validator.check(
+      !isNaN(id) && id > 0,
+      "id",
+      "is required and must be a valid number"
+    );
+
+    if (!validator.valid) {
+      res.status(400).json({ errors: validator.errors });
+      return;
+    }
+
+    const result = await db
+      .update(RoleTable)
+      .set({ approved: true })
+      .where(eq(RoleTable.id, id));
+
+    if (result.rowCount === 0) {
+      res.status(404).json({ error: "Role not found or already approved" });
+      return;
+    }
+
+    res.status(200).json({ message: "Role approved successfully" });
+  } catch (error) {
+    console.error("Error in approveRoleHandler:", error);
+    res.status(500).json({ error: SERVER_ERROR });
+  }
+}
+
+async function getPendingRolesHandler(req: Request, res: Response) {
+  try {
+    const pendingRoles = await db
+      .select()
+      .from(RoleTable)
+      .where(eq(RoleTable.approved, false));
+
+    res.status(200).json(pendingRoles);
+  } catch (error) {
+    console.error("Error in getPendingRolesHandler:", error);
+    res.status(500).json({ error: SERVER_ERROR });
+  }
+}
 
 type CreateRoleBodyParams = {
   name: string;

@@ -4,6 +4,7 @@ import { TheaterTable } from "../../drizzle/schema.js";
 import { eq } from "drizzle-orm";
 import { SERVER_ERROR } from "../../lib/errors.js";
 import { Validator } from "../../lib/validator.js";
+import { ensureAdmin } from "../../lib/auth.js";
 
 export const theaterRouter = Router();
 
@@ -11,6 +12,67 @@ theaterRouter.post("/", createTheaterHandler);
 theaterRouter.get("/:id", getTheaterByIdHandler);
 theaterRouter.put("/", updateTheaterHandler);
 theaterRouter.delete("/", deleteTheaterHandler);
+// New routes for approval workflow
+theaterRouter.post<ApproveTheaterParams>(
+  "/:id/approve",
+  ensureAdmin,
+  approveTheaterHandler
+);
+theaterRouter.get("/pending", ensureAdmin, getPendingTheatersHandler);
+
+type ApproveTheaterParams = {
+  id: string | number;
+};
+
+async function approveTheaterHandler(
+  req: Request<ApproveTheaterParams>,
+  res: Response
+) {
+  const id = Number(req.params.id);
+  const validator = new Validator();
+
+  try {
+    validator.check(
+      !isNaN(id) && id > 0,
+      "id",
+      "is required and must be a valid number"
+    );
+
+    if (!validator.valid) {
+      res.status(400).json({ errors: validator.errors });
+      return;
+    }
+
+    const result = await db
+      .update(TheaterTable)
+      .set({ approved: true })
+      .where(eq(TheaterTable.id, id));
+
+    if (result.rowCount === 0) {
+      res.status(404).json({ error: "Theater not found or already approved" });
+      return;
+    }
+
+    res.status(200).json({ message: "Theater approved successfully" });
+  } catch (error) {
+    console.error("Error in approveTheaterHandler:", error);
+    res.status(500).json({ error: SERVER_ERROR });
+  }
+}
+
+async function getPendingTheatersHandler(req: Request, res: Response) {
+  try {
+    const pendingTheaters = await db
+      .select()
+      .from(TheaterTable)
+      .where(eq(TheaterTable.approved, false));
+
+    res.status(200).json(pendingTheaters);
+  } catch (error) {
+    console.error("Error in getPendingTheatersHandler:", error);
+    res.status(500).json({ error: SERVER_ERROR });
+  }
+}
 
 type CreateTheaterBodyParams = {
   name: string;

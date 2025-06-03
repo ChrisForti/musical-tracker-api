@@ -4,7 +4,7 @@ import { ProductionTable } from "../../drizzle/schema.js";
 import { db } from "../../drizzle/db.js";
 import { SERVER_ERROR } from "../../lib/errors.js";
 import { eq } from "drizzle-orm";
-import { date } from "drizzle-orm/mysql-core";
+import { ensureAdmin } from "../../lib/auth.js";
 
 export const productionRouter = Router();
 
@@ -12,6 +12,69 @@ productionRouter.post("/", createProductionHandler);
 productionRouter.get("/:id", getproductionByIdHandler);
 productionRouter.put("/", updateproductionHandler);
 productionRouter.delete("/", deleteproductionHandler);
+// New routes for approval workflow
+productionRouter.post<ApproveProductionParams>(
+  "/:id/approve",
+  ensureAdmin,
+  approveProductionHandler
+);
+productionRouter.get("/pending", ensureAdmin, getPendingProductionsHandler);
+
+type ApproveProductionParams = {
+  id: string | number;
+};
+
+async function approveProductionHandler(
+  req: Request<ApproveProductionParams>,
+  res: Response
+) {
+  const id = Number(req.params.id);
+  const validator = new Validator();
+
+  try {
+    validator.check(
+      !isNaN(id) && id > 0,
+      "id",
+      "is required and must be a valid number"
+    );
+
+    if (!validator.valid) {
+      res.status(400).json({ errors: validator.errors });
+      return;
+    }
+
+    const result = await db
+      .update(ProductionTable)
+      .set({ approved: true })
+      .where(eq(ProductionTable.id, id));
+
+    if (result.rowCount === 0) {
+      res
+        .status(404)
+        .json({ error: "Production not found or already approved" });
+      return;
+    }
+
+    res.status(200).json({ message: "Production approved successfully" });
+  } catch (error) {
+    console.error("Error in approveProductionHandler:", error);
+    res.status(500).json({ error: SERVER_ERROR });
+  }
+}
+
+async function getPendingProductionsHandler(req: Request, res: Response) {
+  try {
+    const pendingProductions = await db
+      .select()
+      .from(ProductionTable)
+      .where(eq(ProductionTable.approved, false));
+
+    res.status(200).json(pendingProductions);
+  } catch (error) {
+    console.error("Error in getPendingProductionsHandler:", error);
+    res.status(500).json({ error: SERVER_ERROR });
+  }
+}
 
 type CreateProductionBodyParams = {
   id: string | number;
