@@ -46,7 +46,7 @@ export async function authenticate(
 
   try {
     const result = await db
-      .select({ user: UserTable })
+      .select({ id: UserTable.id, role: UserTable.role })
       .from(TokenTable)
       .innerJoin(UserTable, eq(TokenTable.userId, UserTable.id))
       .where(eq(TokenTable.hash, hash))
@@ -56,7 +56,7 @@ export async function authenticate(
       return next();
     }
 
-    const user = result[0]!.user;
+    const user = result[0];
 
     if (!user) {
       return next();
@@ -68,4 +68,16 @@ export async function authenticate(
     console.error(error);
     next();
   }
+}
+
+export function ensureAdmin<T = any>(
+  req: Request<T>,
+  res: Response,
+  next: NextFunction
+) {
+  if (!req.user || req.user.role !== "admin") {
+    res.status(403).json({ errors: { message: "must be an admin" } });
+    return;
+  }
+  next();
 }
