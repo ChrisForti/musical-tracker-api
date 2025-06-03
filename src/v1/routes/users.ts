@@ -75,7 +75,7 @@ async function createUserHandler(
 
     await db
       .insert(UserTable)
-      .values({ firstName, lastName, email, passwordHash });
+      .values({ firstName, lastName, email, passwordHash, role: "user" });
 
     res.json({ message: "User created successfully" });
     return;
