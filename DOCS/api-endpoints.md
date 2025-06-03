@@ -34,7 +34,8 @@ GET /casting/:roleId/:actorId/:performanceId
    Approve CRUD for Musicals
    Approve CRUD for Productions
    Approve CRUD for Theaters
-   Approve CRUD for Roles/Actors
+   Approve CRUD for Actors
+   Approve CRUD for Roles
 3. Approval Process:
    Request: Add Role/Actor (If not in DB, requires admin approval)
    Request: Add Theater (If not in DB, requires admin approval)
@@ -62,3 +63,14 @@ GET /casting/:roleId/:actorId/:performanceId
   - User Request → “Add Role/Actor” → Admin Approval → Central Database
 - Theater (if not in DB)
   - User Request → “Add Theater” → Admin Approval → Central Database
+
+### shortened list
+
+- Users: Store user information.
+- Performances: Store user-specific performances.
+- Castings: Store user-specific castings.
+- Musicals: Admin-approved musicals.
+- Productions: Admin-approved productions.
+- Theaters: Admin-approved theaters.
+- Roles/Actors: Admin-approved roles and actors.
+- ApprovalRequests: Track user requests for roles/actors and theaters.

@@ -4,13 +4,26 @@ import { Validator } from "../../lib/validator.js";
 import { db } from "../../drizzle/db.js";
 import { SERVER_ERROR } from "../../lib/errors.js";
 import { eq } from "drizzle-orm";
+import { ensureAdmin, ensureAuthenticated } from "../../lib/auth.js";
 
 export const performanceRouter = Router();
 
-performanceRouter.post("/", createPerformanceHandler);
+performanceRouter.post("/", ensureAuthenticated, createPerformanceHandler);
 performanceRouter.get("/:id", getPerformanceByIdHandler);
 performanceRouter.put("/", updatePerformanceHandler);
 performanceRouter.delete("/", deletePerformanceHandler);
+
+// Admin Management: Viewing all performances for monitoring or editing.
+performanceRouter.get("/", ensureAdmin, getAllPerformancesHandler);
+async function getAllPerformancesHandler(req: Request, res: Response) {
+  try {
+    const result = await db.query.PerformanceTable.findMany();
+    res.status(200).json(result);
+  } catch (error) {
+    console.error("Error in getAllPerformancesHandler:", error);
+    res.status(500).json({ error: SERVER_ERROR });
+  }
+}
 
 type CreatePerformanceBodyParams = {
   id: string | number;
