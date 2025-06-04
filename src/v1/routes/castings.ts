@@ -14,7 +14,7 @@ castingRouter.put("/", updateCastingHandler);
 castingRouter.delete("/", deleteCastingHandler);
 
 // Admin Management: Viewing all performances for monitoring or editing.
-castingRouter.get("/", ensureAdmin, getAllCastingsHandler);
+castingRouter.get("/", ensureAuthenticated, ensureAdmin, getAllCastingsHandler);
 async function getAllCastingsHandler(req: Request, res: Response) {
   try {
     const result = await db.query.CastingTable.findMany();

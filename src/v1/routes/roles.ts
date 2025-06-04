@@ -4,24 +4,25 @@ import { RoleTable } from "../../drizzle/schema.js";
 import { eq } from "drizzle-orm";
 import { SERVER_ERROR } from "../../lib/errors.js";
 import { Validator } from "../../lib/validator.js";
-import { ensureAdmin } from "../../lib/auth.js";
+import { ensureAdmin, ensureAuthenticated } from "../../lib/auth.js";
 
 export const roleRouter = Router();
 
-roleRouter.post("/", createRoleHandler);
+roleRouter.post("/", ensureAuthenticated, createRoleHandler);
 roleRouter.get("/:id", getRoleByIdHandler);
 roleRouter.put("/", updateRoleHandler);
 roleRouter.delete("/", deleteRoleHandler);
 // New routes for approval workflow
 roleRouter.post<ApproveRoleParams>(
   "/:id/approve",
+  ensureAuthenticated,
   ensureAdmin,
   approveRoleHandler
 );
 roleRouter.get("/pending", ensureAdmin, getPendingRolesHandler);
 
 type ApproveRoleParams = {
-  id: string | number;
+  id: string;
 };
 
 async function approveRoleHandler(

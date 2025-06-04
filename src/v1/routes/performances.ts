@@ -14,7 +14,12 @@ performanceRouter.put("/", updatePerformanceHandler);
 performanceRouter.delete("/", deletePerformanceHandler);
 
 // Admin Management: Viewing all performances for monitoring or editing.
-performanceRouter.get("/", ensureAdmin, getAllPerformancesHandler);
+performanceRouter.get(
+  "/",
+  ensureAuthenticated,
+  ensureAdmin,
+  getAllPerformancesHandler
+);
 async function getAllPerformancesHandler(req: Request, res: Response) {
   try {
     const result = await db.query.PerformanceTable.findMany();

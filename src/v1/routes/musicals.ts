@@ -4,24 +4,25 @@ import { db } from "../../drizzle/db.js";
 import { SERVER_ERROR } from "../../lib/errors.js";
 import { eq } from "drizzle-orm";
 import { Validator } from "../../lib/validator.js";
-import { ensureAdmin } from "../../lib/auth.js";
+import { ensureAdmin, ensureAuthenticated } from "../../lib/auth.js";
 
 export const musicalRouter = Router();
 
-musicalRouter.post("/", createMusicalHandler);
+musicalRouter.post("/", ensureAuthenticated, createMusicalHandler);
 musicalRouter.get("/:id", getMusicalByIdHandler);
 musicalRouter.put("/", updateMusicalHandler);
 musicalRouter.delete("/", deleteMusicalHandler);
 // New routes for approval workflow
 musicalRouter.post<ApproveMusicalParams>(
   "/:id/approve",
+  ensureAuthenticated,
   ensureAdmin,
   approveMusicalHandler
 );
 musicalRouter.get("/pending", ensureAdmin, getPendingMusicalsHandler);
 
 type ApproveMusicalParams = {
-  id: string | number;
+  id: string;
 };
 
 async function approveMusicalHandler(

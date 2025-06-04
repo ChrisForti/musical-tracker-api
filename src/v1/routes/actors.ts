@@ -4,7 +4,7 @@ import { ActorTable } from "../../drizzle/schema.js";
 import { eq } from "drizzle-orm";
 import { SERVER_ERROR } from "../../lib/errors.js";
 import { Validator } from "../../lib/validator.js";
-import { ensureAdmin } from "../../lib/auth.js";
+import { ensureAdmin, ensureAuthenticated } from "../../lib/auth.js";
 
 export const actorRouter = Router();
 
@@ -15,13 +15,14 @@ actorRouter.delete("/", deleteActorHandler);
 // New routes for approval workflow
 actorRouter.post<ApproveActorParams>(
   "/:id/approve",
+  ensureAuthenticated,
   ensureAdmin,
   approveActorHandler
 );
 actorRouter.get("/pending", ensureAdmin, getPendingActorsHandler);
 
 type ApproveActorParams = {
-  id: string | number;
+  id: string;
 };
 
 async function approveActorHandler(
@@ -32,11 +33,8 @@ async function approveActorHandler(
   const validator = new Validator();
 
   try {
-    validator.check(
-      !isNaN(id) && id > 0,
-      "id",
-      "is required and must be a valid number"
-    );
+    validator.check(!isNaN(id) && id > 0, "id", "is required");
+    validator.check(id > 0, "id", "must be a valid number");
 
     if (!validator.valid) {
       res.status(400).json({ errors: validator.errors });
@@ -67,7 +65,7 @@ async function getPendingActorsHandler(req: Request, res: Response) {
       .from(ActorTable)
       .where(eq(ActorTable.approved, false));
 
-    res.status(200).json(pendingActors);
+    res.status(200).json({ actors: pendingActors });
   } catch (error) {
     console.error("Error in getPendingActorsHandler:", error);
     res.status(500).json({ error: SERVER_ERROR });

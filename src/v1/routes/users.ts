@@ -63,7 +63,6 @@ async function createUserHandler(
       return;
     }
 
-    // hash password then check for a falsy password hash
     const passwordHash = await hash(password!, 10);
     if (!passwordHash) {
       res.status(500).json({
@@ -73,9 +72,13 @@ async function createUserHandler(
       return;
     }
 
-    await db
-      .insert(UserTable)
-      .values({ firstName, lastName, email, passwordHash, role: "user" });
+    await db.insert(UserTable).values({
+      firstName,
+      lastName,
+      email,
+      passwordHash,
+      accountType: "user",
+    });
 
     res.json({ message: "User created successfully" });
     return;

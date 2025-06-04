@@ -25,7 +25,7 @@ export const UserTable = pgTable(
       .notNull(),
     isAdmin: boolean("is_admin").default(false).notNull(),
     passwordHash: text("password_hash").notNull(),
-    role: text("role").notNull(), // may not need .notnull()
+    accountType: text("accountType").notNull(),
   },
   (table) => {
     return [uniqueIndex("emailUniqueIndex").on(lower(table.email))];
@@ -48,19 +48,19 @@ export const TokenTable = pgTable("tokens", {
 export const TheaterTable = pgTable("theater", {
   id: bigserial("id", { mode: "number" }).primaryKey().notNull(),
   name: varchar("name", { length: 255 }).notNull(),
-  approved: boolean("approved").default(false),
+  approved: boolean("approved").default(false).notNull(),
 });
 
 export const RoleTable = pgTable("role", {
   id: bigserial("id", { mode: "number" }).primaryKey().notNull(),
   name: varchar("name", { length: 255 }).notNull(),
-  approved: boolean("approved").default(false),
+  approved: boolean("approved").default(false).notNull(),
 });
 
 export const ActorTable = pgTable("actor", {
   id: bigserial("id", { mode: "number" }).primaryKey().notNull(),
   name: varchar("name", { length: 255 }).notNull(),
-  approved: boolean("approved").default(false),
+  approved: boolean("approved").default(false).notNull(),
 });
 
 export const MusicalTable = pgTable("musical", {
@@ -68,7 +68,7 @@ export const MusicalTable = pgTable("musical", {
   composer: varchar("composer", { length: 255 }).notNull(),
   lyricist: varchar("lyricist", { length: 255 }).notNull(),
   title: varchar("title", { length: 255 }).notNull(),
-  approved: boolean("approved").default(false),
+  approved: boolean("approved").default(false).notNull(),
 });
 
 export const PerformanceTable = pgTable("performance", {
@@ -108,5 +108,5 @@ export const ProductionTable = pgTable("production", {
   startDate: date("start_date", { mode: "date" }).notNull(),
   endDate: date("end_date", { mode: "date" }).notNull(),
   posterUrl: text("poster_url").notNull(),
-  approved: boolean("approved").default(false),
+  approved: boolean("approved").default(false).notNull(),
 });

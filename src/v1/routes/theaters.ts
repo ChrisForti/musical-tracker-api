@@ -4,24 +4,25 @@ import { TheaterTable } from "../../drizzle/schema.js";
 import { eq } from "drizzle-orm";
 import { SERVER_ERROR } from "../../lib/errors.js";
 import { Validator } from "../../lib/validator.js";
-import { ensureAdmin } from "../../lib/auth.js";
+import { ensureAdmin, ensureAuthenticated } from "../../lib/auth.js";
 
 export const theaterRouter = Router();
 
-theaterRouter.post("/", createTheaterHandler);
+theaterRouter.post("/", ensureAuthenticated, createTheaterHandler);
 theaterRouter.get("/:id", getTheaterByIdHandler);
 theaterRouter.put("/", updateTheaterHandler);
 theaterRouter.delete("/", deleteTheaterHandler);
 // New routes for approval workflow
 theaterRouter.post<ApproveTheaterParams>(
   "/:id/approve",
+  ensureAuthenticated,
   ensureAdmin,
   approveTheaterHandler
 );
 theaterRouter.get("/pending", ensureAdmin, getPendingTheatersHandler);
 
 type ApproveTheaterParams = {
-  id: string | number;
+  id: string;
 };
 
 async function approveTheaterHandler(

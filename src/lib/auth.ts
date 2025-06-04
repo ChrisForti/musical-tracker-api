@@ -46,7 +46,7 @@ export async function authenticate(
 
   try {
     const result = await db
-      .select({ id: UserTable.id, role: UserTable.role })
+      .select({ id: UserTable.id, role: UserTable.accountType })
       .from(TokenTable)
       .innerJoin(UserTable, eq(TokenTable.userId, UserTable.id))
       .where(eq(TokenTable.hash, hash))
@@ -56,7 +56,7 @@ export async function authenticate(
       return next();
     }
 
-    const user = result[0];
+    const user = result[0]; // The first record from the query, containing { id, role }
 
     if (!user) {
       return next();
@@ -70,13 +70,9 @@ export async function authenticate(
   }
 }
 
-export function ensureAdmin<T = any>(
-  req: Request<T>,
-  res: Response,
-  next: NextFunction
-) {
+export function ensureAdmin(req: Request, res: Response, next: NextFunction) {
   if (!req.user || req.user.role !== "admin") {
-    res.status(403).json({ errors: { message: "must be an admin" } });
+    res.status(403).json({ errors: { message: "Not allowed" } });
     return;
   }
   next();
