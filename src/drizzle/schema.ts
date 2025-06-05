@@ -1,5 +1,5 @@
 import { sql, type SQL } from "drizzle-orm";
-import { primaryKey } from "drizzle-orm/pg-core";
+import { pgEnum, primaryKey } from "drizzle-orm/pg-core";
 import {
   bigserial,
   boolean,
@@ -11,6 +11,8 @@ import {
   type AnyPgColumn,
   date,
 } from "drizzle-orm/pg-core";
+
+export const userRoleEnum = pgEnum("user_role", ["admin", "user", "guest"]);
 
 export const UserTable = pgTable(
   "users",
@@ -25,7 +27,7 @@ export const UserTable = pgTable(
       .notNull(),
     isAdmin: boolean("is_admin").default(false).notNull(),
     passwordHash: text("password_hash").notNull(),
-    accountType: text("accountType").notNull(),
+    accountType: userRoleEnum("account_type").default("user").notNull(),
   },
   (table) => {
     return [uniqueIndex("emailUniqueIndex").on(lower(table.email))];
