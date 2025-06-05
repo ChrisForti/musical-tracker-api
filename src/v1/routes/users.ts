@@ -21,6 +21,7 @@ type CreateUserBodyParams = {
   lastName: string;
   email: string;
   password: string;
+  accountType: "admin" | "user";
 };
 
 async function createUserHandler(
@@ -31,6 +32,12 @@ async function createUserHandler(
   const emailRx =
     "^[a-zA-Z0-9.!#$%&'*+/=?^_`{|}~-]+@[a-zA-Z0-9](?:[a-zA-Z0-9-]{0,61}[a-zA-Z0-9])?(?:\\.[a-zA-Z0-9](?:[a-zA-Z0-9-]{0,61}[a-zA-Z0-9])?)*$";
   const validator = new Validator();
+  const accountType = req.body.accountType;
+
+  if (!["admin", "user"].includes(accountType)) {
+    res.status(400).json({ error: "Invalid account type" });
+    return;
+  }
 
   try {
     validator.check(!!firstName, "firstName", "is required");
@@ -192,6 +199,7 @@ type UpdateUserBody = {
   lastName?: string;
   email?: string;
   password?: string;
+  accountType: "admin" | "user";
 };
 
 async function updateUserHandler(
@@ -202,6 +210,12 @@ async function updateUserHandler(
   const { firstName, lastName, email, password } = req.body as UpdateUserBody;
   const validator = new Validator();
   console.log("Request body:", req.body);
+  const accountType = req.body.accountType;
+
+  if (!["admin", "user"].includes(accountType)) {
+    res.status(400).json({ error: "Invalid account type" });
+    return;
+  }
 
   const emailRx =
     "^[a-zA-Z0-9.!#$%&'*+/=?^_`{|}~-]+@[a-zA-Z0-9](?:[a-zA-Z0-9-]{0,61}[a-zA-Z0-9])?(?:\\.[a-zA-Z0-9](?:[a-zA-Z0-9-]{0,61}[a-zA-Z0-9])?)*$";
