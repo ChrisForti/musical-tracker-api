@@ -37,7 +37,8 @@ GET /casting/:roleId/:actorId/:performanceId
    Approve CRUD for Actors
    Approve CRUD for Roles
 3. Approval Process:
-   Request: Add Role/Actor (If not in DB, requires admin approval)
+   Request: Add Role (If not in DB, requires admin approval)
+   Request: Add Actor (If not in DB, requires admin approval)
    Request: Add Theater (If not in DB, requires admin approval)
 
 ### Flow
@@ -48,11 +49,13 @@ GET /casting/:roleId/:actorId/:performanceId
 3. Casting
    Direct Action → “Add/Edit Casting” → Personal Database
 4. Admin Approval Needed:
-5. Role/Actor (If not in DB)
-   User Request → “Add Role/Actor” → Admin Approval → Central DB
-6. Theater (If not in DB)
+5. Role (If not in DB)
+   User Request → “Add Role” → Admin Approval → Central DB
+6. Actor (If not in DB)
+   User Request → “Add Actor” → Admin Approval → Central DB
+7. Theater (If not in DB)
    User Request → “Add Theater” → Admin Approval → Central DB
-7. Central Database Actions (Admin Only):
+8. Central Database Actions (Admin Only):
    CRUD for Musicals, Productions, Theaters, Roles/Actors
 
 ### Admin approval required
