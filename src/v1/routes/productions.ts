@@ -4,7 +4,7 @@ import { ProductionTable } from "../../drizzle/schema.js";
 import { db } from "../../drizzle/db.js";
 import { SERVER_ERROR } from "../../lib/errors.js";
 import { eq } from "drizzle-orm";
-import { ensureAdmin } from "../../lib/auth.js";
+import { ensureAdmin, ensureAuthenticated } from "../../lib/auth.js";
 
 export const productionRouter = Router();
 
@@ -12,16 +12,21 @@ productionRouter.post("/", createProductionHandler);
 productionRouter.get("/:id", getproductionByIdHandler);
 productionRouter.put("/", updateproductionHandler);
 productionRouter.delete("/", deleteproductionHandler);
-// New routes for approval workflow
 productionRouter.post<ApproveProductionParams>(
   "/:id/approve",
+  ensureAuthenticated,
   ensureAdmin,
   approveProductionHandler
 );
-productionRouter.get("/pending", ensureAdmin, getPendingProductionsHandler);
+productionRouter.get(
+  "/pending",
+  ensureAuthenticated,
+  ensureAdmin,
+  getPendingProductionsHandler
+);
 
 type ApproveProductionParams = {
-  id: string | number;
+  id: string;
 };
 
 async function approveProductionHandler(

@@ -8,10 +8,10 @@ import { ensureAdmin, ensureAuthenticated } from "../../lib/auth.js";
 
 export const actorRouter = Router();
 
-actorRouter.post("/", createActorHandler);
+actorRouter.post("/", ensureAuthenticated, createActorHandler);
 actorRouter.get("/:id", getActorByIdHandler);
-actorRouter.put("/", updateActorHandler);
-actorRouter.delete("/", deleteActorHandler);
+actorRouter.put("/", ensureAuthenticated, updateActorHandler);
+actorRouter.delete("/", ensureAuthenticated, deleteActorHandler);
 // New routes for approval workflow
 actorRouter.post<ApproveActorParams>(
   "/:id/approve",

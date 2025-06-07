@@ -12,7 +12,7 @@ export const userRouter = Router();
 
 userRouter.post("/", createUserHandler);
 userRouter.post("/login", loginUserHandler);
-userRouter.get("/", ensureAuthenticated, getUserByIdHandler); // TODO: get user by id
+userRouter.get("/", ensureAuthenticated, getUserByIdHandler);
 userRouter.put("/", ensureAuthenticated, updateUserHandler);
 userRouter.delete("/", ensureAuthenticated, deleteUserHandler);
 

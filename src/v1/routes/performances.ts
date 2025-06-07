@@ -10,16 +10,15 @@ export const performanceRouter = Router();
 
 performanceRouter.post("/", ensureAuthenticated, createPerformanceHandler);
 performanceRouter.get("/:id", getPerformanceByIdHandler);
-performanceRouter.put("/", updatePerformanceHandler);
-performanceRouter.delete("/", deletePerformanceHandler);
-
-// Admin Management: Viewing all performances for monitoring or editing.
+performanceRouter.put("/", ensureAuthenticated, updatePerformanceHandler);
+performanceRouter.delete("/", ensureAuthenticated, deletePerformanceHandler);
 performanceRouter.get(
   "/",
   ensureAuthenticated,
   ensureAdmin,
   getAllPerformancesHandler
 );
+
 async function getAllPerformancesHandler(req: Request, res: Response) {
   try {
     const result = await db.query.PerformanceTable.findMany();

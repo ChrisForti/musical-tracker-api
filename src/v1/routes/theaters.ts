@@ -10,16 +10,20 @@ export const theaterRouter = Router();
 
 theaterRouter.post("/", ensureAuthenticated, createTheaterHandler);
 theaterRouter.get("/:id", getTheaterByIdHandler);
-theaterRouter.put("/", updateTheaterHandler);
-theaterRouter.delete("/", deleteTheaterHandler);
-// New routes for approval workflow
+theaterRouter.put("/", ensureAuthenticated, updateTheaterHandler);
+theaterRouter.delete("/", ensureAuthenticated, deleteTheaterHandler);
 theaterRouter.post<ApproveTheaterParams>(
   "/:id/approve",
   ensureAuthenticated,
   ensureAdmin,
   approveTheaterHandler
 );
-theaterRouter.get("/pending", ensureAdmin, getPendingTheatersHandler);
+theaterRouter.get(
+  "/pending",
+  ensureAuthenticated,
+  ensureAdmin,
+  getPendingTheatersHandler
+);
 
 type ApproveTheaterParams = {
   id: string;

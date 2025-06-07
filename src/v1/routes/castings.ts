@@ -10,11 +10,10 @@ export const castingRouter = Router();
 
 castingRouter.post("/", ensureAuthenticated, createCastingHandler);
 castingRouter.get("/:roleId/:actorId/:performanceId", getCastingByIdHandler);
-castingRouter.put("/", updateCastingHandler);
-castingRouter.delete("/", deleteCastingHandler);
-
-// Admin Management: Viewing all performances for monitoring or editing.
+castingRouter.put("/", ensureAuthenticated, updateCastingHandler);
+castingRouter.delete("/", ensureAuthenticated, deleteCastingHandler);
 castingRouter.get("/", ensureAuthenticated, ensureAdmin, getAllCastingsHandler);
+
 async function getAllCastingsHandler(req: Request, res: Response) {
   try {
     const result = await db.query.CastingTable.findMany();

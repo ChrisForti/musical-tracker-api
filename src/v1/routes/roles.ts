@@ -10,16 +10,20 @@ export const roleRouter = Router();
 
 roleRouter.post("/", ensureAuthenticated, createRoleHandler);
 roleRouter.get("/:id", getRoleByIdHandler);
-roleRouter.put("/", updateRoleHandler);
-roleRouter.delete("/", deleteRoleHandler);
-// New routes for approval workflow
+roleRouter.put("/", ensureAuthenticated, updateRoleHandler);
+roleRouter.delete("/", ensureAuthenticated, deleteRoleHandler);
 roleRouter.post<ApproveRoleParams>(
   "/:id/approve",
   ensureAuthenticated,
   ensureAdmin,
   approveRoleHandler
 );
-roleRouter.get("/pending", ensureAdmin, getPendingRolesHandler);
+roleRouter.get(
+  "/pending",
+  ensureAuthenticated,
+  ensureAdmin,
+  getPendingRolesHandler
+);
 
 type ApproveRoleParams = {
   id: string;
