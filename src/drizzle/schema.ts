@@ -1,5 +1,5 @@
 import { sql, type SQL } from "drizzle-orm";
-import { primaryKey } from "drizzle-orm/pg-core";
+import { pgEnum, primaryKey } from "drizzle-orm/pg-core";
 import {
   bigserial,
   boolean,
@@ -11,6 +11,8 @@ import {
   type AnyPgColumn,
   date,
 } from "drizzle-orm/pg-core";
+
+export const userRoleEnum = pgEnum("user_role", ["admin", "user"]);
 
 export const UserTable = pgTable(
   "users",
@@ -25,6 +27,7 @@ export const UserTable = pgTable(
       .notNull(),
     isAdmin: boolean("is_admin").default(false).notNull(),
     passwordHash: text("password_hash").notNull(),
+    accountType: userRoleEnum("account_type").default("user").notNull(),
   },
   (table) => {
     return [uniqueIndex("emailUniqueIndex").on(lower(table.email))];
@@ -47,16 +50,19 @@ export const TokenTable = pgTable("tokens", {
 export const TheaterTable = pgTable("theater", {
   id: bigserial("id", { mode: "number" }).primaryKey().notNull(),
   name: varchar("name", { length: 255 }).notNull(),
+  approved: boolean("approved").default(false).notNull(),
 });
 
 export const RoleTable = pgTable("role", {
   id: bigserial("id", { mode: "number" }).primaryKey().notNull(),
   name: varchar("name", { length: 255 }).notNull(),
+  approved: boolean("approved").default(false).notNull(),
 });
 
 export const ActorTable = pgTable("actor", {
   id: bigserial("id", { mode: "number" }).primaryKey().notNull(),
   name: varchar("name", { length: 255 }).notNull(),
+  approved: boolean("approved").default(false).notNull(),
 });
 
 export const MusicalTable = pgTable("musical", {
@@ -64,6 +70,7 @@ export const MusicalTable = pgTable("musical", {
   composer: varchar("composer", { length: 255 }).notNull(),
   lyricist: varchar("lyricist", { length: 255 }).notNull(),
   title: varchar("title", { length: 255 }).notNull(),
+  approved: boolean("approved").default(false).notNull(),
 });
 
 export const PerformanceTable = pgTable("performance", {
@@ -88,7 +95,7 @@ export const CastingTable = pgTable(
       .references(() => ActorTable.id),
     performanceId: bigint("performance_id", { mode: "number" })
       .notNull()
-      .references(() => ProductionTable.id),
+      .references(() => PerformanceTable.id),
   },
   (table) => [
     primaryKey({ columns: [table.roleId, table.actorId, table.performanceId] }),
@@ -103,4 +110,5 @@ export const ProductionTable = pgTable("production", {
   startDate: date("start_date", { mode: "date" }).notNull(),
   endDate: date("end_date", { mode: "date" }).notNull(),
   posterUrl: text("poster_url").notNull(),
+  approved: boolean("approved").default(false).notNull(),
 });

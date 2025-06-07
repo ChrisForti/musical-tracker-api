@@ -4,13 +4,25 @@ import { Validator } from "../../lib/validator.js";
 import { db } from "../../drizzle/db.js";
 import { SERVER_ERROR } from "../../lib/errors.js";
 import { and, eq } from "drizzle-orm";
+import { ensureAdmin, ensureAuthenticated } from "../../lib/auth.js";
 
 export const castingRouter = Router();
 
-castingRouter.post("/", createCastingHandler);
+castingRouter.post("/", ensureAuthenticated, createCastingHandler);
 castingRouter.get("/:roleId/:actorId/:performanceId", getCastingByIdHandler);
-castingRouter.put("/", updateCastingHandler);
-castingRouter.delete("/", deleteCastingHandler);
+castingRouter.put("/", ensureAuthenticated, updateCastingHandler);
+castingRouter.delete("/", ensureAuthenticated, deleteCastingHandler);
+castingRouter.get("/", ensureAuthenticated, ensureAdmin, getAllCastingsHandler);
+
+async function getAllCastingsHandler(req: Request, res: Response) {
+  try {
+    const result = await db.query.CastingTable.findMany();
+    res.status(200).json(result);
+  } catch (error) {
+    console.error("Error in getAllCastingsHandler:", error);
+    res.status(500).json({ error: SERVER_ERROR });
+  }
+}
 
 type CreateCastingBodyParams = {
   roleId: string | number;

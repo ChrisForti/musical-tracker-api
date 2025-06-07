@@ -12,7 +12,7 @@ export const userRouter = Router();
 
 userRouter.post("/", createUserHandler);
 userRouter.post("/login", loginUserHandler);
-userRouter.get("/", ensureAuthenticated, getUserByIdHandler); // TODO: get user by id
+userRouter.get("/", ensureAuthenticated, getUserByIdHandler);
 userRouter.put("/", ensureAuthenticated, updateUserHandler);
 userRouter.delete("/", ensureAuthenticated, deleteUserHandler);
 
@@ -21,6 +21,7 @@ type CreateUserBodyParams = {
   lastName: string;
   email: string;
   password: string;
+  accountType: "admin" | "user";
 };
 
 async function createUserHandler(
@@ -31,6 +32,12 @@ async function createUserHandler(
   const emailRx =
     "^[a-zA-Z0-9.!#$%&'*+/=?^_`{|}~-]+@[a-zA-Z0-9](?:[a-zA-Z0-9-]{0,61}[a-zA-Z0-9])?(?:\\.[a-zA-Z0-9](?:[a-zA-Z0-9-]{0,61}[a-zA-Z0-9])?)*$";
   const validator = new Validator();
+  const accountType = req.body.accountType;
+
+  if (!["admin", "user"].includes(accountType)) {
+    res.status(400).json({ error: "Invalid account type" });
+    return;
+  }
 
   try {
     validator.check(!!firstName, "firstName", "is required");
@@ -63,7 +70,6 @@ async function createUserHandler(
       return;
     }
 
-    // hash password then check for a falsy password hash
     const passwordHash = await hash(password!, 10);
     if (!passwordHash) {
       res.status(500).json({
@@ -73,9 +79,13 @@ async function createUserHandler(
       return;
     }
 
-    await db
-      .insert(UserTable)
-      .values({ firstName, lastName, email, passwordHash });
+    await db.insert(UserTable).values({
+      firstName,
+      lastName,
+      email,
+      passwordHash,
+      accountType: "user",
+    });
 
     res.json({ message: "User created successfully" });
     return;
@@ -189,6 +199,7 @@ type UpdateUserBody = {
   lastName?: string;
   email?: string;
   password?: string;
+  accountType: "admin" | "user";
 };
 
 async function updateUserHandler(
@@ -199,6 +210,12 @@ async function updateUserHandler(
   const { firstName, lastName, email, password } = req.body as UpdateUserBody;
   const validator = new Validator();
   console.log("Request body:", req.body);
+  const accountType = req.body.accountType;
+
+  if (!["admin", "user"].includes(accountType)) {
+    res.status(400).json({ error: "Invalid account type" });
+    return;
+  }
 
   const emailRx =
     "^[a-zA-Z0-9.!#$%&'*+/=?^_`{|}~-]+@[a-zA-Z0-9](?:[a-zA-Z0-9-]{0,61}[a-zA-Z0-9])?(?:\\.[a-zA-Z0-9](?:[a-zA-Z0-9-]{0,61}[a-zA-Z0-9])?)*$";

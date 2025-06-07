@@ -1,5 +1,5 @@
 {
-  "id": "66e6461a-0557-4a20-b35b-a6c1af49ab44",
+  "id": "5f0c1ca4-5c3c-41f5-82d8-cf986bf837eb",
   "prevId": "00000000-0000-0000-0000-000000000000",
   "version": "7",
   "dialect": "postgresql",
@@ -19,6 +19,13 @@
           "type": "varchar(255)",
           "primaryKey": false,
           "notNull": true
+        },
+        "approved": {
+          "name": "approved",
+          "type": "boolean",
+          "primaryKey": false,
+          "notNull": false,
+          "default": false
         }
       },
       "indexes": {},
@@ -80,10 +87,10 @@
           "onDelete": "no action",
           "onUpdate": "no action"
         },
-        "casting_performance_id_production_id_fk": {
-          "name": "casting_performance_id_production_id_fk",
+        "casting_performance_id_performance_id_fk": {
+          "name": "casting_performance_id_performance_id_fk",
           "tableFrom": "casting",
-          "tableTo": "production",
+          "tableTo": "performance",
           "columnsFrom": [
             "performance_id"
           ],
@@ -136,6 +143,13 @@
           "type": "varchar(255)",
           "primaryKey": false,
           "notNull": true
+        },
+        "approved": {
+          "name": "approved",
+          "type": "boolean",
+          "primaryKey": false,
+          "notNull": false,
+          "default": false
         }
       },
       "indexes": {},
@@ -243,6 +257,13 @@
           "type": "text",
           "primaryKey": false,
           "notNull": true
+        },
+        "approved": {
+          "name": "approved",
+          "type": "boolean",
+          "primaryKey": false,
+          "notNull": false,
+          "default": false
         }
       },
       "indexes": {},
@@ -282,6 +303,13 @@
           "type": "varchar(255)",
           "primaryKey": false,
           "notNull": true
+        },
+        "approved": {
+          "name": "approved",
+          "type": "boolean",
+          "primaryKey": false,
+          "notNull": false,
+          "default": false
         }
       },
       "indexes": {},
@@ -307,6 +335,13 @@
           "type": "varchar(255)",
           "primaryKey": false,
           "notNull": true
+        },
+        "approved": {
+          "name": "approved",
+          "type": "boolean",
+          "primaryKey": false,
+          "notNull": false,
+          "default": false
         }
       },
       "indexes": {},
@@ -419,6 +454,12 @@
         },
         "password_hash": {
           "name": "password_hash",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "role": {
+          "name": "role",
           "type": "text",
           "primaryKey": false,
           "notNull": true

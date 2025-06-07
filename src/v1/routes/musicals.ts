@@ -4,13 +4,75 @@ import { db } from "../../drizzle/db.js";
 import { SERVER_ERROR } from "../../lib/errors.js";
 import { eq } from "drizzle-orm";
 import { Validator } from "../../lib/validator.js";
+import { ensureAdmin, ensureAuthenticated } from "../../lib/auth.js";
 
 export const musicalRouter = Router();
 
-musicalRouter.post("/", createMusicalHandler);
+musicalRouter.post("/", ensureAuthenticated, createMusicalHandler);
 musicalRouter.get("/:id", getMusicalByIdHandler);
-musicalRouter.put("/", updateMusicalHandler);
-musicalRouter.delete("/", deleteMusicalHandler);
+musicalRouter.put("/", ensureAuthenticated, updateMusicalHandler);
+musicalRouter.delete("/", ensureAuthenticated, deleteMusicalHandler);
+musicalRouter.post<ApproveMusicalParams>(
+  "/:id/approve",
+  ensureAuthenticated,
+  ensureAdmin,
+  approveMusicalHandler
+);
+musicalRouter.get("/pending", ensureAdmin, getPendingMusicalsHandler);
+
+type ApproveMusicalParams = {
+  id: string;
+};
+
+async function approveMusicalHandler(
+  req: Request<ApproveMusicalParams>,
+  res: Response
+) {
+  const id = Number(req.params.id);
+  const validator = new Validator();
+
+  try {
+    validator.check(
+      !isNaN(id) && id > 0,
+      "id",
+      "is required and must be a valid number"
+    );
+
+    if (!validator.valid) {
+      res.status(400).json({ errors: validator.errors });
+      return;
+    }
+
+    const result = await db
+      .update(MusicalTable)
+      .set({ approved: true })
+      .where(eq(MusicalTable.id, id));
+
+    if (result.rowCount === 0) {
+      res.status(404).json({ error: "Musical not found or already approved" });
+      return;
+    }
+
+    res.status(200).json({ message: "Musical approved successfully" });
+  } catch (error) {
+    console.error("Error in approveMusicalHandler:", error);
+    res.status(500).json({ error: SERVER_ERROR });
+  }
+}
+
+async function getPendingMusicalsHandler(req: Request, res: Response) {
+  try {
+    const pendingMusicals = await db
+      .select()
+      .from(MusicalTable)
+      .where(eq(MusicalTable.approved, false));
+
+    res.status(200).json(pendingMusicals);
+  } catch (error) {
+    console.error("Error in getPendingMusicalsHandler:", error);
+    res.status(500).json({ error: SERVER_ERROR });
+  }
+}
 
 type CreateMusicalBodyParams = {
   id: string | number;

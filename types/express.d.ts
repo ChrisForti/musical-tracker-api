@@ -2,10 +2,15 @@ import { Request } from "express";
 
 declare global {
   namespace Express {
+    interface User {
+      id: number;
+      role: string; // Example: "admin", "user", etc.
+    }
+
     interface Request {
       user?: {
         id: number;
-        // Add other properties if needed, e.g., email, roles, etc.
+        role: string;
       };
     }
   }

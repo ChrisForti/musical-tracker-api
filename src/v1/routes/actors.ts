@@ -4,13 +4,73 @@ import { ActorTable } from "../../drizzle/schema.js";
 import { eq } from "drizzle-orm";
 import { SERVER_ERROR } from "../../lib/errors.js";
 import { Validator } from "../../lib/validator.js";
+import { ensureAdmin, ensureAuthenticated } from "../../lib/auth.js";
 
 export const actorRouter = Router();
 
-actorRouter.post("/", createActorHandler);
+actorRouter.post("/", ensureAuthenticated, createActorHandler);
 actorRouter.get("/:id", getActorByIdHandler);
-actorRouter.put("/", updateActorHandler);
-actorRouter.delete("/", deleteActorHandler);
+actorRouter.put("/", ensureAuthenticated, updateActorHandler);
+actorRouter.delete("/", ensureAuthenticated, deleteActorHandler);
+// New routes for approval workflow
+actorRouter.post<ApproveActorParams>(
+  "/:id/approve",
+  ensureAuthenticated,
+  ensureAdmin,
+  approveActorHandler
+);
+actorRouter.get("/pending", ensureAdmin, getPendingActorsHandler);
+
+type ApproveActorParams = {
+  id: string;
+};
+
+async function approveActorHandler(
+  req: Request<ApproveActorParams>,
+  res: Response
+) {
+  const id = Number(req.params.id);
+  const validator = new Validator();
+
+  try {
+    validator.check(!isNaN(id) && id > 0, "id", "is required");
+    validator.check(id > 0, "id", "must be a valid number");
+
+    if (!validator.valid) {
+      res.status(400).json({ errors: validator.errors });
+      return;
+    }
+
+    const result = await db
+      .update(ActorTable)
+      .set({ approved: true })
+      .where(eq(ActorTable.id, id));
+
+    if (result.rowCount === 0) {
+      res.status(404).json({ error: "Actor not found or already approved" });
+      return;
+    }
+
+    res.status(200).json({ message: "Actor approved successfully" });
+  } catch (error) {
+    console.error("Error in approveActorHandler:", error);
+    res.status(500).json({ error: SERVER_ERROR });
+  }
+}
+
+async function getPendingActorsHandler(req: Request, res: Response) {
+  try {
+    const pendingActors = await db
+      .select()
+      .from(ActorTable)
+      .where(eq(ActorTable.approved, false));
+
+    res.status(200).json({ actors: pendingActors });
+  } catch (error) {
+    console.error("Error in getPendingActorsHandler:", error);
+    res.status(500).json({ error: SERVER_ERROR });
+  }
+}
 
 type CreateActorBodyParams = {
   id: string | number;
