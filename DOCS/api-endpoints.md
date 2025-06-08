@@ -115,8 +115,8 @@ curl -X POST http://localhost:3000/v1/actors/1/approve \
 ## Casting endpoints
 
 - Usage:
-  - Replace 1, 2, and 3 with the actual roleId, actorId, and performanceId, respectively.
-  - Replace YOUR_ACCESS_TOKEN with a valid token if authentication is required.
+  - Replace 1, 2, and 3 with the actual `roleId`, `actorId`, and `performanceId`, respectively.
+  - Replace `YOUR_ACCESS_TOKEN` with a valid token if authentication is required.
 
 1. Create Casting:
 
