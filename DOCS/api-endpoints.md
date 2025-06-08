@@ -112,6 +112,67 @@ curl -X POST http://localhost:3000/actors/1/approve \
 -H "Authorization: Bearer YOUR_ADMIN_ACCESS_TOKEN"
 ```
 
+## Casting endpoints
+
+- Usage:
+  - Replace 1, 2, and 3 with the actual roleId, actorId, and performanceId, respectively.
+  - Replace YOUR_ACCESS_TOKEN with a valid token if authentication is required.
+
+1. Create Casting:
+
+```sh
+curl -X POST http://localhost:3000/casting/ \
+-H "Content-Type: application/json" \
+-H "Authorization: Bearer YOUR_ACCESS_TOKEN" \
+-d '{
+  "roleId": 1,
+  "actorId": 2,
+  "performanceId": 3
+}'
+```
+
+2. Get Casting by Role, Actor, and Performance IDs:
+
+```sh
+curl -X GET http://localhost:3000/casting/1/2/3 \
+-H "Authorization: Bearer YOUR_ACCESS_TOKEN"
+```
+
+3. Update Casting:
+
+```sh
+curl -X PUT http://localhost:3000/casting/ \
+-H "Content-Type: application/json" \
+-H "Authorization: Bearer YOUR_ACCESS_TOKEN" \
+-d '{
+  "roleId": 1,
+  "actorId": 2,
+  "performanceId": 3
+}'
+```
+
+4. Delete Casting:
+
+```sh
+curl -X DELETE http://localhost:3000/casting/ \
+-H "Content-Type: application/json" \
+-H "Authorization: Bearer YOUR_ACCESS_TOKEN" \
+-d '{
+  "roleId": 1,
+  "actorId": 2,
+  "performanceId": 3
+}'
+```
+
+5. Get All Castings:
+
+```sh
+curl -X GET http://localhost:3000/casting/ \
+-H "Authorization: Bearer YOUR_ADMIN_ACCESS_TOKEN"
+```
+
+- Use an admin token for YOUR_ADMIN_ACCESS_TOKEN.
+
 ```json
 {
 "firstName": "string",
