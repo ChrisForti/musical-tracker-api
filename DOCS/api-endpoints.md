@@ -1,4 +1,4 @@
-## Api Endpoints
+## User Endpoints
 
 1. Create User:
 
@@ -54,6 +54,64 @@ curl -X DELETE http://localhost:3000/users/ \
 -H "Authorization: Bearer YOUR_ACCESS_TOKEN"
 ```
 
+## Actor Endpoints
+
+q. Create actor:
+
+```sh
+curl -X POST http://localhost:3000/actors/ \
+-H "Content-Type: application/json" \
+-H "Authorization: Bearer YOUR_ACCESS_TOKEN" \
+-d '{
+  "id": 1,
+  "name": "Actor Name"
+}'
+```
+
+2. Get Actor by ID:
+
+```sh
+curl -X GET http://localhost:3000/actors/1 \
+-H "Authorization: Bearer YOUR_ACCESS_TOKEN"
+```
+
+3. Update Actor:
+
+```sh
+curl -X GET http://localhost:3000/actors/1 \
+-H "Authorization: Bearer YOUR_ACCESS_TOKEN"
+```
+
+3. Update Actor:
+
+```sh
+curl -X PUT http://localhost:3000/actors/ \
+-H "Content-Type: application/json" \
+-H "Authorization: Bearer YOUR_ACCESS_TOKEN" \
+-d '{
+  "id": 1,
+  "name": "Updated Actor Name"
+}'
+```
+
+4. Delete Actor:
+
+```sh
+curl -X DELETE http://localhost:3000/actors/ \
+-H "Content-Type: application/json" \
+-H "Authorization: Bearer YOUR_ACCESS_TOKEN" \
+-d '{
+  "id": 1
+}'
+```
+
+5. Approve Actor:
+
+```sh
+curl -X POST http://localhost:3000/actors/1/approve \
+-H "Authorization: Bearer YOUR_ADMIN_ACCESS_TOKEN"
+```
+
 ```json
 {
 "firstName": "string",
@@ -63,8 +121,6 @@ curl -X DELETE http://localhost:3000/users/ \
 "accountType": "admin" | "user"
 }
 ```
-
-login user
 
 - **Endpoint**: `POST /v1/login`
 - **Request Body**:
