@@ -248,6 +248,62 @@ curl -X GET http://localhost:3000/v1/musical/pending \
 
 ## Performance endpoints
 
+1. Create Performance:
+
+```sh
+curl -X POST http://localhost:3000/v1/performance/ \
+-H "Content-Type: application/json" \
+-H "Authorization: Bearer YOUR_ACCESS_TOKEN" \
+-d '{
+  "id": 1,
+  "productionId": 2,
+  "date": "2023-10-01T19:00:00Z",
+  "theaterId": 3
+}'
+```
+
+2. Get Performance by ID:
+
+```sh
+curl -X GET http://localhost:3000/v1/performance/1 \
+-H "Authorization: Bearer YOUR_ACCESS_TOKEN"
+```
+
+3. Update Performance:
+
+```sh
+curl -X PUT http://localhost:3000/v1/performance/ \
+-H "Content-Type: application/json" \
+-H "Authorization: Bearer YOUR_ACCESS_TOKEN" \
+-d '{
+  "id": 1,
+  "productionId": 2,
+  "date": "2023-10-02T19:00:00Z",
+  "theaterId": 4
+}'
+```
+
+4. Delete Performance:
+
+```sh
+curl -X PUT http://localhost:3000/v1/performance/ \
+-H "Content-Type: application/json" \
+-H "Authorization: Bearer YOUR_ACCESS_TOKEN" \
+-d '{
+  "id": 1,
+  "productionId": 2,
+  "date": "2023-10-02T19:00:00Z",
+  "theaterId": 4
+}'
+```
+
+5. Get all Performances:
+
+```sh
+curl -X GET http://localhost:3000/v1/performance/ \
+-H "Authorization: Bearer YOUR_ADMIN_ACCESS_TOKEN"
+```
+
 ## Production endpoints
 
 ## Role endpoints
