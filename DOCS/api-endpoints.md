@@ -306,6 +306,70 @@ curl -X GET http://localhost:3000/v1/performance/ \
 
 ## Production endpoints
 
+1. Create Production:
+
+```sh
+curl -X POST http://localhost:3000/v1/production/ \
+-H "Content-Type: application/json" \
+-H "Authorization: Bearer YOUR_ACCESS_TOKEN" \
+-d '{
+  "id": 1,
+  "musicalId": 2,
+  "startDate": "2023-10-01T19:00:00Z",
+  "endDate": "2023-10-10T19:00:00Z",
+  "posterUrl": "https://example.com/poster.jpg"
+}'
+```
+
+2. Get Production by ID:
+
+```sh
+curl -X GET http://localhost:3000/v1/production/1 \
+-H "Authorization: Bearer YOUR_ACCESS_TOKEN"
+```
+
+3. Update Production:
+
+```sh
+curl -X PUT http://localhost:3000/v1/production/ \
+-H "Content-Type: application/json" \
+-H "Authorization: Bearer YOUR_ACCESS_TOKEN" \
+-d '{
+  "id": 1,
+  "musicalId": 3,
+  "startDate": "2023-10-05T19:00:00Z",
+  "endDate": "2023-10-15T19:00:00Z",
+  "posterUrl": "https://example.com/new-poster.jpg"
+}'
+```
+
+4. Delete Production:
+
+```sh
+curl -X DELETE http://localhost:3000/v1/production/ \
+-H "Content-Type: application/json" \
+-H "Authorization: Bearer YOUR_ACCESS_TOKEN" \
+-d '{
+  "id": 1
+}'
+```
+
+5. Approve Production:
+
+```sh
+curl -X POST http://localhost:3000/v1/production/1/approve \
+-H "Authorization: Bearer YOUR_ADMIN_ACCESS_TOKEN"
+```
+
+6. get pending Productions:
+
+```sh
+curl -X GET http://localhost:3000/v1/production/pending \
+-H "Authorization: Bearer YOUR_ADMIN_ACCESS_TOKEN"
+```
+
+- Requires admin privileges.
+
 ## Role endpoints
 
 ## Theater endpoints
