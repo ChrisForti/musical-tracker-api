@@ -435,29 +435,61 @@ curl -X GET http://localhost:3000/v1/role/pending \
 
 ## Theater endpoints
 
-```json
-{
-"firstName": "string",
-"lastName": "string",
-"email": "string",
-"password": "string",
-"accountType": "admin" | "user"
-}
+1. Create Theater:
+
+```sh
+curl -X POST http://localhost:3000/v1/theater/ \
+-H "Content-Type: application/json" \
+-H "Authorization: Bearer YOUR_ACCESS_TOKEN" \
+-d '{
+  "name": "Broadway Theater"
+}'
 ```
 
-- **Endpoint**: `POST /v1/login`
-- **Request Body**:
-  - **Success**:
-  ```json
-  {
-    "email": "user@example.com",
-    "password": "password123"
-  }
-  ```
-  - **Failure**:
-  ```json
-  {
-    "error": "Invalid email or password"
-  }
-  ```
-  GET endpoint in casting handler
+2. Get Theater by ID:
+
+```sh
+curl -X GET http://localhost:3000/v1/theater/1 \
+-H "Authorization: Bearer YOUR_ACCESS_TOKEN"
+```
+
+3. Update Theater:
+
+```sh
+curl -X PUT http://localhost:3000/v1/theater/ \
+-H "Content-Type: application/json" \
+-H "Authorization: Bearer YOUR_ACCESS_TOKEN" \
+-d '{
+  "id": 1,
+  "name": "Updated Theater Name"
+}'
+```
+
+4. Delete Theater:
+
+```sh
+curl -X DELETE http://localhost:3000/v1/theater/ \
+-H "Content-Type: application/json" \
+-H "Authorization: Bearer YOUR_ACCESS_TOKEN" \
+-d '{
+  "id": 1
+}'
+```
+
+5. Approve Theater:
+
+```sh
+curl -X POST http://localhost:3000/v1/theater/1/approve \
+-H "Authorization: Bearer YOUR_ADMIN_ACCESS_TOKEN"
+```
+
+- Requires admin privileges.
+
+6. Get Pending Theaters:
+
+```sh
+curl -X GET http://localhost:3000/v1/theater/pending \
+-H "Authorization: Bearer YOUR_ADMIN_ACCESS_TOKEN"
+```
+
+- Requires admin privileges.
