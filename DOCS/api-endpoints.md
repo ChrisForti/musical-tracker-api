@@ -361,6 +361,8 @@ curl -X POST http://localhost:3000/v1/production/1/approve \
 -H "Authorization: Bearer YOUR_ADMIN_ACCESS_TOKEN"
 ```
 
+- Requires admin privileges.
+
 6. get pending Productions:
 
 ```sh
@@ -371,6 +373,65 @@ curl -X GET http://localhost:3000/v1/production/pending \
 - Requires admin privileges.
 
 ## Role endpoints
+
+1. Create Role:
+
+```sh
+curl -X POST http://localhost:3000/v1/role/ \
+-H "Content-Type: application/json" \
+-H "Authorization: Bearer YOUR_ACCESS_TOKEN" \
+-d '{
+  "name": "Lead Actor"
+}'
+```
+
+2. Get Role by ID:
+
+```sh
+curl -X GET http://localhost:3000/v1/role/1 \
+-H "Authorization: Bearer YOUR_ACCESS_TOKEN"
+```
+
+3. Update Role:
+
+```sh
+curl -X PUT http://localhost:3000/v1/role/ \
+-H "Content-Type: application/json" \
+-H "Authorization: Bearer YOUR_ACCESS_TOKEN" \
+-d '{
+  "id": 1,
+  "name": "Supporting Actor"
+}'
+```
+
+4. Delete Role:
+
+```sh
+curl -X DELETE http://localhost:3000/v1/role/ \
+-H "Content-Type: application/json" \
+-H "Authorization: Bearer YOUR_ACCESS_TOKEN" \
+-d '{
+  "id": 1
+}'
+```
+
+5. Approve Role:
+
+```sh
+curl -X POST http://localhost:3000/v1/role/1/approve \
+-H "Authorization: Bearer YOUR_ADMIN_ACCESS_TOKEN"
+```
+
+- Requires admin privileges.
+
+6. Get pending Roles:
+
+```sh
+curl -X GET http://localhost:3000/v1/role/pending \
+-H "Authorization: Bearer YOUR_ADMIN_ACCESS_TOKEN"
+```
+
+- Requires admin privileges.
 
 ## Theater endpoints
 

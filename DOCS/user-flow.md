@@ -50,5 +50,6 @@
 - Musicals: Admin-approved musicals.
 - Productions: Admin-approved productions.
 - Theaters: Admin-approved theaters.
-- Roles/Actors: Admin-approved roles and actors.
+- Actors: Admin-approved actors.
+- Roles: Admin-approved roles.
 - ApprovalRequests: Track user requests for roles/actors and theaters.
