@@ -28,7 +28,7 @@ curl -X POST http://localhost:3000/v1/login \
 3. Get user by ID:
 
 ```sh
-curl -X GET "http://localhost:3000/v1/users/?id=USER_ID" \
+curl -X GET "http://localhost:3000/v1/user \
 -H "Authorization: Bearer YOUR_ACCESS_TOKEN"
 ```
 
