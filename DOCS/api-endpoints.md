@@ -3,7 +3,7 @@
 1. Create User:
 
 ```sh
-curl -X POST http://localhost:3000/users/ \
+curl -X POST http://localhost:3000/v1/users/ \
 -H "Content-Type: application/json" \
 -d '{
   "firstName": "John",
@@ -28,14 +28,14 @@ curl -X POST http://localhost:3000/v1/login \
 3. Get user by ID:
 
 ```sh
-curl -X GET "http://localhost:3000/users/?id=USER_ID" \
+curl -X GET "http://localhost:3000/v1/users/?id=USER_ID" \
 -H "Authorization: Bearer YOUR_ACCESS_TOKEN"
 ```
 
 4. Update User:
 
 ```sh
-curl -X PUT http://localhost:3000/users/ \
+curl -X PUT http://localhost:3000/v1/users/ \
 -H "Content-Type: application/json" \
 -H "Authorization: Bearer YOUR_ACCESS_TOKEN" \
 -d '{
@@ -50,7 +50,7 @@ curl -X PUT http://localhost:3000/users/ \
 5. Delete User:
 
 ```sh
-curl -X DELETE http://localhost:3000/users/ \
+curl -X DELETE http://localhost:3000/v1/users/ \
 -H "Authorization: Bearer YOUR_ACCESS_TOKEN"
 ```
 
@@ -59,7 +59,7 @@ curl -X DELETE http://localhost:3000/users/ \
 q. Create actor:
 
 ```sh
-curl -X POST http://localhost:3000/actors/ \
+curl -X POST http://localhost:3000/v1/actors/ \
 -H "Content-Type: application/json" \
 -H "Authorization: Bearer YOUR_ACCESS_TOKEN" \
 -d '{
@@ -71,21 +71,21 @@ curl -X POST http://localhost:3000/actors/ \
 2. Get Actor by ID:
 
 ```sh
-curl -X GET http://localhost:3000/actors/1 \
+curl -X GET http://localhost:3000/v1/actors/1 \
 -H "Authorization: Bearer YOUR_ACCESS_TOKEN"
 ```
 
 3. Update Actor:
 
 ```sh
-curl -X GET http://localhost:3000/actors/1 \
+curl -X GET http://localhost:3000/v1/actors/1 \
 -H "Authorization: Bearer YOUR_ACCESS_TOKEN"
 ```
 
 3. Update Actor:
 
 ```sh
-curl -X PUT http://localhost:3000/actors/ \
+curl -X PUT http://localhost:3000/v1/actors/ \
 -H "Content-Type: application/json" \
 -H "Authorization: Bearer YOUR_ACCESS_TOKEN" \
 -d '{
@@ -97,7 +97,7 @@ curl -X PUT http://localhost:3000/actors/ \
 4. Delete Actor:
 
 ```sh
-curl -X DELETE http://localhost:3000/actors/ \
+curl -X DELETE http://localhost:3000/v1/actors/ \
 -H "Content-Type: application/json" \
 -H "Authorization: Bearer YOUR_ACCESS_TOKEN" \
 -d '{
@@ -108,7 +108,7 @@ curl -X DELETE http://localhost:3000/actors/ \
 5. Approve Actor:
 
 ```sh
-curl -X POST http://localhost:3000/actors/1/approve \
+curl -X POST http://localhost:3000/v1/actors/1/approve \
 -H "Authorization: Bearer YOUR_ADMIN_ACCESS_TOKEN"
 ```
 
@@ -121,7 +121,7 @@ curl -X POST http://localhost:3000/actors/1/approve \
 1. Create Casting:
 
 ```sh
-curl -X POST http://localhost:3000/casting/ \
+curl -X POST http://localhost:3000/v1/casting/ \
 -H "Content-Type: application/json" \
 -H "Authorization: Bearer YOUR_ACCESS_TOKEN" \
 -d '{
@@ -134,14 +134,14 @@ curl -X POST http://localhost:3000/casting/ \
 2. Get Casting by Role, Actor, and Performance IDs:
 
 ```sh
-curl -X GET http://localhost:3000/casting/1/2/3 \
+curl -X GET http://localhost:3000/v1/casting/1/2/3 \
 -H "Authorization: Bearer YOUR_ACCESS_TOKEN"
 ```
 
 3. Update Casting:
 
 ```sh
-curl -X PUT http://localhost:3000/casting/ \
+curl -X PUT http://localhost:3000/v1/casting/ \
 -H "Content-Type: application/json" \
 -H "Authorization: Bearer YOUR_ACCESS_TOKEN" \
 -d '{
@@ -154,7 +154,7 @@ curl -X PUT http://localhost:3000/casting/ \
 4. Delete Casting:
 
 ```sh
-curl -X DELETE http://localhost:3000/casting/ \
+curl -X DELETE http://localhost:3000/v1/casting/ \
 -H "Content-Type: application/json" \
 -H "Authorization: Bearer YOUR_ACCESS_TOKEN" \
 -d '{
@@ -167,7 +167,7 @@ curl -X DELETE http://localhost:3000/casting/ \
 5. Get All Castings:
 
 ```sh
-curl -X GET http://localhost:3000/casting/ \
+curl -X GET http://localhost:3000/v1/casting/ \
 -H "Authorization: Bearer YOUR_ADMIN_ACCESS_TOKEN"
 ```
 
@@ -178,7 +178,7 @@ curl -X GET http://localhost:3000/casting/ \
 1. Create a Musical:
 
 ```sh
-curl -X POST http://localhost:3000/musical/ \
+curl -X POST http://localhost:3000/v1/musical/ \
 -H "Content-Type: application/json" \
 -H "Authorization: Bearer YOUR_ACCESS_TOKEN" \
 -d '{
@@ -192,7 +192,7 @@ curl -X POST http://localhost:3000/musical/ \
 2. Get a Musical by ID:
 
 ```sh
-curl -X GET http://localhost:3000/musical/1 \
+curl -X GET http://localhost:3000/v1/musical/1 \
 -H "Authorization: Bearer YOUR_ACCESS_TOKEN"
 ```
 
@@ -201,7 +201,7 @@ curl -X GET http://localhost:3000/musical/1 \
 3. Update a Musical:
 
 ```sh
-curl -X PUT http://localhost:3000/musical/ \
+curl -X PUT http://localhost:3000/v1/musical/ \
 -H "Content-Type: application/json" \
 -H "Authorization: Bearer YOUR_ACCESS_TOKEN" \
 -d '{
@@ -217,7 +217,7 @@ curl -X PUT http://localhost:3000/musical/ \
 4. Delete a Musical:
 
 ```sh
-curl -X DELETE http://localhost:3000/musical/ \
+curl -X DELETE http://localhost:3000/v1/musical/ \
 -H "Content-Type: application/json" \
 -H "Authorization: Bearer YOUR_ACCESS_TOKEN" \
 -d '{
@@ -230,7 +230,7 @@ curl -X DELETE http://localhost:3000/musical/ \
 5. Approve a Musical:
 
 ```sh
-curl -X POST http://localhost:3000/musical/1/approve \
+curl -X POST http://localhost:3000/v1/musical/1/approve \
 -H "Authorization: Bearer YOUR_ADMIN_ACCESS_TOKEN"
 ```
 
@@ -240,7 +240,7 @@ curl -X POST http://localhost:3000/musical/1/approve \
 6. Get Pending Musicals:
 
 ```sh
-curl -X GET http://localhost:3000/musical/pending \
+curl -X GET http://localhost:3000/v1/musical/pending \
 -H "Authorization: Bearer YOUR_ADMIN_ACCESS_TOKEN"
 ```
 
