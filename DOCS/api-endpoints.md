@@ -3,7 +3,7 @@
 1. Create User:
 
 ```sh
-curl -X POST http://localhost:3000/v1/users/ \
+curl -X POST http://localhost:3000/v1/user/ \
 -H "Content-Type: application/json" \
 -d '{
   "firstName": "John",
@@ -35,7 +35,7 @@ curl -X GET "http://localhost:3000/v1/user \
 4. Update User:
 
 ```sh
-curl -X PUT http://localhost:3000/v1/users/ \
+curl -X PUT http://localhost:3000/v1/user/ \
 -H "Content-Type: application/json" \
 -H "Authorization: Bearer YOUR_ACCESS_TOKEN" \
 -d '{
@@ -50,7 +50,7 @@ curl -X PUT http://localhost:3000/v1/users/ \
 5. Delete User:
 
 ```sh
-curl -X DELETE http://localhost:3000/v1/users/ \
+curl -X DELETE http://localhost:3000/v1/user/ \
 -H "Authorization: Bearer YOUR_ACCESS_TOKEN"
 ```
 
@@ -59,7 +59,7 @@ curl -X DELETE http://localhost:3000/v1/users/ \
 q. Create actor:
 
 ```sh
-curl -X POST http://localhost:3000/v1/actors/ \
+curl -X POST http://localhost:3000/v1/actor/ \
 -H "Content-Type: application/json" \
 -H "Authorization: Bearer YOUR_ACCESS_TOKEN" \
 -d '{
@@ -71,21 +71,21 @@ curl -X POST http://localhost:3000/v1/actors/ \
 2. Get Actor by ID:
 
 ```sh
-curl -X GET http://localhost:3000/v1/actors/1 \
+curl -X GET http://localhost:3000/v1/actor/1 \
 -H "Authorization: Bearer YOUR_ACCESS_TOKEN"
 ```
 
 3. Update Actor:
 
 ```sh
-curl -X GET http://localhost:3000/v1/actors/1 \
+curl -X GET http://localhost:3000/v1/actor/1 \
 -H "Authorization: Bearer YOUR_ACCESS_TOKEN"
 ```
 
 3. Update Actor:
 
 ```sh
-curl -X PUT http://localhost:3000/v1/actors/ \
+curl -X PUT http://localhost:3000/v1/actor/ \
 -H "Content-Type: application/json" \
 -H "Authorization: Bearer YOUR_ACCESS_TOKEN" \
 -d '{
@@ -97,7 +97,7 @@ curl -X PUT http://localhost:3000/v1/actors/ \
 4. Delete Actor:
 
 ```sh
-curl -X DELETE http://localhost:3000/v1/actors/ \
+curl -X DELETE http://localhost:3000/v1/actor/ \
 -H "Content-Type: application/json" \
 -H "Authorization: Bearer YOUR_ACCESS_TOKEN" \
 -d '{
@@ -108,7 +108,7 @@ curl -X DELETE http://localhost:3000/v1/actors/ \
 5. Approve Actor:
 
 ```sh
-curl -X POST http://localhost:3000/v1/actors/1/approve \
+curl -X POST http://localhost:3000/v1/actor/1/approve \
 -H "Authorization: Bearer YOUR_ADMIN_ACCESS_TOKEN"
 ```
 
