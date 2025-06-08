@@ -230,7 +230,7 @@ curl -X DELETE http://localhost:3000/v1/musical/ \
 5. Approve a Musical:
 
 ```sh
-curl -X POST http://localhost:3000/v1/musical/1/approve \
+curl -X POST http://localhost:3000/v1/musical/:musicalId/approve \
 -H "Authorization: Bearer YOUR_ADMIN_ACCESS_TOKEN"
 ```
 
@@ -357,7 +357,7 @@ curl -X DELETE http://localhost:3000/v1/production/ \
 5. Approve Production:
 
 ```sh
-curl -X POST http://localhost:3000/v1/production/1/approve \
+curl -X POST http://localhost:3000/v1/production/:productionId/approve \
 -H "Authorization: Bearer YOUR_ADMIN_ACCESS_TOKEN"
 ```
 
@@ -418,7 +418,7 @@ curl -X DELETE http://localhost:3000/v1/role/ \
 5. Approve Role:
 
 ```sh
-curl -X POST http://localhost:3000/v1/role/1/approve \
+curl -X POST http://localhost:3000/v1/role/:roleId/approve \
 -H "Authorization: Bearer YOUR_ADMIN_ACCESS_TOKEN"
 ```
 
@@ -479,7 +479,7 @@ curl -X DELETE http://localhost:3000/v1/theater/ \
 5. Approve Theater:
 
 ```sh
-curl -X POST http://localhost:3000/v1/theater/1/approve \
+curl -X POST http://localhost:3000/v1/theater/:theaterId/approve \
 -H "Authorization: Bearer YOUR_ADMIN_ACCESS_TOKEN"
 ```
 
