@@ -1,5 +1,69 @@
 ## Api Endpoints
 
+1. Create User:
+
+```sh
+curl -X POST http://localhost:3000/users/ \
+-H "Content-Type: application/json" \
+-d '{
+  "firstName": "John",
+  "lastName": "Doe",
+  "email": "johndoe@example.com",
+  "password": "password123",
+  "accountType": "user"
+}'
+```
+
+2. Login User:
+
+```sh
+curl -X POST http://localhost:3000/v1/login \
+-H "Content-Type: application/json" \
+-d '{
+  "email": "user@example.com",
+  "password": "password123"
+}'
+```
+
+3. Get user by ID:
+
+```sh
+curl -X GET "http://localhost:3000/users/?id=USER_ID" \
+-H "Authorization: Bearer YOUR_ACCESS_TOKEN"
+```
+
+4. Update User:
+
+```sh
+curl -X PUT http://localhost:3000/users/ \
+-H "Content-Type: application/json" \
+-H "Authorization: Bearer YOUR_ACCESS_TOKEN" \
+-d '{
+  "firstName": "UpdatedFirstName",
+  "lastName": "UpdatedLastName",
+  "email": "updatedemail@example.com",
+  "password": "newpassword123",
+  "accountType": "admin"
+}'
+```
+
+5. Delete User:
+
+```sh
+curl -X DELETE http://localhost:3000/users/ \
+-H "Authorization: Bearer YOUR_ACCESS_TOKEN"
+```
+
+```json
+{
+"firstName": "string",
+"lastName": "string",
+"email": "string",
+"password": "string",
+"accountType": "admin" | "user"
+}
+```
+
 login user
 
 - **Endpoint**: `POST /v1/login`
