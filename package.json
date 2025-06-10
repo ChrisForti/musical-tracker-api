@@ -9,6 +9,7 @@
     "dev": "nodemon",
     "build": "tsc",
     "start": "node ./build/server.js",
+    "pre-deploy": "node ./build/drizzle/migrate.js",
     "psql": "psql -U postgres -d postgres",
     "db:generate": "drizzle-kit generate",
     "db:migrate": "tsc && node build/drizzle/migrate.js"
