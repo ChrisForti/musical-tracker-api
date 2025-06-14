@@ -10,7 +10,6 @@ curl -X POST http://localhost:3000/v1/user/ \
   "lastName": "Doe",
   "email": "johndoe@example.com",
   "password": "password123",
-  "accountType": "user"
 }'
 ```
 
