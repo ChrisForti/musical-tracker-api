@@ -89,9 +89,10 @@ async function createTheaterHandler(
 ) {
   const name = req.body.name;
   const validator = new Validator();
+  console.log(req.body);
 
   try {
-    validator.check(!name, "name", "is required");
+    validator.check(!!name, "name", "is required");
 
     if (!validator.valid) {
       res.status(400).json({ errors: validator.errors });

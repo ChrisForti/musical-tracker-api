@@ -1,6 +1,6 @@
 import type { Route } from "./+types/home";
 import { Header } from "~/components/Header";
-import { Login } from "~/components/Login";
+import { Login } from "~/components/login";
 
 export function meta({}: Route.MetaArgs) {
   return [

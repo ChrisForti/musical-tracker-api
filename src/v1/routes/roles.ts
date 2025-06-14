@@ -91,7 +91,7 @@ async function createRoleHandler(
   const validator = new Validator();
 
   try {
-    validator.check(!name, "name", "is required");
+    validator.check(!!name, "name", "is required");
 
     if (!validator.valid) {
       res.status(400).json({ errors: validator.errors });

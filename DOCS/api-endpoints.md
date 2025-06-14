@@ -16,7 +16,7 @@ curl -X POST http://localhost:3000/v1/user/ \
 2. Login User:
 
 ```sh
-curl -X POST http://localhost:3000/v1/login \
+curl -X POST http://localhost:3000/v1/user/login \
 -H "Content-Type: application/json" \
 -d '{
   "email": "user@example.com",
@@ -492,3 +492,13 @@ curl -X GET http://localhost:3000/v1/theater/pending \
 ```
 
 - Requires admin privileges.
+
+curl --request POST \
+ --url http://localhost:3000/v1/theater \
+ --header 'Authorization: Bearer "JM4xQDIKffpI56PrfKjdgRL3DIwQNelAr9axdUVBszQ"' \
+ --header 'Content-Type: application/json' \
+ --data '{
+"name": "Marriott Theatre"
+}'
+
+"XpZDNYYdUhig96yARYAzAruB9YqQVXkHjeTPhKBmI9M"
