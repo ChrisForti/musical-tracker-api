@@ -1,19 +1,18 @@
 import type { Route } from "./+types/home";
-import { Main } from "~/components/main";
-import { Login } from "~/components/login";
+import { Header } from "~/components/Header";
+import { Login } from "~/components/Login";
 
 export function meta({}: Route.MetaArgs) {
   return [
-    { title: "New React Router App" },
-    { name: "description", content: "Welcome to React Router!" },
+    { title: "Musical tracker dashboard" },
+    { name: "description", content: "Welcome to Musical tracker!" },
   ];
 }
 
 export default function Home() {
   return (
     <>
-      <Main />
-      <Login />
+      <Header setHeaderNavigation={Login} />
     </>
   );
 }
