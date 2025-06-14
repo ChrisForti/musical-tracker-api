@@ -21,7 +21,6 @@ type CreateUserBodyParams = {
   lastName: string;
   email: string;
   password: string;
-  accountType: "admin" | "user";
 };
 
 async function createUserHandler(
@@ -32,23 +31,18 @@ async function createUserHandler(
   const emailRx =
     "^[a-zA-Z0-9.!#$%&'*+/=?^_`{|}~-]+@[a-zA-Z0-9](?:[a-zA-Z0-9-]{0,61}[a-zA-Z0-9])?(?:\\.[a-zA-Z0-9](?:[a-zA-Z0-9-]{0,61}[a-zA-Z0-9])?)*$";
   const validator = new Validator();
-  const accountType = req.body.accountType;
-
-  if (!["admin", "user"].includes(accountType)) {
-    res.status(400).json({ error: "Invalid account type" });
-    return;
-  }
+  // const accountType = req.body.accountType;
 
   try {
     validator.check(!!firstName, "firstName", "is required");
     validator.check(
-      firstName.length < 3,
+      firstName.length >= 3,
       "firstName",
       "must be at least 3 characters"
     );
     validator.check(!!lastName, "lastName", "is required");
     validator.check(
-      lastName.length < 3,
+      lastName.length >= 3,
       "lastName",
       " must be at least 3 characters"
     );
@@ -60,7 +54,7 @@ async function createUserHandler(
     );
     validator.check(!!password, "password", "is required");
     validator.check(
-      password.length < 8,
+      password.length >= 8,
       "password",
       "must be at least 8 digits"
     );
