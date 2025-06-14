@@ -492,13 +492,3 @@ curl -X GET http://localhost:3000/v1/theater/pending \
 ```
 
 - Requires admin privileges.
-
-curl --request POST \
- --url http://localhost:3000/v1/theater \
- --header 'Authorization: Bearer "JM4xQDIKffpI56PrfKjdgRL3DIwQNelAr9axdUVBszQ"' \
- --header 'Content-Type: application/json' \
- --data '{
-"name": "Marriott Theatre"
-}'
-
-"XpZDNYYdUhig96yARYAzAruB9YqQVXkHjeTPhKBmI9M"
