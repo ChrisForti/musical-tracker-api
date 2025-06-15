@@ -1,8 +1,6 @@
 import { sql, type SQL } from "drizzle-orm";
 import { pgEnum, primaryKey } from "drizzle-orm/pg-core";
-import { v4 as uuidv4 } from "uuid";
 import {
-  bigserial,
   boolean,
   uuid,
   pgTable,
@@ -53,25 +51,37 @@ export const TokenTable = pgTable("tokens", {
 });
 
 export const TheaterTable = pgTable("theater", {
-  id: bigserial("id", { mode: "number" }).primaryKey().notNull(),
+  id: uuid("id")
+    .default(sql`gen_random_uuid()`)
+    .primaryKey()
+    .notNull(),
   name: varchar("name", { length: 255 }).notNull(),
   approved: boolean("approved").default(false).notNull(),
 });
 
 export const RoleTable = pgTable("role", {
-  id: bigserial("id", { mode: "number" }).primaryKey().notNull(),
+  id: uuid("id")
+    .default(sql`gen_random_uuid()`)
+    .primaryKey()
+    .notNull(),
   name: varchar("name", { length: 255 }).notNull(),
   approved: boolean("approved").default(false).notNull(),
 });
 
 export const ActorTable = pgTable("actor", {
-  id: bigserial("id", { mode: "number" }).primaryKey().notNull(),
+  id: uuid("id")
+    .default(sql`gen_random_uuid()`)
+    .primaryKey()
+    .notNull(),
   name: varchar("name", { length: 255 }).notNull(),
   approved: boolean("approved").default(false).notNull(),
 });
 
 export const MusicalTable = pgTable("musical", {
-  id: bigserial("id", { mode: "number" }).primaryKey().notNull(),
+  id: uuid("id")
+    .default(sql`gen_random_uuid()`)
+    .primaryKey()
+    .notNull(),
   composer: varchar("composer", { length: 255 }).notNull(),
   lyricist: varchar("lyricist", { length: 255 }).notNull(),
   title: varchar("title", { length: 255 }).notNull(),
@@ -79,7 +89,10 @@ export const MusicalTable = pgTable("musical", {
 });
 
 export const PerformanceTable = pgTable("performance", {
-  id: bigserial("id", { mode: "number" }).primaryKey().notNull(),
+  id: uuid("id")
+    .default(sql`gen_random_uuid()`)
+    .primaryKey()
+    .notNull(),
   productionId: bigint("production_id", { mode: "number" })
     .notNull()
     .references(() => ProductionTable.id),
@@ -92,13 +105,16 @@ export const PerformanceTable = pgTable("performance", {
 export const CastingTable = pgTable(
   "casting",
   {
-    roleId: bigint("role_id", { mode: "number" })
+    roleId: uuid("id")
+      .default(sql`gen_random_uuid()`)
       .notNull()
       .references(() => RoleTable.id),
-    actorId: bigint("actor_id", { mode: "number" })
+    actorId: uuid("id")
+      .default(sql`gen_random_uuid()`)
       .notNull()
       .references(() => ActorTable.id),
-    performanceId: bigint("performance_id", { mode: "number" })
+    performanceId: uuid("id")
+      .default(sql`gen_random_uuid()`)
       .notNull()
       .references(() => PerformanceTable.id),
   },
@@ -108,8 +124,12 @@ export const CastingTable = pgTable(
 );
 
 export const ProductionTable = pgTable("production", {
-  id: bigserial("id", { mode: "number" }).primaryKey().notNull(),
-  musicalId: bigint("musical_id", { mode: "number" })
+  id: uuid("id")
+    .default(sql`gen_random_uuid()`)
+    .primaryKey()
+    .notNull(),
+  musicalId: uuid("id")
+    .default(sql`gen_random_uuid()`)
     .notNull()
     .references(() => MusicalTable.id),
   startDate: date("start_date", { mode: "date" }).notNull(),

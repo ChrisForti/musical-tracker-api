@@ -8,6 +8,7 @@ import { Validator } from "../../lib/validator.js";
 import { SERVER_ERROR } from "../../lib/errors.js";
 import { ensureAuthenticated } from "../../lib/auth.js";
 import { v4 as uuidv4 } from "uuid";
+import { validate as validateUuid } from "uuid";
 
 const newId = uuidv4();
 
@@ -15,7 +16,7 @@ export const userRouter = Router();
 
 userRouter.post("/", createUserHandler);
 userRouter.post("/login", loginUserHandler);
-userRouter.get("/", ensureAuthenticated, getUserByIdHandler);
+userRouter.get("/:id", ensureAuthenticated, getUserByIdHandler);
 userRouter.put("/", ensureAuthenticated, updateUserHandler);
 userRouter.delete("/", ensureAuthenticated, deleteUserHandler);
 
@@ -153,17 +154,17 @@ type GetUserByIdBody = {
 };
 
 async function getUserByIdHandler(
-  req: Request<GetUserByIdBody>,
+  req: Request<{}, {}, GetUserByIdBody>,
   res: Response
 ) {
   const userId = req.query.id as string;
   const validator = new Validator();
 
   try {
-    // Validate UUID format using regex
-    const uuidRegex =
-      /^[0-9a-f]{8}-[0-9a-f]{4}-4[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;
-    validator.check(uuidRegex.test(userId), "id", "must be a valid UUID");
+    validator.check(!!userId, "id", "is required");
+    if (userId) {
+      validator.check(validateUuid(userId), "id", "must be a valid UUID");
+    }
 
     if (!validator.valid) {
       res.status(400).json({ errors: validator.errors });
@@ -231,12 +232,9 @@ async function updateUserHandler(
   };
 
   try {
-    // Validate UUID format
-    const uuidRegex =
-      /^[0-9a-f]{8}-[0-9a-f]{4}-4[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;
-    if (!uuidRegex.test(userId)) {
-      res.status(400).json({ error: "Invalid user ID format" });
-      return;
+    validator.check(!!userId, "id", "is required");
+    if (userId) {
+      validator.check(validateUuid(userId), "id", "must be a valid UUID");
     }
 
     const updatedData: UpdateData = {};
@@ -256,6 +254,7 @@ async function updateUserHandler(
         res.status(400).json({ errors: validator.errors });
         return;
       }
+
       updatedData.passwordHash = await hash(password, 10);
     }
 
@@ -294,24 +293,16 @@ async function deleteUserHandler(req: Request, res: Response) {
   try {
     validator.check(!!userId, "userId", "does not exist");
 
+    if (userId) {
+      validator.check(validateUuid(userId), "id", "must be a valid UUID");
+    }
+
     if (!validator.valid) {
       res.status(400).json({ errors: validator.errors });
       return;
     }
 
-    // At this point, userId is guaranteed to be defined
-    const userIdStr = userId as string;
-
-    // Validate UUID format
-    const uuidRegex =
-      /^[0-9a-f]{8}-[0-9a-f]{4}-4[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;
-    if (!uuidRegex.test(userIdStr)) {
-      res.status(400).json({ error: "Invalid user ID format" });
-      return;
-    }
-
-    // Add a timestamp for logging purposes
-    const deleteTimestamp = new Date().toISOString();
+    const userIdStr = userId!;
 
     const result = await db
       .delete(UserTable)
