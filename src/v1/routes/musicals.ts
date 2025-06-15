@@ -75,7 +75,6 @@ async function getPendingMusicalsHandler(req: Request, res: Response) {
 }
 
 type CreateMusicalBodyParams = {
-  id: string | number;
   composer: string;
   lyricist: string;
   title: string;
@@ -87,18 +86,12 @@ async function createMusicalHandler(
 ) {
   const { composer, lyricist, title } = req.body;
 
-  const id = Number(req.body.id);
   const validator = new Validator();
 
   try {
-    validator.check(
-      !isNaN(id) && id > 0,
-      "id",
-      "is required and must be a valid number"
-    );
-    validator.check(!composer, "composer", "is required");
-    validator.check(!lyricist, "lyricist", "is required");
-    validator.check(!title, "title", "is required");
+    validator.check(!!composer, "composer", "is required");
+    validator.check(!!lyricist, "lyricist", "is required");
+    validator.check(!!title, "title", "is required");
 
     if (!validator.valid) {
       res.status(400).json({ errors: validator.errors });

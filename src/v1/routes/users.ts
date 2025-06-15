@@ -7,12 +7,16 @@ import { generateAuthenticationToken } from "../../lib/tokens.js";
 import { Validator } from "../../lib/validator.js";
 import { SERVER_ERROR } from "../../lib/errors.js";
 import { ensureAuthenticated } from "../../lib/auth.js";
+import { v4 as uuidv4 } from "uuid";
+import { validate as validateUuid } from "uuid";
+
+const newId = uuidv4();
 
 export const userRouter = Router();
 
 userRouter.post("/", createUserHandler);
 userRouter.post("/login", loginUserHandler);
-userRouter.get("/", ensureAuthenticated, getUserByIdHandler);
+userRouter.get("/:id", ensureAuthenticated, getUserByIdHandler);
 userRouter.put("/", ensureAuthenticated, updateUserHandler);
 userRouter.delete("/", ensureAuthenticated, deleteUserHandler);
 
@@ -31,7 +35,7 @@ async function createUserHandler(
   const emailRx =
     "^[a-zA-Z0-9.!#$%&'*+/=?^_`{|}~-]+@[a-zA-Z0-9](?:[a-zA-Z0-9-]{0,61}[a-zA-Z0-9])?(?:\\.[a-zA-Z0-9](?:[a-zA-Z0-9-]{0,61}[a-zA-Z0-9])?)*$";
   const validator = new Validator();
-  // const accountType = req.body.accountType;
+  const newId = uuidv4();
 
   try {
     validator.check(!!firstName, "firstName", "is required");
@@ -74,6 +78,7 @@ async function createUserHandler(
     }
 
     await db.insert(UserTable).values({
+      id: newId,
       firstName,
       lastName,
       email,
@@ -81,7 +86,7 @@ async function createUserHandler(
       accountType: "user",
     });
 
-    res.json({ message: "User created successfully" });
+    res.json({ message: "User created successfully", userId: newId });
     return;
   } catch (error) {
     res.status(500).json({ error: "Unknown error occurred" });
@@ -149,18 +154,17 @@ type GetUserByIdBody = {
 };
 
 async function getUserByIdHandler(
-  req: Request<GetUserByIdBody>,
+  req: Request<{}, {}, GetUserByIdBody>,
   res: Response
 ) {
-  const userId = parseInt(req.query.id as string);
+  const userId = req.query.id as string;
   const validator = new Validator();
 
   try {
-    validator.check(
-      !isNaN(userId) && userId > 1,
-      "id",
-      "must be a valid number"
-    );
+    validator.check(!!userId, "id", "is required");
+    if (userId) {
+      validator.check(validateUuid(userId), "id", "must be a valid UUID");
+    }
 
     if (!validator.valid) {
       res.status(400).json({ errors: validator.errors });
@@ -224,30 +228,53 @@ async function updateUserHandler(
     lastName?: string;
     email?: string;
     passwordHash?: string;
+    accountType?: "admin" | "user";
   };
 
   try {
+    validator.check(!!userId, "id", "is required");
+    if (userId) {
+      validator.check(validateUuid(userId), "id", "must be a valid UUID");
+    }
+
     const updatedData: UpdateData = {};
     if (firstName) updatedData.firstName = firstName;
     if (lastName) updatedData.lastName = lastName;
     if (email) updatedData.email = email;
-    validator.check(!password, "password", "is required");
+    if (accountType) updatedData.accountType = accountType;
+
     if (password) {
-      if (password.length < 8 || password.length > 32) {
-        res.status(400).json(validator.errors);
+      validator.check(
+        password.length >= 8 && password.length <= 32,
+        "password",
+        "must be between 8 and 32 characters"
+      );
+
+      if (!validator.valid) {
+        res.status(400).json({ errors: validator.errors });
         return;
       }
+
       updatedData.passwordHash = await hash(password, 10);
     }
 
     const result = await db
       .update(UserTable)
       .set(updatedData)
-      .where(eq(UserTable.id, userId));
+      .where(eq(UserTable.id, userId))
+      .returning();
 
-    validator.check(result.rowCount === 0, "user", "not found");
+    if (!result || result.length === 0) {
+      res.status(404).json({ error: "User not found" });
+      return;
+    }
 
-    res.status(200).json({ message: "User updated successfully" });
+    const userRecord = result[0];
+    const { passwordHash, ...updatedUser } = userRecord!;
+
+    res
+      .status(200)
+      .json({ message: "User updated successfully", user: updatedUser });
   } catch (error) {
     if (error instanceof Error) {
       res.status(400).json({ errors: validator.errors });
@@ -264,14 +291,22 @@ async function deleteUserHandler(req: Request, res: Response) {
   const validator = new Validator();
 
   try {
-    validator.check(!userId, "userId", "does not exist");
+    validator.check(!!userId, "userId", "does not exist");
 
-    if (!userId) {
+    if (userId) {
+      validator.check(validateUuid(userId), "id", "must be a valid UUID");
+    }
+
+    if (!validator.valid) {
       res.status(400).json({ errors: validator.errors });
       return;
     }
 
-    const result = await db.delete(UserTable).where(eq(UserTable.id, userId));
+    const userIdStr = userId!;
+
+    const result = await db
+      .delete(UserTable)
+      .where(eq(UserTable.id, userIdStr));
 
     if (result.rowCount === 0) {
       throw new Error("User not found or already deleted");
