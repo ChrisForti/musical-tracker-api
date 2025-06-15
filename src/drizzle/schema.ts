@@ -1,8 +1,10 @@
 import { sql, type SQL } from "drizzle-orm";
 import { pgEnum, primaryKey } from "drizzle-orm/pg-core";
+import { v4 as uuidv4 } from "uuid";
 import {
   bigserial,
   boolean,
+  uuid,
   pgTable,
   bigint,
   text,
@@ -17,7 +19,10 @@ export const userRoleEnum = pgEnum("user_role", ["admin", "user"]);
 export const UserTable = pgTable(
   "users",
   {
-    id: bigserial("id", { mode: "number" }).primaryKey().notNull(),
+    id: uuid("id")
+      .default(sql`gen_random_uuid()`)
+      .primaryKey()
+      .notNull(),
     firstName: varchar("first_name", { length: 100 }).notNull(),
     lastName: varchar("last_name", { length: 100 }).notNull(),
     email: text("email").notNull(),
@@ -40,7 +45,7 @@ export function lower(email: AnyPgColumn): SQL {
 
 export const TokenTable = pgTable("tokens", {
   hash: text("hash").primaryKey(),
-  userId: bigint("user_id", { mode: "number" })
+  userId: uuid("user_id")
     .notNull()
     .references(() => UserTable.id, { onDelete: "cascade" }),
   expiry: bigint("expiry", { mode: "number" }).notNull(),
