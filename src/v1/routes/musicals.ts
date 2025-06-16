@@ -2,9 +2,10 @@ import { Router, type Request, type Response } from "express";
 import { MusicalTable } from "../../drizzle/schema.js";
 import { db } from "../../drizzle/db.js";
 import { SERVER_ERROR } from "../../lib/errors.js";
-import { eq } from "drizzle-orm";
+import { and, eq } from "drizzle-orm";
 import { Validator } from "../../lib/validator.js";
 import { ensureAdmin, ensureAuthenticated } from "../../lib/auth.js";
+import { validate as validateUuid } from "uuid";
 
 export const musicalRouter = Router();
 
@@ -28,15 +29,14 @@ async function approveMusicalHandler(
   req: Request<ApproveMusicalParams>,
   res: Response
 ) {
-  const id = Number(req.params.id);
+  const id = req.params.id;
   const validator = new Validator();
 
   try {
-    validator.check(
-      !isNaN(id) && id > 0,
-      "id",
-      "is required and must be a valid number"
-    );
+    validator.check(!!id, "id", "is required");
+    if (id) {
+      validator.check(validateUuid(id), "id", "must be a valid UUID");
+    }
 
     if (!validator.valid) {
       res.status(400).json({ errors: validator.errors });
@@ -114,22 +114,21 @@ async function createMusicalHandler(
 }
 
 type GetMusicalByIdParams = {
-  id: string | number;
+  id: string;
 };
 
 async function getMusicalByIdHandler(
   req: Request<GetMusicalByIdParams>,
   res: Response
 ) {
-  const id = Number(req.params.id);
+  const id = req.params.id;
   const validator = new Validator();
 
   try {
-    validator.check(
-      !isNaN(id) && id > 0,
-      "id",
-      "is required and must be a valid number"
-    );
+    validator.check(!!id, "id", "is required");
+    if (id) {
+      validator.check(validateUuid(id), "id", "must be a valid UUID");
+    }
 
     if (!validator.valid) {
       res.status(400).json({ errors: validator.errors });
@@ -151,7 +150,7 @@ async function getMusicalByIdHandler(
 }
 
 type UpdateMusicalBodyParams = {
-  id: string | number;
+  id: string;
   composer?: string;
   lyricist?: string;
   title?: string;
@@ -162,7 +161,7 @@ async function updateMusicalHandler(
   res: Response
 ) {
   const { composer, lyricist, title } = req.body;
-  const id = Number(req.body.id);
+  const id = req.body.id;
   const validator = new Validator();
 
   type UpdatedData = {
@@ -172,11 +171,10 @@ async function updateMusicalHandler(
   };
 
   try {
-    validator.check(
-      !isNaN(id) && id > 0,
-      "id",
-      "is required and must be a valid number"
-    );
+    validator.check(!!id, "id", "is required");
+    if (id) {
+      validator.check(validateUuid(id), "id", "must be a valid UUID");
+    }
 
     if (!validator.valid) {
       res.status(400).json({ errors: validator.errors });
@@ -197,7 +195,7 @@ async function updateMusicalHandler(
     const updatedMusical = await db
       .update(MusicalTable)
       .set({ composer, lyricist, title })
-      .where(eq(MusicalTable.id, Number(id)));
+      .where(eq(MusicalTable.id, id));
 
     if (updatedMusical.rowCount === 0) {
       res.status(404).json({ error: "'id' invalid" });
@@ -213,23 +211,20 @@ async function updateMusicalHandler(
 }
 
 type DeleteMusicalBodyParams = {
-  id: string | number;
+  id: string;
 };
 
 async function deleteMusicalHandler(
   req: Request<{}, {}, DeleteMusicalBodyParams>,
   res: Response
 ) {
-  const id = Number(req.body.id);
+  const id = req.body.id;
   const validator = new Validator();
 
-  validator.check(!id, "id", "does not exist");
-
-  validator.check(
-    !isNaN(id) && id > 0,
-    "id",
-    "is required and must be a valid number"
-  );
+  validator.check(!!id, "id", "is required");
+  if (id) {
+    validator.check(validateUuid(id), "id", "must be a valid UUID");
+  }
 
   try {
     const result = await db.delete(MusicalTable).where(eq(MusicalTable.id, id));
