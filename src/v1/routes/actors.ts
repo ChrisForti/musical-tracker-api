@@ -5,6 +5,8 @@ import { eq } from "drizzle-orm";
 import { SERVER_ERROR } from "../../lib/errors.js";
 import { Validator } from "../../lib/validator.js";
 import { ensureAdmin, ensureAuthenticated } from "../../lib/auth.js";
+import { v4 as uuidv4 } from "uuid";
+import { validate as validateUuid } from "uuid";
 
 export const actorRouter = Router();
 
@@ -29,12 +31,14 @@ async function approveActorHandler(
   req: Request<ApproveActorParams>,
   res: Response
 ) {
-  const id = Number(req.params.id);
+  const id = req.params.id;
   const validator = new Validator();
 
   try {
-    validator.check(!isNaN(id) && id > 0, "id", "is required");
-    validator.check(id > 0, "id", "must be a valid number");
+    validator.check(!!id, "id", "is required");
+    if (id) {
+      validator.check(validateUuid(id), "id", "must be a valid UUID");
+    }
 
     if (!validator.valid) {
       res.status(400).json({ errors: validator.errors });
@@ -73,7 +77,6 @@ async function getPendingActorsHandler(req: Request, res: Response) {
 }
 
 type CreateActorBodyParams = {
-  id: string | number;
   name: string;
 };
 
@@ -82,29 +85,26 @@ async function createActorHandler(
   res: Response
 ) {
   const name = req.body.name;
-  const id = Number(req.body.id);
   const validator = new Validator();
 
   try {
-    validator.check(
-      !isNaN(id) && id > 0,
-      "id",
-      "is required and must be a valid number"
-    );
-    validator.check(!name, "name", "is required");
+    validator.check(!!name, "name", "is required");
 
     if (!validator.valid) {
       res.status(400).json({ errors: validator.errors });
       return;
     }
 
-    const newActor = await db.insert(ActorTable).values({
-      name,
-    });
+    const [newActor] = await db.insert(ActorTable).values({ name }).returning();
+
+    if (!newActor) {
+      res.status(500).json({ error: "Failed to create actor" });
+      return;
+    }
 
     res.status(201).json({
       message: "Created successfully",
-      actorId: newActor.oid,
+      actorId: newActor.id,
     });
   } catch (error) {
     console.error("Error in createActorHandler:", error);
@@ -114,22 +114,26 @@ async function createActorHandler(
 }
 
 type GetActorByIdParams = {
-  id: string | number;
+  id: string;
 };
 
 async function getActorByIdHandler(
   req: Request<GetActorByIdParams>,
   res: Response
 ) {
-  const id = Number(req.params.id);
+  const id = req.body.id;
   const validator = new Validator();
 
+  validator.check(!!id, "id", "is required");
+  if (id) {
+    validator.check(validateUuid(id), "id", "must be a valid UUID");
+  }
+
   try {
-    validator.check(
-      !isNaN(id) && id > 0,
-      "id",
-      "is required and must be a valid number"
-    );
+    validator.check(!!id, "id", "is required");
+    if (id) {
+      validator.check(validateUuid(id), "id", "must be a valid UUID");
+    }
 
     const actor = await db.query.ActorTable.findFirst({
       where: eq(ActorTable.id, id),
@@ -148,7 +152,7 @@ async function getActorByIdHandler(
 }
 
 type UpdateActorBodyParams = {
-  id: string | number;
+  id: string;
   name: string;
 };
 
@@ -156,16 +160,19 @@ async function updateActorHandler(
   req: Request<{}, {}, UpdateActorBodyParams>,
   res: Response
 ) {
-  const name = req.body.name;
-  const id = Number(req.body.id);
+  const { id, name } = req.body;
   const validator = new Validator();
 
+  type UpdateData = {
+    id?: string;
+    name?: string;
+  };
+
   try {
-    validator.check(
-      !isNaN(id) && id > 0,
-      "id",
-      "is required and must be a valid number"
-    );
+    validator.check(!!id, "id", "is required");
+    if (id) {
+      validator.check(validateUuid(id), "id", "must be a valid UUID");
+    }
     validator.check(!name, "name", "is required");
 
     if (!validator.valid) {
@@ -173,12 +180,17 @@ async function updateActorHandler(
       return;
     }
 
-    const updatedActor = await db
-      .update(ActorTable)
-      .set({ name })
-      .where(eq(ActorTable.id, Number(id)));
+    const updateData: UpdateData = {};
+    if (id) updateData.id = id; // May not want to change id here?
+    if (name) updateData.name = name;
 
-    if (updatedActor.rowCount === 0) {
+    const result = await db
+      .update(ActorTable)
+      .set(updateData)
+      .where(eq(ActorTable.id, id))
+      .returning();
+
+    if (!result || result.length === 0) {
       res.status(404).json({ error: "'id' invalid" });
       return;
     }
@@ -193,22 +205,21 @@ async function updateActorHandler(
 }
 
 type DeleteActorBodyParams = {
-  id: string | number;
+  id: string;
 };
 
 async function deleteActorHandler(
   req: Request<{}, {}, DeleteActorBodyParams>,
   res: Response
 ) {
-  const id = Number(req.body.id);
+  const id = req.body.id;
   const validator = new Validator();
 
   try {
-    validator.check(
-      !isNaN(id) && id > 0,
-      "id",
-      "is required and must be a valid number"
-    );
+    validator.check(!!id, "id", "is required");
+    if (id) {
+      validator.check(validateUuid(id), "id", "must be a valid UUID");
+    }
 
     if (!validator.valid) {
       res.status(400).json({ errors: validator.errors });
