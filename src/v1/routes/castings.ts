@@ -5,7 +5,7 @@ import { db } from "../../drizzle/db.js";
 import { SERVER_ERROR } from "../../lib/errors.js";
 import { and, eq } from "drizzle-orm";
 import { ensureAdmin, ensureAuthenticated } from "../../lib/auth.js";
-// import { validate as validateUuid } from "uuid";
+import { validate as validateUuid } from "uuid";
 
 export const castingRouter = Router();
 
@@ -261,7 +261,4 @@ async function deleteCastingHandler(
     console.error("Error in deleteCastingHandler:", error);
     res.status(500).json({ error: SERVER_ERROR });
   }
-}
-function validateUuid(rId: string): boolean {
-  throw new Error("Function not implemented.");
 }
