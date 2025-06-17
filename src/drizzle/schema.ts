@@ -93,11 +93,13 @@ export const PerformanceTable = pgTable("performance", {
     .default(sql`gen_random_uuid()`)
     .primaryKey()
     .notNull(),
-  productionId: bigint("production_id", { mode: "number" })
+  productionId: uuid("id")
+    .default(sql`gen_random_uuid()`)
     .notNull()
     .references(() => ProductionTable.id),
   date: date("date", { mode: "date" }).notNull(),
-  theaterId: bigint("theater_id", { mode: "number" })
+  theaterId: uuid("id")
+    .default(sql`gen_random_uuid()`)
     .notNull()
     .references(() => TheaterTable.id),
 });
