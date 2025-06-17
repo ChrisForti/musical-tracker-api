@@ -93,12 +93,12 @@ export const PerformanceTable = pgTable("performance", {
     .default(sql`gen_random_uuid()`)
     .primaryKey()
     .notNull(),
-  productionId: uuid("id")
+  productionId: uuid("production_id")
     .default(sql`gen_random_uuid()`)
     .notNull()
     .references(() => ProductionTable.id),
   date: date("date", { mode: "date" }).notNull(),
-  theaterId: uuid("id")
+  theaterId: uuid("theater_id")
     .default(sql`gen_random_uuid()`)
     .notNull()
     .references(() => TheaterTable.id),
@@ -107,15 +107,15 @@ export const PerformanceTable = pgTable("performance", {
 export const CastingTable = pgTable(
   "casting",
   {
-    roleId: uuid("id")
+    roleId: uuid("role_id")
       .default(sql`gen_random_uuid()`)
       .notNull()
       .references(() => RoleTable.id),
-    actorId: uuid("id")
+    actorId: uuid("actor_id")
       .default(sql`gen_random_uuid()`)
       .notNull()
       .references(() => ActorTable.id),
-    performanceId: uuid("id")
+    performanceId: uuid("performance_id")
       .default(sql`gen_random_uuid()`)
       .notNull()
       .references(() => PerformanceTable.id),
@@ -130,7 +130,7 @@ export const ProductionTable = pgTable("production", {
     .default(sql`gen_random_uuid()`)
     .primaryKey()
     .notNull(),
-  musicalId: uuid("id")
+  musicalId: uuid("musical_id")
     .default(sql`gen_random_uuid()`)
     .notNull()
     .references(() => MusicalTable.id),
