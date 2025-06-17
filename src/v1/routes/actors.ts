@@ -5,7 +5,6 @@ import { eq } from "drizzle-orm";
 import { SERVER_ERROR } from "../../lib/errors.js";
 import { Validator } from "../../lib/validator.js";
 import { ensureAdmin, ensureAuthenticated } from "../../lib/auth.js";
-import { v4 as uuidv4 } from "uuid";
 import { validate as validateUuid } from "uuid";
 
 export const actorRouter = Router();
@@ -104,7 +103,7 @@ async function createActorHandler(
 
     res.status(201).json({
       message: "Created successfully",
-      actorId: newActor.id,
+      actorId: newActor, // need to check this
     });
   } catch (error) {
     console.error("Error in createActorHandler:", error);

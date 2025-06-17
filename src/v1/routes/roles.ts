@@ -5,6 +5,7 @@ import { eq } from "drizzle-orm";
 import { SERVER_ERROR } from "../../lib/errors.js";
 import { Validator } from "../../lib/validator.js";
 import { ensureAdmin, ensureAuthenticated } from "../../lib/auth.js";
+import { validate as validateUuid } from "uuid";
 
 export const roleRouter = Router();
 
@@ -33,15 +34,14 @@ async function approveRoleHandler(
   req: Request<ApproveRoleParams>,
   res: Response
 ) {
-  const id = Number(req.params.id);
+  const id = req.params.id;
   const validator = new Validator();
 
   try {
-    validator.check(
-      !isNaN(id) && id > 0,
-      "id",
-      "is required and must be a valid number"
-    );
+    validator.check(!!id, "id", "is required");
+    if (id) {
+      validator.check(validateUuid(id), "id", "must be a valid UUID");
+    }
 
     if (!validator.valid) {
       res.status(400).json({ errors: validator.errors });
@@ -104,7 +104,7 @@ async function createRoleHandler(
 
     res.status(201).json({
       message: "Role created successfully",
-      roleId: newRole.oid,
+      roleId: newRole,
     });
   } catch (error) {
     console.error("Error in createRoleHandler:", error);
@@ -113,22 +113,21 @@ async function createRoleHandler(
 }
 
 type GetRoleByIdQueryParams = {
-  id: string | number;
+  id: string;
 };
 
 async function getRoleByIdHandler(
   req: Request<GetRoleByIdQueryParams>,
   res: Response
 ) {
-  const id = Number(req.params.id);
+  const id = req.body.id;
   const validator = new Validator();
 
   try {
-    validator.check(
-      !isNaN(id) && id > 0,
-      "id",
-      "is required and must be a valid number"
-    );
+    validator.check(!!id, "id", "is required");
+    if (id) {
+      validator.check(validateUuid(id), "id", "must be a valid UUID");
+    }
 
     if (!validator.valid) {
       res.status(400).json({ errors: validator.errors });
@@ -152,7 +151,7 @@ async function getRoleByIdHandler(
 }
 
 type UpdateRoleBodyParams = {
-  id: string | number;
+  id: string;
   name: string;
 };
 
@@ -161,15 +160,14 @@ async function updateRoleHandler(
   res: Response
 ) {
   const name = req.body.name;
-  const id = Number(req.body.id);
+  const id = req.body.id;
   const validator = new Validator();
 
   try {
-    validator.check(
-      !isNaN(id) && id > 0,
-      "id",
-      "is required and must be a valid number"
-    );
+    validator.check(!!id, "id", "is required");
+    if (id) {
+      validator.check(validateUuid(id), "id", "must be a valid UUID");
+    }
     validator.check(!name, "name", "is required");
 
     if (!validator.valid) {
@@ -180,7 +178,7 @@ async function updateRoleHandler(
     const updatedRole = await db
       .update(RoleTable)
       .set({ name })
-      .where(eq(RoleTable.id, Number(id)));
+      .where(eq(RoleTable.id, id));
 
     if (updatedRole.rowCount === 0) {
       res.status(404).json({ error: "'id' is invalid" });
@@ -197,22 +195,21 @@ async function updateRoleHandler(
 }
 
 type DeleteRoleBodyParams = {
-  id: string | number;
+  id: string;
 };
 
 async function deleteRoleHandler(
   req: Request<{}, {}, DeleteRoleBodyParams>,
   res: Response
 ) {
-  const id = Number(req.body.id);
+  const id = req.body.id;
   const validator = new Validator();
 
   try {
-    validator.check(
-      !isNaN(id) && id > 0,
-      "id",
-      "is required and must be a valid number"
-    );
+    validator.check(!!id, "id", "is required");
+    if (id) {
+      validator.check(validateUuid(id), "id", "must be a valid UUID");
+    }
 
     if (!validator.valid) {
       res.status(400).json({ errors: validator.errors });
