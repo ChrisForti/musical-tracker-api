@@ -9,7 +9,7 @@ curl -X POST http://localhost:3000/v1/user/ \
   "firstName": "John",
   "lastName": "Doe",
   "email": "johndoe@example.com",
-  "password": "password123",
+  "password": "password123"
 }'
 ```
 
@@ -19,7 +19,7 @@ curl -X POST http://localhost:3000/v1/user/ \
 curl -X POST http://localhost:3000/v1/user/login \
 -H "Content-Type: application/json" \
 -d '{
-  "email": "user@example.com",
+  "email": "johndoe@example.com",
   "password": "password123"
 }'
 ```

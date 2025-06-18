@@ -131,7 +131,6 @@ export const ProductionTable = pgTable("production", {
     .primaryKey()
     .notNull(),
   musicalId: uuid("musical_id")
-    .default(sql`gen_random_uuid()`)
     .notNull()
     .references(() => MusicalTable.id),
   startDate: date("start_date", { mode: "date" }).notNull(),
