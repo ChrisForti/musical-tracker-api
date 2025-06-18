@@ -54,8 +54,6 @@ curl -X PUT http://localhost:3000/v1/user/ \
 -H "Content-Type: application/json" \
 -H "Authorization: Bearer YOUR_ACCESS_TOKEN" \
 -d '{
-  "firstName": "UpdatedFirstName",
-  "lastName": "UpdatedLastName",
   "email": "updatedemail@example.com",
   "password": "newpassword123"
   "accountType": "admin"
