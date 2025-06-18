@@ -43,7 +43,7 @@ curl -X PUT http://localhost:3000/v1/user/ \
   "firstName": "UpdatedFirstName",
   "lastName": "UpdatedLastName",
   "email": "updatedemail@example.com",
-  "password": "newpassword123",
+  "password": "newpassword123"
 }'
 ```
 
@@ -57,7 +57,7 @@ curl -X PUT http://localhost:3000/v1/user/ \
   "firstName": "UpdatedFirstName",
   "lastName": "UpdatedLastName",
   "email": "updatedemail@example.com",
-  "password": "newpassword123",
+  "password": "newpassword123"
   "accountType": "admin"
 }'
 ```
