@@ -33,6 +33,22 @@ curl -X GET "http://localhost:3000/v1/user \
 
 4. Update User:
 
+- Simple `user` update
+
+```sh
+curl -X PUT http://localhost:3000/v1/user/ \
+-H "Content-Type: application/json" \
+-H "Authorization: Bearer YOUR_ACCESS_TOKEN" \
+-d '{
+  "firstName": "UpdatedFirstName",
+  "lastName": "UpdatedLastName",
+  "email": "updatedemail@example.com",
+  "password": "newpassword123",
+}'
+```
+
+- From `user` to `admin`:
+
 ```sh
 curl -X PUT http://localhost:3000/v1/user/ \
 -H "Content-Type: application/json" \
