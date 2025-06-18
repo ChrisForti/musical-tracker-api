@@ -10,13 +10,11 @@ import { ensureAuthenticated } from "../../lib/auth.js";
 import { v4 as uuidv4 } from "uuid";
 import { validate as validateUuid } from "uuid";
 
-const newId = uuidv4();
-
 export const userRouter = Router();
 
 userRouter.post("/", createUserHandler);
 userRouter.post("/login", loginUserHandler);
-userRouter.get("/:id", ensureAuthenticated, getUserByIdHandler);
+userRouter.get("/", ensureAuthenticated, getUserByIdHandler);
 userRouter.put("/", ensureAuthenticated, updateUserHandler);
 userRouter.delete("/", ensureAuthenticated, deleteUserHandler);
 
@@ -35,7 +33,6 @@ async function createUserHandler(
   const emailRx =
     "^[a-zA-Z0-9.!#$%&'*+/=?^_`{|}~-]+@[a-zA-Z0-9](?:[a-zA-Z0-9-]{0,61}[a-zA-Z0-9])?(?:\\.[a-zA-Z0-9](?:[a-zA-Z0-9-]{0,61}[a-zA-Z0-9])?)*$";
   const validator = new Validator();
-  const newId = uuidv4();
 
   try {
     validator.check(!!firstName, "firstName", "is required");
@@ -78,7 +75,7 @@ async function createUserHandler(
     }
 
     await db.insert(UserTable).values({
-      id: newId,
+      id: uuidv4(),
       firstName,
       lastName,
       email,
@@ -86,7 +83,7 @@ async function createUserHandler(
       accountType: "user",
     });
 
-    res.json({ message: "User created successfully", userId: newId });
+    res.json({ message: "User created successfully", userId: uuidv4() });
     return;
   } catch (error) {
     res.status(500).json({ error: "Unknown error occurred" });
@@ -149,15 +146,8 @@ async function loginUserHandler(
   }
 }
 
-type GetUserByIdBody = {
-  id: string;
-};
-
-async function getUserByIdHandler(
-  req: Request<{}, {}, GetUserByIdBody>,
-  res: Response
-) {
-  const userId = req.query.id as string;
+async function getUserByIdHandler(req: Request, res: Response) {
+  const userId = req.user?.id;
   const validator = new Validator();
 
   try {
@@ -170,11 +160,10 @@ async function getUserByIdHandler(
       res.status(400).json({ errors: validator.errors });
       return;
     }
-
     const user = await db
       .select()
       .from(UserTable)
-      .where(eq(UserTable.id, userId));
+      .where(eq(UserTable.id, userId!));
 
     if (user.length === 0) {
       res.status(404).json({ message: "User not found" });
