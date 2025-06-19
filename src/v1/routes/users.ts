@@ -75,7 +75,6 @@ async function createUserHandler(
     }
 
     await db.insert(UserTable).values({
-      id: uuidv4(),
       firstName,
       lastName,
       email,
@@ -83,7 +82,7 @@ async function createUserHandler(
       accountType: "user",
     });
 
-    res.json({ message: "User created successfully", userId: uuidv4() });
+    res.json({ message: "User created successfully" });
     return;
   } catch (error) {
     res.status(500).json({ error: "Unknown error occurred" });
