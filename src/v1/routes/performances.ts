@@ -5,6 +5,7 @@ import { db } from "../../drizzle/db.js";
 import { SERVER_ERROR } from "../../lib/errors.js";
 import { eq } from "drizzle-orm";
 import { ensureAdmin, ensureAuthenticated } from "../../lib/auth.js";
+import { validate as validateUuid } from "uuid";
 
 export const performanceRouter = Router();
 
@@ -30,10 +31,9 @@ async function getAllPerformancesHandler(req: Request, res: Response) {
 }
 
 type CreatePerformanceBodyParams = {
-  id: string | number;
-  productionId: string | number;
+  productionId: string;
   date: string | Date;
-  theaterId: string | number;
+  theaterId: string;
 };
 
 async function createPerformanceHandler(
@@ -41,23 +41,19 @@ async function createPerformanceHandler(
   res: Response
 ) {
   const date = new Date(req.body.date);
-  const id = Number(req.body.id);
-  const productionId = Number(req.body.productionId);
-  const theaterId = Number(req.body.theaterId);
+  const productionId = req.body.productionId;
+  const theaterId = req.body.theaterId;
   const validator = new Validator();
 
   try {
-    validator.check(!isNaN(id) && id > 0, "id", "is required");
-    validator.check(
-      !isNaN(productionId) && productionId > 0,
-      "productionId",
-      "is required"
-    );
-    validator.check(
-      !isNaN(theaterId) && theaterId > 0,
-      "theaterId",
-      "is required"
-    );
+    validator.check(!!productionId, "productionId", "is required");
+    if (productionId) {
+      validator.check(validateUuid(productionId), "id", "must be a valid UUID");
+    }
+    validator.check(!!theaterId, "theaterId", "is required");
+    if (theaterId) {
+      validator.check(validateUuid(theaterId), "id", "must be a valid UUID");
+    }
 
     if (!validator.valid) {
       res.status(400).json({ errors: validator.errors });
@@ -70,7 +66,7 @@ async function createPerformanceHandler(
 
     res.status(201).json({
       message: "Created successfully",
-      musicalId: newPerformance.oid,
+      musicalId: newPerformance,
     });
   } catch (error) {
     console.error("Error in createPerformanceHandler:", error);
@@ -80,22 +76,21 @@ async function createPerformanceHandler(
 }
 
 type GetPerformanceByIdParams = {
-  id: string | number;
+  id: string;
 };
 
 async function getPerformanceByIdHandler(
   req: Request<GetPerformanceByIdParams>,
   res: Response
 ) {
-  const id = Number(req.params.id);
+  const id = req.body.id;
   const validator = new Validator();
 
   try {
-    validator.check(
-      !isNaN(id) && id > 0,
-      "id",
-      "is required and must be a valid number"
-    );
+    validator.check(!!id, "id", "is required");
+    if (id) {
+      validator.check(validateUuid(id), "id", "must be a valid UUID");
+    }
     if (!validator.valid) {
       res.status(400).json({ errors: validator.errors });
       return;
@@ -105,7 +100,7 @@ async function getPerformanceByIdHandler(
       where: eq(PerformanceTable.id, id),
     });
 
-    if (!performance) {
+    if (!!performance) {
       res.status(404).json({ error: "Performance not found" });
       return;
     }
@@ -116,39 +111,41 @@ async function getPerformanceByIdHandler(
 }
 
 type UpdatePerformanceBodyParams = {
-  id: string | number;
-  productionId: string | number;
-  date: string | Date;
-  theaterId: string | number;
+  id: string;
+  productionId: string;
+  date: string;
+  theaterId: string;
 };
 
 async function updatePerformanceHandler(
   req: Request<{}, {}, UpdatePerformanceBodyParams>,
   res: Response
 ) {
+  const id = req.body.id;
   const { productionId, date, theaterId } = req.body;
-  const id = Number(req.body.id);
   const validator = new Validator();
 
   type UpdatedData = {
-    productionId?: string | number;
+    productionId?: string;
     date?: string | Date;
-    theaterId?: string | number;
+    theaterId?: string;
   };
 
   try {
-    validator.check(
-      !isNaN(id) && id > 0,
-      "id",
-      "is required and must be a valid number"
-    );
-    validator.check(
-      !isNaN(Number(productionId)),
-      "productionId",
-      "is required"
-    );
+    validator.check(!!id, "id", "is required");
+    if (id) {
+      validator.check(validateUuid(id), "id", "must be a valid UUID");
+    }
+    validator.check(!!productionId, "productionId", "is required");
+    if (productionId) {
+      validator.check(validateUuid(productionId), "id", "must be a valid UUID");
+    }
     validator.check(!date, "date", "is required");
-    validator.check(!isNaN(Number(theaterId)), "theaterId", "is required");
+
+    validator.check(!!theaterId, "theaterId", "is required");
+    if (theaterId) {
+      validator.check(validateUuid(theaterId), "id", "must be a valid UUID");
+    }
 
     if (!validator.valid) {
       res.status(400).json({ errors: validator.errors });
@@ -169,11 +166,11 @@ async function updatePerformanceHandler(
     const updatedPerformance = await db
       .update(PerformanceTable)
       .set({
-        productionId: Number(productionId),
+        productionId: productionId,
         date: new Date(date),
-        theaterId: Number(theaterId),
+        theaterId: theaterId,
       })
-      .where(eq(PerformanceTable.id, Number(id)));
+      .where(eq(PerformanceTable.id, id));
 
     if (updatedPerformance.rowCount === 0) {
       res.status(404).json({ error: "'id' invalid" });
@@ -189,24 +186,21 @@ async function updatePerformanceHandler(
 }
 
 type DeletePerformanceBodyParams = {
-  id: string | number;
+  id: string;
 };
 
 async function deletePerformanceHandler(
   req: Request<{}, {}, DeletePerformanceBodyParams>,
   res: Response
 ) {
-  const id = Number(req.body.id);
+  const id = req.body.id;
   const validator = new Validator();
 
   try {
-    validator.check(!id, "id", "does not exist");
-
-    validator.check(
-      !isNaN(id) && id > 0,
-      "id",
-      "is required and must be a valid number"
-    );
+    validator.check(!!id, "id", "is required");
+    if (id) {
+      validator.check(validateUuid(id), "id", "must be a valid UUID");
+    }
 
     if (!validator.valid) {
       res.status(400).json({ errors: validator.errors });

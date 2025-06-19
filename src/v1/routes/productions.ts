@@ -5,6 +5,7 @@ import { db } from "../../drizzle/db.js";
 import { SERVER_ERROR } from "../../lib/errors.js";
 import { eq } from "drizzle-orm";
 import { ensureAdmin, ensureAuthenticated } from "../../lib/auth.js";
+import { validate as validateUuid } from "uuid";
 
 export const productionRouter = Router();
 
@@ -33,15 +34,14 @@ async function approveProductionHandler(
   req: Request<ApproveProductionParams>,
   res: Response
 ) {
-  const id = Number(req.params.id);
+  const id = req.params.id;
   const validator = new Validator();
 
   try {
-    validator.check(
-      !isNaN(id) && id > 0,
-      "id",
-      "is required and must be a valid number"
-    );
+    validator.check(!!id, "id", "is required");
+    if (id) {
+      validator.check(validateUuid(id), "id", "must be a valid UUID");
+    }
 
     if (!validator.valid) {
       res.status(400).json({ errors: validator.errors });
@@ -82,8 +82,7 @@ async function getPendingProductionsHandler(req: Request, res: Response) {
 }
 
 type CreateProductionBodyParams = {
-  id: string | number;
-  musicalId: string | number;
+  musicalId: string;
   startDate: string | Date;
   endDate: string | Date;
   posterUrl: string;
@@ -93,20 +92,18 @@ async function createProductionHandler(
   req: Request<{}, {}, CreateProductionBodyParams>,
   res: Response
 ) {
-  const id = Number(req.body.id);
-  const musicalId = Number(req.body.musicalId);
+  const musicalId = req.body.musicalId;
   const { posterUrl } = req.body;
   const startDate = new Date(req.body.startDate);
   const endDate = new Date(req.body.endDate);
   const validator = new Validator();
 
   try {
-    validator.check(!isNaN(id) && id > 0, "id", "is required");
-    validator.check(
-      !isNaN(musicalId) && musicalId > 0,
-      "musicalId",
-      "is required"
-    );
+    validator.check(!!musicalId, "musicalId", "is required");
+    if (musicalId) {
+      validator.check(validateUuid(musicalId), "id", "must be a valid UUID");
+    }
+
     validator.check(
       startDate instanceof Date && !isNaN(startDate.getTime()),
       "startDate",
@@ -133,7 +130,7 @@ async function createProductionHandler(
 
     res.status(201).json({
       message: "Created successfully",
-      id: newProduction.oid,
+      id: newProduction, // need to check this
     });
   } catch (error: any) {
     if (error.code === "23505") {
@@ -147,21 +144,20 @@ async function createProductionHandler(
 }
 
 type GetProductionByIdParams = {
-  id: string | number;
+  id: string;
 };
 
 async function getproductionByIdHandler(
   req: Request<GetProductionByIdParams>,
   res: Response
 ) {
-  const id = Number(req.body.id);
+  const id = req.body.id;
   const validator = new Validator();
   try {
-    validator.check(
-      !isNaN(id) && id > 0,
-      "id",
-      "is required and must be a valid number"
-    );
+    validator.check(!!id, "id", "is required");
+    if (id) {
+      validator.check(validateUuid(id), "id", "must be a valid UUID");
+    }
 
     if (!validator.valid) {
       res.status(400).json({ errors: validator.errors });
@@ -183,8 +179,8 @@ async function getproductionByIdHandler(
 }
 
 type UpdateProductionBodyParams = {
-  id: string | number;
-  musicalId?: string | number;
+  id: string;
+  musicalId?: string;
   startDate?: string | Date;
   endDate?: string | Date;
   posterUrl?: string;
@@ -194,8 +190,8 @@ async function updateproductionHandler(
   req: Request<{}, {}, UpdateProductionBodyParams>,
   res: Response
 ) {
-  const id = Number(req.body.id);
-  const musicalId = Number(req.body.musicalId);
+  const id = req.body.id;
+  const musicalId = req.body.musicalId;
   const { posterUrl } = req.body;
   const startDate = req.body.startDate
     ? new Date(req.body.startDate)
@@ -204,23 +200,21 @@ async function updateproductionHandler(
   const validator = new Validator();
 
   type UpdatedData = {
-    musicalId?: string | number;
+    musicalId?: string;
     startDate?: string | Date | undefined;
     endDate?: string | Date | undefined;
     posterUrl?: string;
   };
 
   try {
-    validator.check(
-      !isNaN(id) && id > 0,
-      "id",
-      "is required and must be a valid number"
-    );
-    validator.check(
-      !isNaN(musicalId) && musicalId > 0,
-      "id",
-      "is required and must be a valid number"
-    );
+    validator.check(!!id, "id", "is required");
+    if (id) {
+      validator.check(validateUuid(id), "id", "must be a valid UUID");
+    }
+    validator.check(!!musicalId, "musicalId", "is required");
+    if (musicalId) {
+      validator.check(validateUuid(musicalId), "id", "must be a valid UUID");
+    }
     validator.check(!startDate, "startDate", "is invalid format");
     validator.check(!endDate, "endDate", "is invalid format");
     validator.check(!posterUrl, "posterUrl", "is required");
@@ -246,12 +240,12 @@ async function updateproductionHandler(
     const updatedProduction = await db
       .update(ProductionTable)
       .set({
-        musicalId: Number(musicalId),
+        musicalId: musicalId,
         startDate: startDate ? new Date(startDate) : undefined,
         endDate: endDate ? new Date(endDate) : undefined,
         posterUrl,
       })
-      .where(eq(ProductionTable.id, Number(id)));
+      .where(eq(ProductionTable.id, id));
 
     if (updatedProduction.rowCount === 0) {
       res.status(404).json({ error: "'id' invalid" });
@@ -267,24 +261,21 @@ async function updateproductionHandler(
 }
 
 type DeleteProductionBodtParams = {
-  id: string | number;
+  id: string;
 };
 
 async function deleteproductionHandler(
   req: Request<DeleteProductionBodtParams>,
   res: Response
 ) {
-  const id = Number(req.body.id);
+  const id = req.body.id;
   const validator = new Validator();
 
   try {
-    validator.check(!id, "id", "does not exist");
-
-    validator.check(
-      !isNaN(id) && id > 0,
-      "id",
-      "is required and must be a valid number"
-    );
+    validator.check(!!id, "id", "is required");
+    if (id) {
+      validator.check(validateUuid(id), "id", "must be a valid UUID");
+    }
 
     if (!validator.valid) {
       res.status(400).json({ errors: validator.errors });

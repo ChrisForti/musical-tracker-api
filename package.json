@@ -10,7 +10,7 @@
     "build": "tsc",
     "start": "node ./build/server.js",
     "pre-deploy": "node ./build/drizzle/migrate.js",
-    "psql": "psql -U postgres -d postgres",
+    "psql": "psql -U postgres -h localhost ",
     "db:generate": "drizzle-kit generate",
     "db:migrate": "tsc && node build/drizzle/migrate.js"
   },
@@ -30,13 +30,15 @@
     "dotenv": "^16.5.0",
     "drizzle-orm": "^0.43.1",
     "express": "^5.1.0",
-    "pg": "^8.15.6"
+    "pg": "^8.15.6",
+    "uuid": "^11.1.0"
   },
   "devDependencies": {
     "@types/bcrypt": "^5.0.2",
     "@types/express": "^5.0.1",
     "@types/node": "^22.15.9",
     "@types/pg": "^8.15.1",
+    "@types/uuid": "^10.0.0",
     "drizzle-kit": "^0.31.1",
     "nodemon": "^3.1.10",
     "typescript": "^5.8.3"

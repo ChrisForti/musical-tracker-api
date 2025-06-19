@@ -9,7 +9,7 @@ curl -X POST http://localhost:3000/v1/user/ \
   "firstName": "John",
   "lastName": "Doe",
   "email": "johndoe@example.com",
-  "password": "password123",
+  "password": "password123"
 }'
 ```
 
@@ -19,7 +19,7 @@ curl -X POST http://localhost:3000/v1/user/ \
 curl -X POST http://localhost:3000/v1/user/login \
 -H "Content-Type: application/json" \
 -d '{
-  "email": "user@example.com",
+  "email": "johndoe@example.com",
   "password": "password123"
 }'
 ```
@@ -33,6 +33,8 @@ curl -X GET "http://localhost:3000/v1/user \
 
 4. Update User:
 
+- Simple `user` update
+
 ```sh
 curl -X PUT http://localhost:3000/v1/user/ \
 -H "Content-Type: application/json" \
@@ -41,7 +43,19 @@ curl -X PUT http://localhost:3000/v1/user/ \
   "firstName": "UpdatedFirstName",
   "lastName": "UpdatedLastName",
   "email": "updatedemail@example.com",
-  "password": "newpassword123",
+  "password": "newpassword123"
+}'
+```
+
+- From `user` to `admin`:
+
+```sh
+curl -X PUT http://localhost:3000/v1/user/ \
+-H "Content-Type: application/json" \
+-H "Authorization: Bearer YOUR_ACCESS_TOKEN" \
+-d '{
+  "email": "updatedemail@example.com",
+  "password": "newpassword123"
   "accountType": "admin"
 }'
 ```

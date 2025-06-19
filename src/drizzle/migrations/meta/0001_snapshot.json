@@ -1,6 +1,6 @@
 {
-  "id": "81266ee2-d4e5-4224-a44d-1de6dbb086fe",
-  "prevId": "5f0c1ca4-5c3c-41f5-82d8-cf986bf837eb",
+  "id": "4d27f182-85ab-48a9-9fcb-0eccdd53835b",
+  "prevId": "6ba9990b-b7b7-42e1-a2fe-eb17ab2a9023",
   "version": "7",
   "dialect": "postgresql",
   "tables": {
@@ -10,9 +10,10 @@
       "columns": {
         "id": {
           "name": "id",
-          "type": "bigserial",
+          "type": "uuid",
           "primaryKey": true,
-          "notNull": true
+          "notNull": true,
+          "default": "gen_random_uuid()"
         },
         "name": {
           "name": "name",
@@ -42,21 +43,24 @@
       "columns": {
         "role_id": {
           "name": "role_id",
-          "type": "bigint",
+          "type": "uuid",
           "primaryKey": false,
-          "notNull": true
+          "notNull": true,
+          "default": "gen_random_uuid()"
         },
         "actor_id": {
           "name": "actor_id",
-          "type": "bigint",
+          "type": "uuid",
           "primaryKey": false,
-          "notNull": true
+          "notNull": true,
+          "default": "gen_random_uuid()"
         },
         "performance_id": {
           "name": "performance_id",
-          "type": "bigint",
+          "type": "uuid",
           "primaryKey": false,
-          "notNull": true
+          "notNull": true,
+          "default": "gen_random_uuid()"
         }
       },
       "indexes": {},
@@ -122,9 +126,10 @@
       "columns": {
         "id": {
           "name": "id",
-          "type": "bigserial",
+          "type": "uuid",
           "primaryKey": true,
-          "notNull": true
+          "notNull": true,
+          "default": "gen_random_uuid()"
         },
         "composer": {
           "name": "composer",
@@ -166,15 +171,17 @@
       "columns": {
         "id": {
           "name": "id",
-          "type": "bigserial",
+          "type": "uuid",
           "primaryKey": true,
-          "notNull": true
+          "notNull": true,
+          "default": "gen_random_uuid()"
         },
         "production_id": {
           "name": "production_id",
-          "type": "bigint",
+          "type": "uuid",
           "primaryKey": false,
-          "notNull": true
+          "notNull": true,
+          "default": "gen_random_uuid()"
         },
         "date": {
           "name": "date",
@@ -184,9 +191,10 @@
         },
         "theater_id": {
           "name": "theater_id",
-          "type": "bigint",
+          "type": "uuid",
           "primaryKey": false,
-          "notNull": true
+          "notNull": true,
+          "default": "gen_random_uuid()"
         }
       },
       "indexes": {},
@@ -230,13 +238,14 @@
       "columns": {
         "id": {
           "name": "id",
-          "type": "bigserial",
+          "type": "uuid",
           "primaryKey": true,
-          "notNull": true
+          "notNull": true,
+          "default": "gen_random_uuid()"
         },
         "musical_id": {
           "name": "musical_id",
-          "type": "bigint",
+          "type": "uuid",
           "primaryKey": false,
           "notNull": true
         },
@@ -294,9 +303,10 @@
       "columns": {
         "id": {
           "name": "id",
-          "type": "bigserial",
+          "type": "uuid",
           "primaryKey": true,
-          "notNull": true
+          "notNull": true,
+          "default": "gen_random_uuid()"
         },
         "name": {
           "name": "name",
@@ -326,9 +336,10 @@
       "columns": {
         "id": {
           "name": "id",
-          "type": "bigserial",
+          "type": "uuid",
           "primaryKey": true,
-          "notNull": true
+          "notNull": true,
+          "default": "gen_random_uuid()"
         },
         "name": {
           "name": "name",
@@ -364,7 +375,7 @@
         },
         "user_id": {
           "name": "user_id",
-          "type": "bigint",
+          "type": "uuid",
           "primaryKey": false,
           "notNull": true
         },
@@ -409,9 +420,10 @@
       "columns": {
         "id": {
           "name": "id",
-          "type": "bigserial",
+          "type": "uuid",
           "primaryKey": true,
-          "notNull": true
+          "notNull": true,
+          "default": "gen_random_uuid()"
         },
         "first_name": {
           "name": "first_name",

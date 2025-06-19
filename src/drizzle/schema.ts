@@ -1,8 +1,8 @@
 import { sql, type SQL } from "drizzle-orm";
 import { pgEnum, primaryKey } from "drizzle-orm/pg-core";
 import {
-  bigserial,
   boolean,
+  uuid,
   pgTable,
   bigint,
   text,
@@ -17,7 +17,10 @@ export const userRoleEnum = pgEnum("user_role", ["admin", "user"]);
 export const UserTable = pgTable(
   "users",
   {
-    id: bigserial("id", { mode: "number" }).primaryKey().notNull(),
+    id: uuid("id")
+      .default(sql`gen_random_uuid()`)
+      .primaryKey()
+      .notNull(),
     firstName: varchar("first_name", { length: 100 }).notNull(),
     lastName: varchar("last_name", { length: 100 }).notNull(),
     email: text("email").notNull(),
@@ -40,7 +43,7 @@ export function lower(email: AnyPgColumn): SQL {
 
 export const TokenTable = pgTable("tokens", {
   hash: text("hash").primaryKey(),
-  userId: bigint("user_id", { mode: "number" })
+  userId: uuid("user_id")
     .notNull()
     .references(() => UserTable.id, { onDelete: "cascade" }),
   expiry: bigint("expiry", { mode: "number" }).notNull(),
@@ -48,25 +51,37 @@ export const TokenTable = pgTable("tokens", {
 });
 
 export const TheaterTable = pgTable("theater", {
-  id: bigserial("id", { mode: "number" }).primaryKey().notNull(),
+  id: uuid("id")
+    .default(sql`gen_random_uuid()`)
+    .primaryKey()
+    .notNull(),
   name: varchar("name", { length: 255 }).notNull(),
   approved: boolean("approved").default(false).notNull(),
 });
 
 export const RoleTable = pgTable("role", {
-  id: bigserial("id", { mode: "number" }).primaryKey().notNull(),
+  id: uuid("id")
+    .default(sql`gen_random_uuid()`)
+    .primaryKey()
+    .notNull(),
   name: varchar("name", { length: 255 }).notNull(),
   approved: boolean("approved").default(false).notNull(),
 });
 
 export const ActorTable = pgTable("actor", {
-  id: bigserial("id", { mode: "number" }).primaryKey().notNull(),
+  id: uuid("id")
+    .default(sql`gen_random_uuid()`)
+    .primaryKey()
+    .notNull(),
   name: varchar("name", { length: 255 }).notNull(),
   approved: boolean("approved").default(false).notNull(),
 });
 
 export const MusicalTable = pgTable("musical", {
-  id: bigserial("id", { mode: "number" }).primaryKey().notNull(),
+  id: uuid("id")
+    .default(sql`gen_random_uuid()`)
+    .primaryKey()
+    .notNull(),
   composer: varchar("composer", { length: 255 }).notNull(),
   lyricist: varchar("lyricist", { length: 255 }).notNull(),
   title: varchar("title", { length: 255 }).notNull(),
@@ -74,12 +89,17 @@ export const MusicalTable = pgTable("musical", {
 });
 
 export const PerformanceTable = pgTable("performance", {
-  id: bigserial("id", { mode: "number" }).primaryKey().notNull(),
-  productionId: bigint("production_id", { mode: "number" })
+  id: uuid("id")
+    .default(sql`gen_random_uuid()`)
+    .primaryKey()
+    .notNull(),
+  productionId: uuid("production_id")
+    .default(sql`gen_random_uuid()`)
     .notNull()
     .references(() => ProductionTable.id),
   date: date("date", { mode: "date" }).notNull(),
-  theaterId: bigint("theater_id", { mode: "number" })
+  theaterId: uuid("theater_id")
+    .default(sql`gen_random_uuid()`)
     .notNull()
     .references(() => TheaterTable.id),
 });
@@ -87,13 +107,16 @@ export const PerformanceTable = pgTable("performance", {
 export const CastingTable = pgTable(
   "casting",
   {
-    roleId: bigint("role_id", { mode: "number" })
+    roleId: uuid("role_id")
+      .default(sql`gen_random_uuid()`)
       .notNull()
       .references(() => RoleTable.id),
-    actorId: bigint("actor_id", { mode: "number" })
+    actorId: uuid("actor_id")
+      .default(sql`gen_random_uuid()`)
       .notNull()
       .references(() => ActorTable.id),
-    performanceId: bigint("performance_id", { mode: "number" })
+    performanceId: uuid("performance_id")
+      .default(sql`gen_random_uuid()`)
       .notNull()
       .references(() => PerformanceTable.id),
   },
@@ -103,8 +126,11 @@ export const CastingTable = pgTable(
 );
 
 export const ProductionTable = pgTable("production", {
-  id: bigserial("id", { mode: "number" }).primaryKey().notNull(),
-  musicalId: bigint("musical_id", { mode: "number" })
+  id: uuid("id")
+    .default(sql`gen_random_uuid()`)
+    .primaryKey()
+    .notNull(),
+  musicalId: uuid("musical_id")
     .notNull()
     .references(() => MusicalTable.id),
   startDate: date("start_date", { mode: "date" }).notNull(),

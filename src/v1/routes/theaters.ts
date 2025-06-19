@@ -5,6 +5,7 @@ import { eq } from "drizzle-orm";
 import { SERVER_ERROR } from "../../lib/errors.js";
 import { Validator } from "../../lib/validator.js";
 import { ensureAdmin, ensureAuthenticated } from "../../lib/auth.js";
+import { validate as validateUuid } from "uuid";
 
 export const theaterRouter = Router();
 
@@ -33,15 +34,14 @@ async function approveTheaterHandler(
   req: Request<ApproveTheaterParams>,
   res: Response
 ) {
-  const id = Number(req.params.id);
+  const id = req.params.id;
   const validator = new Validator();
 
   try {
-    validator.check(
-      !isNaN(id) && id > 0,
-      "id",
-      "is required and must be a valid number"
-    );
+    validator.check(!!id, "id", "is required");
+    if (id) {
+      validator.check(validateUuid(id), "id", "must be a valid UUID");
+    }
 
     if (!validator.valid) {
       res.status(400).json({ errors: validator.errors });
@@ -114,22 +114,21 @@ async function createTheaterHandler(
 }
 
 type GetTheaterByIdQueryParams = {
-  id: string | number;
+  id: string;
 };
 
 async function getTheaterByIdHandler(
   req: Request<GetTheaterByIdQueryParams>,
   res: Response
 ) {
-  const id = Number(req.body);
+  const id = req.body;
   const validator = new Validator();
 
   try {
-    validator.check(
-      !isNaN(id) && id > 0,
-      "id",
-      "is required and must be a valid number"
-    );
+    validator.check(!!id, "id", "is required");
+    if (id) {
+      validator.check(validateUuid(id), "id", "must be a valid UUID");
+    }
 
     if (!validator.valid) {
       res.status(400).json({ errors: validator.errors });
@@ -153,7 +152,7 @@ async function getTheaterByIdHandler(
 }
 
 type UpdateTheaterBodyParams = {
-  id: string | number;
+  id: string;
   name: string;
 };
 
@@ -162,15 +161,14 @@ async function updateTheaterHandler(
   res: Response
 ) {
   const name = req.body.name;
-  const id = Number(req.body.id);
+  const id = req.body.id;
   const validator = new Validator();
 
   try {
-    validator.check(
-      !isNaN(id) && id > 0,
-      "id",
-      "is required and must be a valid number"
-    );
+    validator.check(!!id, "id", "is required");
+    if (id) {
+      validator.check(validateUuid(id), "id", "must be a valid UUID");
+    }
     validator.check(!name, "name", "is required");
 
     if (!validator.valid) {
@@ -181,7 +179,7 @@ async function updateTheaterHandler(
     const updatedTheater = await db
       .update(TheaterTable)
       .set({ name })
-      .where(eq(TheaterTable.id, Number(id)));
+      .where(eq(TheaterTable.id, id));
 
     if (updatedTheater.rowCount === 0) {
       res.status(404).json({ error: "'id' is invalid" });
@@ -198,22 +196,21 @@ async function updateTheaterHandler(
 }
 
 type DeleteTheaterBodyParams = {
-  id: string | number;
+  id: string;
 };
 
 async function deleteTheaterHandler(
   req: Request<{}, {}, DeleteTheaterBodyParams>,
   res: Response
 ) {
-  const id = Number(req.body.id);
+  const id = req.body.id;
   const validator = new Validator();
 
   try {
-    validator.check(
-      !isNaN(id) && id > 0,
-      "id",
-      "is required and must be a valid number"
-    );
+    validator.check(!!id, "id", "is required");
+    if (id) {
+      validator.check(validateUuid(id), "id", "must be a valid UUID");
+    }
 
     if (!validator.valid) {
       res.status(400).json({ errors: validator.errors });
