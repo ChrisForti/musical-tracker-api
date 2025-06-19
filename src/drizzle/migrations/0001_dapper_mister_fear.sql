@@ -1,1 +1,0 @@
-ALTER TABLE "production" ALTER COLUMN "musical_id" DROP DEFAULT;
