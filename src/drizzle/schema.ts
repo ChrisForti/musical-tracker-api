@@ -12,7 +12,7 @@ import {
   date,
 } from "drizzle-orm/pg-core";
 
-export const userRoleEnum = pgEnum("user_role", ["admin", "user"]);
+export const accountTypeEnum = pgEnum("account_type", ["admin", "user"]);
 
 export const UserTable = pgTable(
   "users",
@@ -30,11 +30,11 @@ export const UserTable = pgTable(
       .notNull(),
     isAdmin: boolean("is_admin").default(false).notNull(),
     passwordHash: text("password_hash").notNull(),
-    accountType: userRoleEnum("account_type").default("user").notNull(),
+    accountType: accountTypeEnum().default("user").notNull(),
   },
   (table) => {
     return [uniqueIndex("emailUniqueIndex").on(lower(table.email))];
-  }
+  },
 );
 
 export function lower(email: AnyPgColumn): SQL {
@@ -122,7 +122,7 @@ export const CastingTable = pgTable(
   },
   (table) => [
     primaryKey({ columns: [table.roleId, table.actorId, table.performanceId] }),
-  ]
+  ],
 );
 
 export const ProductionTable = pgTable("production", {
