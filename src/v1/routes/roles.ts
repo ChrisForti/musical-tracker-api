@@ -104,7 +104,7 @@ async function createRoleHandler(
 
     res.status(201).json({
       message: "Role created successfully",
-      roleId: newRole,
+      role: newRole,
     });
   } catch (error) {
     console.error("Error in createRoleHandler:", error);

@@ -103,7 +103,7 @@ async function createActorHandler(
 
     res.status(201).json({
       message: "Created successfully",
-      actorId: newActor, // need to check this
+      actor: newActor, // need to check this
     });
   } catch (error) {
     console.error("Error in createActorHandler:", error);

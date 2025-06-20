@@ -105,7 +105,7 @@ async function createTheaterHandler(
 
     res.status(201).json({
       message: "Theater created successfully",
-      theaterId: newTheater.oid,
+      theater: newTheater.oid,
     });
   } catch (error) {
     console.error("Error in createTheaterHandler:", error);
