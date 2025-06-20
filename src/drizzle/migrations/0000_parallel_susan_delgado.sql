@@ -1,4 +1,4 @@
-CREATE TYPE "public"."user_role" AS ENUM('admin', 'user');--> statement-breakpoint
+CREATE TYPE "public"."account_type" AS ENUM('admin', 'user');--> statement-breakpoint
 CREATE TABLE "actor" (
 	"id" uuid PRIMARY KEY DEFAULT gen_random_uuid() NOT NULL,
 	"name" varchar(255) NOT NULL,
@@ -29,7 +29,7 @@ CREATE TABLE "performance" (
 --> statement-breakpoint
 CREATE TABLE "production" (
 	"id" uuid PRIMARY KEY DEFAULT gen_random_uuid() NOT NULL,
-	"musical_id" uuid DEFAULT gen_random_uuid() NOT NULL,
+	"musical_id" uuid NOT NULL,
 	"start_date" date NOT NULL,
 	"end_date" date NOT NULL,
 	"poster_url" text NOT NULL,
@@ -64,7 +64,7 @@ CREATE TABLE "users" (
 	"initial_setup_complete" boolean DEFAULT false NOT NULL,
 	"is_admin" boolean DEFAULT false NOT NULL,
 	"password_hash" text NOT NULL,
-	"account_type" "user_role" DEFAULT 'user' NOT NULL
+	"accountType" "account_type" DEFAULT 'user' NOT NULL
 );
 --> statement-breakpoint
 ALTER TABLE "casting" ADD CONSTRAINT "casting_role_id_role_id_fk" FOREIGN KEY ("role_id") REFERENCES "public"."role"("id") ON DELETE no action ON UPDATE no action;--> statement-breakpoint

@@ -1,5 +1,5 @@
 {
-  "id": "6ba9990b-b7b7-42e1-a2fe-eb17ab2a9023",
+  "id": "825e44df-0fff-4060-bcf1-7502f0db1f7a",
   "prevId": "00000000-0000-0000-0000-000000000000",
   "version": "7",
   "dialect": "postgresql",
@@ -247,8 +247,7 @@
           "name": "musical_id",
           "type": "uuid",
           "primaryKey": false,
-          "notNull": true,
-          "default": "gen_random_uuid()"
+          "notNull": true
         },
         "start_date": {
           "name": "start_date",
@@ -471,9 +470,9 @@
           "primaryKey": false,
           "notNull": true
         },
-        "account_type": {
-          "name": "account_type",
-          "type": "user_role",
+        "accountType": {
+          "name": "accountType",
+          "type": "account_type",
           "typeSchema": "public",
           "primaryKey": false,
           "notNull": true,
@@ -506,8 +505,8 @@
     }
   },
   "enums": {
-    "public.user_role": {
-      "name": "user_role",
+    "public.account_type": {
+      "name": "account_type",
       "schema": "public",
       "values": [
         "admin",
