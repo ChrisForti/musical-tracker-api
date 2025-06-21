@@ -66,7 +66,7 @@ async function createPerformanceHandler(
 
     res.status(201).json({
       message: "Created successfully",
-      musicalId: newPerformance,
+      musical: newPerformance,
     });
   } catch (error) {
     console.error("Error in createPerformanceHandler:", error);

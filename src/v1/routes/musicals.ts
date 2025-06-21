@@ -104,7 +104,7 @@ async function createMusicalHandler(
 
     res.status(201).json({
       message: "Created successfully",
-      musicalId: newMusical.oid,
+      musical: newMusical.oid,
     });
   } catch (error) {
     console.error("Error in createActorHandler:", error);
