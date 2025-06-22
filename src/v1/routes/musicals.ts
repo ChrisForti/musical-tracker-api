@@ -98,13 +98,19 @@ async function createMusicalHandler(
       return;
     }
 
-    const newMusical = await db
+    const [newMusical] = await db
       .insert(MusicalTable)
-      .values({ composer, lyricist, title });
+      .values({ composer, lyricist, title })
+      .returning({ id: MusicalTable.id });
+
+    if (!newMusical) {
+      res.status(500).json({ error: "Failed to create musical" });
+      return;
+    }
 
     res.status(201).json({
       message: "Created successfully",
-      musical: newMusical.oid,
+      musical: newMusical.id,
     });
   } catch (error) {
     console.error("Error in createActorHandler:", error);

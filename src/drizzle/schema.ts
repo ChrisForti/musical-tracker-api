@@ -34,7 +34,7 @@ export const UserTable = pgTable(
   },
   (table) => {
     return [uniqueIndex("emailUniqueIndex").on(lower(table.email))];
-  },
+  }
 );
 
 export function lower(email: AnyPgColumn): SQL {
@@ -78,10 +78,7 @@ export const ActorTable = pgTable("actor", {
 });
 
 export const MusicalTable = pgTable("musical", {
-  id: uuid("id")
-    .default(sql`gen_random_uuid()`)
-    .primaryKey()
-    .notNull(),
+  id: uuid("id").defaultRandom().primaryKey().notNull(),
   composer: varchar("composer", { length: 255 }).notNull(),
   lyricist: varchar("lyricist", { length: 255 }).notNull(),
   title: varchar("title", { length: 255 }).notNull(),
@@ -122,7 +119,7 @@ export const CastingTable = pgTable(
   },
   (table) => [
     primaryKey({ columns: [table.roleId, table.actorId, table.performanceId] }),
-  ],
+  ]
 );
 
 export const ProductionTable = pgTable("production", {
