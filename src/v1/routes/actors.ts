@@ -94,7 +94,10 @@ async function createActorHandler(
       return;
     }
 
-    const [newActor] = await db.insert(ActorTable).values({ name }).returning();
+    const [newActor] = await db
+      .insert(ActorTable)
+      .values({ name })
+      .returning({ id: ActorTable.id });
 
     if (!newActor) {
       res.status(500).json({ error: "Failed to create actor" });
@@ -103,7 +106,7 @@ async function createActorHandler(
 
     res.status(201).json({
       message: "Created successfully",
-      actor: newActor, // need to check this
+      actor: newActor.id,
     });
   } catch (error) {
     console.error("Error in createActorHandler:", error);

@@ -98,13 +98,21 @@ async function createRoleHandler(
       return;
     }
 
-    const newRole = await db.insert(RoleTable).values({
-      name,
-    });
+    const [newRole] = await db
+      .insert(RoleTable)
+      .values({
+        name,
+      })
+      .returning({ id: RoleTable.id });
+
+    if (!newRole) {
+      res.status(500).json({ error: "Failed to create role" });
+      return;
+    }
 
     res.status(201).json({
       message: "Role created successfully",
-      role: newRole,
+      role: newRole?.id,
     });
   } catch (error) {
     console.error("Error in createRoleHandler:", error);
