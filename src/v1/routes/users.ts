@@ -139,7 +139,7 @@ async function loginUserHandler(
     if (error instanceof Error) {
       res.status(500).json(validator.errors);
     }
-    console.error;
+    console.error("Error in loginUserHandler:", error);
     res.status(500).json({ error: SERVER_ERROR });
     return;
   }

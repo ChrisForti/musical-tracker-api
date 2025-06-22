@@ -64,7 +64,7 @@ CREATE TABLE "users" (
 	"initial_setup_complete" boolean DEFAULT false NOT NULL,
 	"is_admin" boolean DEFAULT false NOT NULL,
 	"password_hash" text NOT NULL,
-	"accountType" "account_type" DEFAULT 'user' NOT NULL
+	"account_type" "account_type" DEFAULT 'user' NOT NULL
 );
 --> statement-breakpoint
 ALTER TABLE "casting" ADD CONSTRAINT "casting_role_id_role_id_fk" FOREIGN KEY ("role_id") REFERENCES "public"."role"("id") ON DELETE no action ON UPDATE no action;--> statement-breakpoint

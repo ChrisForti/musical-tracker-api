@@ -53,3 +53,7 @@
 - Actors: Admin-approved actors.
 - Roles: Admin-approved roles.
 - ApprovalRequests: Track user requests for roles/actors and theaters.
+
+## Testing tokens
+
+John doe `hD1bHIUB1WCJW6_F8EsQP4EwjfF0dgI1_33j8qQrFd0`
