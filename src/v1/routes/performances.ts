@@ -60,13 +60,19 @@ async function createPerformanceHandler(
       return;
     }
 
-    const newPerformance = await db
+    const [newPerformance] = await db
       .insert(PerformanceTable)
-      .values({ productionId, date: new Date(date), theaterId });
+      .values({ productionId, date: new Date(date), theaterId })
+      .returning({ id: PerformanceTable.id });
+
+    if (!newPerformance) {
+      res.status(500).json({ error: "Failed to create performance" });
+      return;
+    }
 
     res.status(201).json({
       message: "Created successfully",
-      musicalId: newPerformance,
+      performance: newPerformance?.id,
     });
   } catch (error) {
     console.error("Error in createPerformanceHandler:", error);

@@ -1,5 +1,5 @@
 {
-  "id": "825e44df-0fff-4060-bcf1-7502f0db1f7a",
+  "id": "abe24189-7e64-4333-94ce-84e02649720e",
   "prevId": "00000000-0000-0000-0000-000000000000",
   "version": "7",
   "dialect": "postgresql",
@@ -470,8 +470,8 @@
           "primaryKey": false,
           "notNull": true
         },
-        "accountType": {
-          "name": "accountType",
+        "account_type": {
+          "name": "account_type",
           "type": "account_type",
           "typeSchema": "public",
           "primaryKey": false,

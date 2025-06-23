@@ -99,13 +99,21 @@ async function createTheaterHandler(
       return;
     }
 
-    const newTheater = await db.insert(TheaterTable).values({
-      name,
-    });
+    const [newTheater] = await db
+      .insert(TheaterTable)
+      .values({
+        name,
+      })
+      .returning({ id: TheaterTable.id });
+
+    if (!newTheater) {
+      res.status(500).json({ error: "Failed to create theater" });
+      return;
+    }
 
     res.status(201).json({
       message: "Theater created successfully",
-      theaterId: newTheater.oid,
+      theater: newTheater.id,
     });
   } catch (error) {
     console.error("Error in createTheaterHandler:", error);

@@ -121,16 +121,24 @@ async function createProductionHandler(
       return;
     }
 
-    const newProduction = await db.insert(ProductionTable).values({
-      musicalId,
-      startDate: new Date(startDate),
-      endDate: new Date(endDate),
-      posterUrl,
-    });
+    const [newProduction] = await db
+      .insert(ProductionTable)
+      .values({
+        musicalId,
+        startDate: new Date(startDate),
+        endDate: new Date(endDate),
+        posterUrl,
+      })
+      .returning({ id: ProductionTable.id });
+
+    if (!newProduction) {
+      res.status(500).json({ error: "Failed to create production" });
+      return;
+    }
 
     res.status(201).json({
       message: "Created successfully",
-      id: newProduction, // need to check this
+      id: newProduction.id, // need to check this
     });
   } catch (error: any) {
     if (error.code === "23505") {
