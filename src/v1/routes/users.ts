@@ -79,7 +79,7 @@ async function createUserHandler(
       lastName,
       email,
       passwordHash,
-      accountType: "user",
+      account_type: "user",
     });
 
     res.json({ message: "User created successfully" });
@@ -185,7 +185,7 @@ type UpdateUserBody = {
   lastName?: string;
   email?: string;
   password?: string;
-  accountType: "admin" | "user";
+  account_type: "admin" | "user";
 };
 
 async function updateUserHandler(
@@ -196,9 +196,9 @@ async function updateUserHandler(
   const { firstName, lastName, email, password } = req.body as UpdateUserBody;
   const validator = new Validator();
   console.log("Request body:", req.body);
-  const accountType = req.body.accountType;
+  const account_type = req.body.account_type;
 
-  if (!["admin", "user"].includes(accountType)) {
+  if (!["admin", "user"].includes(account_type)) {
     res.status(400).json({ error: "Invalid account type" });
     return;
   }
@@ -216,7 +216,7 @@ async function updateUserHandler(
     lastName?: string;
     email?: string;
     passwordHash?: string;
-    accountType?: "admin" | "user";
+    account_type?: "admin" | "user";
   };
 
   try {
@@ -229,7 +229,7 @@ async function updateUserHandler(
     if (firstName) updatedData.firstName = firstName;
     if (lastName) updatedData.lastName = lastName;
     if (email) updatedData.email = email;
-    if (accountType) updatedData.accountType = accountType;
+    if (account_type) updatedData.account_type = account_type;
 
     if (password) {
       validator.check(

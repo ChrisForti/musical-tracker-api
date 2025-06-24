@@ -46,7 +46,7 @@ export async function authenticate(
 
   try {
     const result = await db
-      .select({ id: UserTable.id, role: UserTable.accountType })
+      .select({ id: UserTable.id, role: UserTable.account_type })
       .from(TokenTable)
       .innerJoin(UserTable, eq(TokenTable.userId, UserTable.id))
       .where(eq(TokenTable.hash, hash))
