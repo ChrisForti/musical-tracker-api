@@ -1,20 +1,3 @@
-DO $$
-BEGIN
-    IF NOT EXISTS(
-        SELECT
-            1
-        FROM
-            pg_type
-        WHERE
-            typname = 'account_type') THEN
-    CREATE TYPE "public"."account_type" AS ENUM(
-        'admin',
-        'user'
-);
-END IF;
-END
-$$;
-
 --> statement-breakpoint
 CREATE TABLE "actor"(
     "id" uuid PRIMARY KEY DEFAULT gen_random_uuid() NOT NULL,
