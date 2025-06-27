@@ -62,6 +62,11 @@ CREATE TABLE "tokens"(
     "scope" text NOT NULL
 );
 
+CREATE TYPE "public"."account_type" AS ENUM(
+    'admin',
+    'user'
+);
+
 --> statement-breakpoint
 CREATE TABLE "users"(
     "id" uuid PRIMARY KEY DEFAULT gen_random_uuid() NOT NULL,
