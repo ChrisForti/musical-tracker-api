@@ -1,8 +1,8 @@
 import type { Route } from "./+types/home";
 import { Header } from "~/components/pages/Header";
 import { Login } from "~/components/auth/login";
-import { Welcome } from "~/welcome/welcome";
-import { useState } from "react";
+import { Sidebar } from "~/components/pages/Sidebar";
+
 
 export function meta({}: Route.MetaArgs) {
   return [
@@ -15,8 +15,7 @@ export default function Home() {
   return (
     <>
       <Header setHeaderNavigation={Login} />
-      <Login />
-      <Welcome />
-    </>
+      <Sidebar/>
+      </>
   );
 }
