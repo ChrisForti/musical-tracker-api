@@ -1,8 +1,6 @@
+import { useState } from "react";
 import type { Route } from "./+types/home";
 import { Header } from "~/components/pages/Header";
-import { Login } from "~/components/auth/login";
-import { Sidebar } from "~/components/pages/Sidebar";
-
 
 export function meta({}: Route.MetaArgs) {
   return [
@@ -12,10 +10,10 @@ export function meta({}: Route.MetaArgs) {
 }
 
 export default function Home() {
+  const [headerNavigation, setHeaderNavigation] = useState(0);
   return (
     <>
-      <Header setHeaderNavigation={Login} />
-      <Sidebar/>
-      </>
+      <Header setHeaderNavigation={setHeaderNavigation} />
+    </>
   );
 }
