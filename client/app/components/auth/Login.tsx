@@ -4,24 +4,23 @@ export function Login() {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
 
-  const handleEmailChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    setEmail(e.target.value);
+  const handleEmailChange = (event: React.ChangeEvent<HTMLInputElement>) => {
+    setEmail(event.target.value);
   };
 
-  const handlePasswordChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    setPassword(e.target.value);
+  const handlePasswordChange = (event: React.ChangeEvent<HTMLInputElement>) => {
+    setPassword(event.target.value);
   };
 
-  const handleSubmit = (e: React.FormEvent) => {
-    e.preventDefault();
+  const handleSubmit = (event: React.FormEvent) => {
+    event.preventDefault();
     console.log("Email:", email);
     console.log("Password:", password);
   };
 
   return (
     <div className="w-80 rounded-lg bg-black p-6 shadow-lg">
-      <h2 className="mb-4 text-center text-2xl font-bold">Login</h2>
-      <form>
+      <form onSubmit={handleSubmit} className="space-y-4">
         <div className="mb-4">
           <label className="block text-sm font-medium text-teal-600">
             Email
