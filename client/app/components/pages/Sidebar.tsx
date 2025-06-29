@@ -13,12 +13,8 @@ export function Sidebar() {
     <div>
       {/* Sidebar */}
       <div className="fixed top-12 left-5 w-48" ref={dropdownRef}>
-        <a
-          href="#"
-          onClick={(event) => {
-            event.preventDefault();
-            setDropdownOpen((v) => !v);
-          }}
+        <button
+          onClick={() => setDropdownOpen((v) => !v)} // Toggle dropdown state
           className="text-teal-400 font-bold px-8 py-2 hover:text-teal-600"
           aria-label="Toggle Admin Panel"
         >
@@ -37,22 +33,18 @@ export function Sidebar() {
               strokeLinejoin="round"
             />
           </svg>
-        </a>
+        </button>
         {/* Admin Dropdown */}
         {isDropdownOpen && (
           <div className="absolute top-full left-0 mt-2 w-48 bg-black text-white rounded shadow-lg z-50">
             <ul className="py-2">
               <li>
-                <a
-                  href="#"
-                  onClick={(event) => {
-                    event.preventDefault();
-                    setShowAdminPage(true); // Show the admin page
-                  }}
+                <button
+                  onClick={() => setShowAdminPage(true)} // Show the admin page
                   className="block px-4 py-2 hover:bg-teal-600"
                 >
                   Admin Dashboard
-                </a>
+                </button>
               </li>
               <li>
                 <a
@@ -71,16 +63,12 @@ export function Sidebar() {
                 </a>
               </li>
               <li>
-                <a
-                  href="#"
-                  onClick={(event) => {
-                    event.preventDefault();
-                    setLoginOpen((v) => !v);
-                  }}
+                <button
+                  onClick={() => setLoginOpen((v) => !v)} // Toggle login panel
                   className="block px-4 py-2 hover:bg-teal-600"
                 >
                   Login
-                </a>
+                </button>
                 {isLoginOpen && (
                   <div
                     ref={loginRef}
