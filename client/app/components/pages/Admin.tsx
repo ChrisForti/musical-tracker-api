@@ -1,6 +1,6 @@
 export function Admin() {
   return (
-    <div className="min-h-screen bg-gray-100 p-6">
+    <div className="fixed right-0 top-25 min-h-screen bg-gray-100 p-6">
       <header className="bg-teal-600 text-white py-4 px-6">
         <h1 className="text-2xl font-bold">Admin Dashboard</h1>
       </header>
