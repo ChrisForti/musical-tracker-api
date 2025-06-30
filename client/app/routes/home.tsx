@@ -1,7 +1,7 @@
 import type { Route } from "./+types/home";
-import { Header } from "~/components/Header";
-import { Login } from "~/components/login";
-import { Welcome } from "~/welcome/welcome";
+import { Header } from "~/components/pages/Header";
+import { Sidebar } from "~/components/pages/Sidebar";
+import { Mainpage } from "~/components/pages/Mainpage";
 
 export function meta({}: Route.MetaArgs) {
   return [
@@ -13,8 +13,10 @@ export function meta({}: Route.MetaArgs) {
 export default function Home() {
   return (
     <>
-      <Header setHeaderNavigation={Login} />
-      <Welcome />
+      <Header />
+      <aside>
+        <Sidebar />
+      </aside>
     </>
   );
 }
