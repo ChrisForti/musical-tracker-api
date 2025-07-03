@@ -1,20 +1,17 @@
-import type { Route } from "./+types/home";
-import { Header } from "~/components/Header";
-import { Login } from "~/components/login";
-import { Welcome } from "~/welcome/welcome";
-
-export function meta({}: Route.MetaArgs) {
-  return [
-    { title: "Musical tracker dashboard" },
-    { name: "description", content: "Welcome to Musical tracker!" },
-  ];
-}
+import React from "react";
+import Header from "~/components/header/Header";
+import { Sidebar } from "~/components/pages/Sidebar";
 
 export default function Home() {
+  const closeAdmin = () => {
+    console.log("Admin panel closed");
+  };
   return (
-    <>
-      <Header setHeaderNavigation={Login} />
-      <Welcome />
-    </>
+    <div>
+      <Header />
+      <aside>
+        <Sidebar closeAdmin={closeAdmin} />
+      </aside>
+    </div>
   );
 }

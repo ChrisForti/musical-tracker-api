@@ -37,8 +37,10 @@
 
 - Musical
   - User Request → “Add/Edit Musical” → Admin Approval → Central Database
-- Role/Actor (if not in DB)
-  - User Request → “Add Role/Actor” → Admin Approval → Central Database
+- Role (if not in DB)
+  - User Request → “Add Role” → Admin Approval → Central Database
+- Actor (if not in DB)
+  - User Request → “Add Actor” → Admin Approval → Central Database
 - Theater (if not in DB)
   - User Request → “Add Theater” → Admin Approval → Central Database
 
@@ -50,6 +52,6 @@
 - Musicals: Admin-approved musicals.
 - Productions: Admin-approved productions.
 - Theaters: Admin-approved theaters.
-- Actors: Admin-approved actors.
 - Roles: Admin-approved roles.
+- Actors: Admin-approved actors.
 - ApprovalRequests: Track user requests for roles/actors and theaters.
