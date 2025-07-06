@@ -1,6 +1,6 @@
 import { useState } from "react";
 
-export default function Admin({ closeAdmin }: { closeAdmin: () => void }) {
+export default function AdminPage({ closeAdmin }: { closeAdmin: () => void }) {
   // State for form inputs
   const [formData, setFormData] = useState({
     name: "",

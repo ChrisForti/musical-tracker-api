@@ -1,17 +1,16 @@
 import { useState, useRef, useEffect } from "react";
-import Login from "../auth/Login";
-import Admin from "./Admin";
-import Mainpage from "./Mainpage";
+import LoginPage from "../auth/LoginPage";
+import AdminPage from "./AdminPage";
 
 type AdminProps = {
-  closeAdmin: () => void; // Function to close the admin dashboard
+  closeAdmin: () => void;
 };
 
 export function Sidebar({ closeAdmin }: AdminProps) {
   // State for sidebar behavior
   const [isExpanded, setIsExpanded] = useState(true);
   const [isHovered, setIsHovered] = useState(false);
-  const [isMobile, setIsMobile] = useState(false);
+  const [isMobile, setIsMobile] = useState(window.innerWidth < 768);
   const [activeItem, setActiveItem] = useState<string | null>(null);
   const [openSubmenu, setOpenSubmenu] = useState<string | null>(null);
 
@@ -228,7 +227,7 @@ export function Sidebar({ closeAdmin }: AdminProps) {
         {/* Login Panel - Now at the bottom of sidebar */}
         {isLoginOpen && (
           <div ref={loginRef} className="my-auto">
-            <Login />
+            <LoginPage />
           </div>
         )}
       </div>
@@ -240,7 +239,7 @@ export function Sidebar({ closeAdmin }: AdminProps) {
           style={{ width: `calc(100% - ${isExpanded ? "16rem" : "4rem"})` }}
         >
           <div className="h-full overflow-auto">
-            <Admin closeAdmin={() => setShowAdminPage(false)} />
+            <AdminPage closeAdmin={() => setShowAdminPage(false)} />
           </div>
         </div>
       )}

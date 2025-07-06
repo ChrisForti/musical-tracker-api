@@ -1,4 +1,4 @@
-import Admin from "./Admin";
+import Admin from "./AdminPage";
 import { useState } from "react";
 
 interface MainpageProps {

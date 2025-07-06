@@ -3,7 +3,7 @@ import { Dropdown } from "../ui/dropdown/Dropdown";
 import { DropdownItem } from "../ui/dropdown/DropdownItem";
 import { Link } from "react-router";
 
-export default function NotificationDropdown() {
+export function NotificationDropdown() {
   const [isOpen, setIsOpen] = useState(false);
   const [notifying, setNotifying] = useState(true);
 
@@ -15,10 +15,10 @@ export default function NotificationDropdown() {
     setIsOpen(false);
   }
 
-  const handleClick = () => {
+  function handleClick() {
     toggleDropdown();
     setNotifying(false);
-  };
+  }
   return (
     <div className="relative">
       <button
@@ -378,3 +378,5 @@ export default function NotificationDropdown() {
     </div>
   );
 }
+
+export default NotificationDropdown;

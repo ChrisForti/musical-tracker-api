@@ -1,22 +1,22 @@
 import { useState } from "react";
 
-export default function Login() {
+export function LoginPage() {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
 
-  const handleEmailChange = (event: React.ChangeEvent<HTMLInputElement>) => {
+  function handleEmailChange(event: React.ChangeEvent<HTMLInputElement>) {
     setEmail(event.target.value);
-  };
+  }
 
-  const handlePasswordChange = (event: React.ChangeEvent<HTMLInputElement>) => {
+  function handlePasswordChange(event: React.ChangeEvent<HTMLInputElement>) {
     setPassword(event.target.value);
-  };
+  }
 
-  const handleSubmit = (event: React.FormEvent) => {
+  function handleSubmit(event: React.FormEvent) {
     event.preventDefault();
     console.log("Email:", email);
     console.log("Password:", password);
-  };
+  }
 
   return (
     <div className="w-full bg-white text-black dark:bg-gray-900 dark:text-white p-4">
@@ -83,3 +83,4 @@ export default function Login() {
     </div>
   );
 }
+export default LoginPage;
