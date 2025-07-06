@@ -123,7 +123,7 @@ async function getActorByIdHandler(
   req: Request<GetActorByIdParams>,
   res: Response
 ) {
-  const id = req.body.id;
+  const id = req.params.id;
   const validator = new Validator();
 
   validator.check(!!id, "id", "is required");
@@ -135,6 +135,11 @@ async function getActorByIdHandler(
     validator.check(!!id, "id", "is required");
     if (id) {
       validator.check(validateUuid(id), "id", "must be a valid UUID");
+    }
+
+    if (!validator.valid) {
+      res.status(400).json({ errors: validator.errors });
+      return;
     }
 
     const actor = await db.query.ActorTable.findFirst({
