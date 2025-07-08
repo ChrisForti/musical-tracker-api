@@ -13,7 +13,6 @@ actorRouter.post("/", ensureAuthenticated, createActorHandler);
 actorRouter.get("/:id", getActorByIdHandler);
 actorRouter.put("/", ensureAuthenticated, ensureAdmin, updateActorHandler);
 actorRouter.delete("/", ensureAuthenticated, deleteActorHandler);
-// New routes for approval workflow
 actorRouter.post<ApproveActorParams>(
   "/:id/approve",
   ensureAuthenticated,
