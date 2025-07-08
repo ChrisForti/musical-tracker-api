@@ -11,8 +11,18 @@ export const productionRouter = Router();
 
 productionRouter.post("/", createProductionHandler);
 productionRouter.get("/:id", getproductionByIdHandler);
-productionRouter.put("/", updateproductionHandler);
-productionRouter.delete("/", deleteproductionHandler);
+productionRouter.put(
+  "/",
+  ensureAuthenticated,
+  ensureAdmin,
+  updateproductionHandler
+);
+productionRouter.delete(
+  "/",
+  ensureAuthenticated,
+  ensureAdmin,
+  deleteproductionHandler
+);
 productionRouter.post<ApproveProductionParams>(
   "/:id/approve",
   ensureAuthenticated,

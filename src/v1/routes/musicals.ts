@@ -11,7 +11,7 @@ export const musicalRouter = Router();
 
 musicalRouter.post("/", ensureAuthenticated, createMusicalHandler);
 musicalRouter.get("/:id", getMusicalByIdHandler);
-musicalRouter.put("/", ensureAuthenticated, updateMusicalHandler);
+musicalRouter.put("/", ensureAuthenticated, ensureAdmin, updateMusicalHandler);
 musicalRouter.delete("/", ensureAuthenticated, deleteMusicalHandler);
 musicalRouter.post<ApproveMusicalParams>(
   "/:id/approve",

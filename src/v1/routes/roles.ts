@@ -11,8 +11,8 @@ export const roleRouter = Router();
 
 roleRouter.post("/", ensureAuthenticated, createRoleHandler);
 roleRouter.get("/:id", getRoleByIdHandler);
-roleRouter.put("/", ensureAuthenticated, updateRoleHandler);
-roleRouter.delete("/", ensureAuthenticated, deleteRoleHandler);
+roleRouter.put("/", ensureAuthenticated, ensureAdmin, updateRoleHandler);
+roleRouter.delete("/", ensureAuthenticated, ensureAdmin, deleteRoleHandler);
 roleRouter.post<ApproveRoleParams>(
   "/:id/approve",
   ensureAuthenticated,

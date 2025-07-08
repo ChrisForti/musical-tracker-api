@@ -11,7 +11,7 @@ export const actorRouter = Router();
 
 actorRouter.post("/", ensureAuthenticated, createActorHandler);
 actorRouter.get("/:id", getActorByIdHandler);
-actorRouter.put("/", ensureAuthenticated, updateActorHandler);
+actorRouter.put("/", ensureAuthenticated, ensureAdmin, updateActorHandler);
 actorRouter.delete("/", ensureAuthenticated, deleteActorHandler);
 // New routes for approval workflow
 actorRouter.post<ApproveActorParams>(

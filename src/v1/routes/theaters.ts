@@ -11,8 +11,13 @@ export const theaterRouter = Router();
 
 theaterRouter.post("/", ensureAuthenticated, createTheaterHandler);
 theaterRouter.get("/:id", getTheaterByIdHandler);
-theaterRouter.put("/", ensureAuthenticated, updateTheaterHandler);
-theaterRouter.delete("/", ensureAuthenticated, deleteTheaterHandler);
+theaterRouter.put("/", ensureAuthenticated, ensureAdmin, updateTheaterHandler);
+theaterRouter.delete(
+  "/",
+  ensureAuthenticated,
+  ensureAdmin,
+  deleteTheaterHandler
+);
 theaterRouter.post<ApproveTheaterParams>(
   "/:id/approve",
   ensureAuthenticated,
