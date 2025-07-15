@@ -1,6 +1,6 @@
 import { useState, useRef, useEffect } from "react";
-import LoginPage from "../auth/LoginPage";
-import AdminPage from "./AdminPage";
+import LoginPage from "../pages/admin/LoginPage";
+import AdminPage from "../pages/admin/AdminPage";
 
 type AdminProps = {
   closeAdmin: () => void;

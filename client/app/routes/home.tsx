@@ -1,6 +1,6 @@
 import React from "react";
-import Header from "~/components/header/Header";
-import { Sidebar } from "~/components/pages/Sidebar";
+import Header from "~/components/layout/header/Header";
+import { Sidebar } from "~/components/layout/Sidebar";
 
 export default function Home() {
   const closeAdmin = () => {
