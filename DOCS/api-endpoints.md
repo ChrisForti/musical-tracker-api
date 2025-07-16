@@ -72,9 +72,9 @@ curl -X DELETE http://localhost:3000/v1/user/ \
 q. Create actor:
 
 ```sh
-curl -X POST http://localhost:3000/v1/actor/ \
+curl -X POST http://localhost:3000/v1/routes/actors/ \
 -H "Content-Type: application/json" \
--H "Authorization: Bearer YOUR_ACCESS_TOKEN" \
+-H "Authorization: Bearer UTjemLEuodeP_MvdZ1LTRMN9I1_RPPSju2ALhUBO9-w" \
 -d '{
   "id": 1,
   "name": "Actor Name"

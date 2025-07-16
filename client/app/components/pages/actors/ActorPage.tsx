@@ -1,7 +1,4 @@
-// /Users/fortis/repos/musical-tracker-api/client/app/routes/ActorPage.tsx
-
 import React, { useState, useEffect } from "react";
-import { useNavigate } from "react-router-dom";
 import { PageTemplate } from "~/components/common/PageTemplate";
 
 interface Actor {
@@ -13,20 +10,18 @@ interface Actor {
 export default function ActorPage() {
   const [actors, setActors] = useState<Actor[]>([]);
   const [loading, setLoading] = useState(true);
-  const navigate = useNavigate();
 
   useEffect(() => {
-    // Fetch actors from your API
-    fetch("/api/v1/actor")
-      .then((res) => res.json())
-      .then((data) => {
-        setActors(data.actors || []);
-        setLoading(false);
-      })
-      .catch((err) => {
-        console.error("Error fetching actors:", err);
-        setLoading(false);
-      });
+    // Sample data for testing
+    const sampleActors = [
+      { id: "1", name: "John Doe", approved: true },
+      { id: "2", name: "Jane Smith", approved: false },
+    ];
+
+    setActors(sampleActors);
+    setLoading(false);
+
+    // API call code commented out for now
   }, []);
 
   return (
@@ -34,11 +29,11 @@ export default function ActorPage() {
       title="Actors"
       actionButton={{
         label: "Add Actor",
-        onClick: () => navigate("/actors/new"),
+        onClick: () => (window.location.href = "/actors/new"),
       }}
     >
       {loading ? (
-        <div>Loading actors...</div>
+        <div className="p-4 text-center">Loading actors...</div>
       ) : (
         <div className="bg-white dark:bg-gray-800 shadow-sm rounded-lg overflow-hidden">
           <table className="min-w-full divide-y divide-gray-200 dark:divide-gray-700">
@@ -75,21 +70,22 @@ export default function ActorPage() {
                     )}
                   </td>
                   <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                    <button
-                      onClick={() => navigate(`/actors/${actor.id}`)}
+                    <a
+                      href={`/actors/${actor.id}`}
                       className="text-blue-600 hover:text-blue-900 mr-3"
                     >
                       View
-                    </button>
-                    <button
-                      onClick={() => navigate(`/actors/${actor.id}/edit`)}
+                    </a>
+                    <a
+                      href={`/actors/${actor.id}/edit`}
                       className="text-amber-600 hover:text-amber-900 mr-3"
                     >
                       Edit
-                    </button>
+                    </a>
                     <button
                       onClick={() => {
                         /* Delete logic */
+                        console.log(`Delete actor: ${actor.id}`);
                       }}
                       className="text-red-600 hover:text-red-900"
                     >

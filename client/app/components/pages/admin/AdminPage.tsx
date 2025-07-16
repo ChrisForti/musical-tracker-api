@@ -1,8 +1,8 @@
 import { useState } from "react";
+
 import ActorPage from "../actors/ActorPage"; // Import your ActorPage component
 
 export default function AdminPage({ closeAdmin }: { closeAdmin: () => void }) {
-  // Add state to track which section is showing
   const [currentSection, setCurrentSection] = useState<string>("dashboard");
 
   // Function to handle section navigation
@@ -80,12 +80,12 @@ export default function AdminPage({ closeAdmin }: { closeAdmin: () => void }) {
                       Pending approval: 5
                     </p>
                   </div>
-                  <button
-                    onClick={() => showSection("actors")}
-                    className="mt-4 px-4 py-2 bg-teal-600 hover:bg-teal-700 text-white rounded-md"
+                  <a
+                    href="/actors" // Simple link to the actors route
+                    className="mt-4 px-4 py-2 bg-teal-600 hover:bg-teal-700 text-white rounded-md inline-block"
                   >
                     Manage Actors
-                  </button>
+                  </a>
                 </div>
               </section>
               {/* Other sections can be added here */}
