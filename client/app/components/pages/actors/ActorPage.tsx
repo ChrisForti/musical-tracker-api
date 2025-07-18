@@ -1,35 +1,78 @@
 import React, { useState, useEffect } from "react";
+import { useNavigate } from "react-router-dom";
 import { PageTemplate } from "~/components/common/PageTemplate";
 
 interface Actor {
   id: string;
   name: string;
   approved: boolean;
+  bio?: string;
 }
 
 export default function ActorPage() {
   const [actors, setActors] = useState<Actor[]>([]);
   const [loading, setLoading] = useState(true);
+  const navigate = useNavigate();
 
   useEffect(() => {
     // Sample data for testing
     const sampleActors = [
-      { id: "1", name: "John Doe", approved: true },
-      { id: "2", name: "Jane Smith", approved: false },
+      {
+        id: "1",
+        name: "John Doe",
+        approved: true,
+        bio: "John is a versatile actor with experience in both Broadway and off-Broadway productions.",
+      },
+      {
+        id: "2",
+        name: "Jane Smith",
+        approved: true,
+        bio: "Jane has performed in numerous Tony Award-winning musicals over the past decade.",
+      },
+      {
+        id: "3",
+        name: "Michael Johnson",
+        approved: false,
+        bio: "Michael is a rising star in the musical theater scene with a powerful tenor voice.",
+      },
     ];
 
     setActors(sampleActors);
     setLoading(false);
 
-    // API call code commented out for now
+    // API call code would go here in a real implementation
+    // fetch("/api/actors")
+    //   .then(res => res.json())
+    //   .then(data => {
+    //     setActors(data);
+    //     setLoading(false);
+    //   })
+    //   .catch(err => {
+    //     console.error("Error fetching actors:", err);
+    //     setLoading(false);
+    //   });
   }, []);
+
+  const handleDelete = async (id: string) => {
+    if (confirm("Are you sure you want to delete this actor?")) {
+      try {
+        // In a real app, make an API call to delete
+        // await fetch(`/api/actors/${id}`, { method: 'DELETE' });
+
+        // Update local state
+        setActors(actors.filter((actor) => actor.id !== id));
+      } catch (error) {
+        console.error("Failed to delete actor:", error);
+      }
+    }
+  };
 
   return (
     <PageTemplate
       title="Actors"
       actionButton={{
         label: "Add Actor",
-        onClick: () => (window.location.href = "/actors/new"),
+        onClick: () => navigate("/actors/new"),
       }}
     >
       {loading ? (
@@ -70,23 +113,20 @@ export default function ActorPage() {
                     )}
                   </td>
                   <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                    <a
-                      href={`/actors/${actor.id}`}
+                    <button
+                      onClick={() => navigate(`/actors/view/${actor.id}`)}
                       className="text-blue-600 hover:text-blue-900 mr-3"
                     >
                       View
-                    </a>
-                    <a
-                      href={`/actors/${actor.id}/edit`}
+                    </button>
+                    <button
+                      onClick={() => navigate(`/actors/edit/${actor.id}`)}
                       className="text-amber-600 hover:text-amber-900 mr-3"
                     >
                       Edit
-                    </a>
+                    </button>
                     <button
-                      onClick={() => {
-                        /* Delete logic */
-                        console.log(`Delete actor: ${actor.id}`);
-                      }}
+                      onClick={() => handleDelete(actor.id)}
                       className="text-red-600 hover:text-red-900"
                     >
                       Delete

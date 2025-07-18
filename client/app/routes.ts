@@ -4,11 +4,11 @@ export default [
   // Home page
   index("routes/home.tsx"),
 
-  // Actors index route - add this if missing
-  route("actors", "routes/ActorRoute.tsx"),
+  // Single splat route for all actor paths
+  route("actors/*", "routes/ActorRoute.tsx"),
 
-  // Actor detail route (likely already working)
-  //   route("actors/:id", "routes/actors/$id.tsx"),
+  // Single splat route for all musical paths
+  route("musicals/*", "routes/MusicalRoute.tsx"),
 
   // Other routes...
 ] satisfies RouteConfig;

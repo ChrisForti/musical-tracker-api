@@ -1,6 +1,7 @@
 import { useState } from "react";
 
 import ActorPage from "../actors/ActorPage"; // Import your ActorPage component
+import MusicalPage from "../musicals/MusicalPage";
 
 export default function AdminPage({ closeAdmin }: { closeAdmin: () => void }) {
   const [currentSection, setCurrentSection] = useState<string>("dashboard");
@@ -80,21 +81,41 @@ export default function AdminPage({ closeAdmin }: { closeAdmin: () => void }) {
                       Pending approval: 5
                     </p>
                   </div>
-                  <a
-                    href="/actors" // Simple link to the actors route
-                    className="mt-4 px-4 py-2 bg-teal-600 hover:bg-teal-700 text-white rounded-md inline-block"
+                  <button //imbedded button to manage actors
+                    onClick={() => showSection("actors")}
+                    className="mt-4 px-4 py-2 bg-teal-600 hover:bg-teal-700 text-white rounded-md"
                   >
                     Manage Actors
+                  </button>
+                </div>
+              </section>
+              <section>
+                <div className="bg-white dark:bg-gray-800 rounded-lg shadow p-6 border border-gray-200 dark:border-gray-700">
+                  <h2 className="text-xl font-semibold mb-4 text-gray-800 dark:text-white">
+                    Musicals
+                  </h2>
+                  <div className="space-y-2">
+                    <p className="text-gray-700 dark:text-gray-300">
+                      Total musicals: 4 {/* Replace with actual count */}
+                    </p>
+                    <p className="text-gray-700 dark:text-gray-300">
+                      Pending approval: 1
+                    </p>
+                  </div>
+                  <a
+                    onClick={() => showSection("musicals")}
+                    className="mt-4 px-4 py-2 bg-purple-600 hover:bg-purple-700 text-white rounded-md inline-block"
+                  >
+                    Manage Musicals
                   </a>
                 </div>
               </section>
-              {/* Other sections can be added here */}
             </div>
           </>
         ) : currentSection === "actors" ? (
-          <div className="bg-white dark:bg-gray-800 p-6 rounded-lg shadow">
-            <ActorPage />
-          </div>
+          <ActorPage />
+        ) : currentSection === "musicals" ? (
+          <MusicalPage />
         ) : null}
       </main>
     </div>
