@@ -182,7 +182,7 @@ async function updateTheaterHandler(
     if (id) {
       validator.check(validateUuid(id), "id", "must be a valid UUID");
     }
-    validator.check(!name, "name", "is required");
+    validator.check(!!name, "name", "is required");
 
     if (!validator.valid) {
       res.status(400).json({ errors: validator.errors });

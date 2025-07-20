@@ -146,7 +146,7 @@ async function updatePerformanceHandler(
     if (productionId) {
       validator.check(validateUuid(productionId), "id", "must be a valid UUID");
     }
-    validator.check(!date, "date", "is required");
+    validator.check(!!date, "date", "is required");
 
     validator.check(!!theaterId, "theaterId", "is required");
     if (theaterId) {

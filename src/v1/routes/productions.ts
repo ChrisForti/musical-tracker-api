@@ -233,9 +233,9 @@ async function updateproductionHandler(
     if (musicalId) {
       validator.check(validateUuid(musicalId), "id", "must be a valid UUID");
     }
-    validator.check(!startDate, "startDate", "is invalid format");
-    validator.check(!endDate, "endDate", "is invalid format");
-    validator.check(!posterUrl, "posterUrl", "is required");
+    validator.check(!!startDate, "startDate", "is invalid format");
+    validator.check(!!endDate, "endDate", "is invalid format");
+    validator.check(!!posterUrl, "posterUrl", "is required");
 
     if (!validator.valid) {
       res.status(400).json({ errors: validator.errors });
