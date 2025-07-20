@@ -7,7 +7,6 @@ type AdminProps = {
 };
 
 export function Sidebar({ closeAdmin }: AdminProps) {
-  // State for sidebar behavior
   const [isExpanded, setIsExpanded] = useState(true);
   const [isHovered, setIsHovered] = useState(false);
   const [isMobile, setIsMobile] = useState(window.innerWidth < 768);

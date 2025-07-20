@@ -6,7 +6,6 @@ import PerformancePage from "../performances/PerformancePage";
 export default function AdminPage({ closeAdmin }: { closeAdmin: () => void }) {
   const [currentSection, setCurrentSection] = useState<string>("dashboard");
 
-  // Function to handle section navigation
   const showSection = (section: string) => {
     setCurrentSection(section);
   };
