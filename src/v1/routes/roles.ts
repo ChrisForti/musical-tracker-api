@@ -128,7 +128,7 @@ async function getRoleByIdHandler(
   req: Request<GetRoleByIdQueryParams>,
   res: Response
 ) {
-  const id = req.body.id;
+  const id = req.params.id;
   const validator = new Validator();
 
   try {

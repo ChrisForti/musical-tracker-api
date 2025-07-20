@@ -134,7 +134,7 @@ async function getTheaterByIdHandler(
   req: Request<GetTheaterByIdQueryParams>,
   res: Response
 ) {
-  const id = req.body;
+  const id = req.params.id;
   const validator = new Validator();
 
   try {

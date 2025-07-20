@@ -1,12 +1,12 @@
 import { useState, useRef, useEffect } from "react";
 import LoginPage from "../../components/pages/admin/LoginPage";
 import AdminPage from "../../components/pages/admin/AdminPage";
-
 type AdminProps = {
   closeAdmin: () => void;
 };
 
 export function Sidebar({ closeAdmin }: AdminProps) {
+  // State for sidebar behavior
   const [isExpanded, setIsExpanded] = useState(true);
   const [isHovered, setIsHovered] = useState(false);
   const [isMobile, setIsMobile] = useState(window.innerWidth < 768);
@@ -51,12 +51,12 @@ export function Sidebar({ closeAdmin }: AdminProps) {
     <>
       {/* Sidebar */}
       <div
-        className={`fixed left-0  h-screen flex flex-col p-6 top-3 bg-white border-r border-gray-200 text-black dark:bg-gray-900 dark:border-gray-800 dark:text-white ...`}
+        className={`fixed left-0 top-4 h-screen flex flex-col bg-white border-r border-gray-200 text-black dark:bg-gray-900 dark:border-gray-800 dark:text-white ...`}
         onMouseEnter={() => setIsHovered(true)}
         onMouseLeave={() => setIsHovered(false)}
       >
         {/* Sidebar Header */}
-        {/* <div className="flex items-center justify-between p-4 border-b border-gray-700">
+        <div className="flex items-center justify-between p-4 border-b border-gray-700">
           {(isExpanded || isHovered) && (
             <h2 className="text-xl font-bold text-teal-400">Musical Tracker</h2>
           )}
@@ -81,7 +81,7 @@ export function Sidebar({ closeAdmin }: AdminProps) {
               />
             </svg>
           </button>
-        </div> */}
+        </div>
 
         {/* Navigation Menu */}
         <nav className="py-4 flex-grow">

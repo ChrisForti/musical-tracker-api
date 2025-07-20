@@ -169,7 +169,7 @@ async function getproductionByIdHandler(
   req: Request<GetProductionByIdParams>,
   res: Response
 ) {
-  const id = req.body.id;
+  const id = req.params.id;
   const validator = new Validator();
   try {
     validator.check(!!id, "id", "is required");
