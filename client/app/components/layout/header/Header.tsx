@@ -2,16 +2,14 @@ import NotificationDropdown from "./NotificationDropdown";
 import UserDropdown from "./UserDropdown";
 import React, { useState } from "react";
 
-// Define interface for props
 interface HeaderProps {
   onClick?: () => void;
   onToggle?: () => void;
 }
 
-// Define the Header component as a React functional component
 export function Header() {
   return (
-    <header className="sticky top-0 z-50 w-full bg-white border-b border-gray-200 dark:border-gray-800 dark:bg-gray-900 pl-16 md:pl-64">
+    <header className="fixed  z-50 w-full bg-white border-b border-gray-200 dark:border-gray-800 dark:bg-gray-900 pl-16 md:pl-64">
       <div className="flex items-center justify-between px-4 py-2">
         {/* Logo/Title - Hidden on smaller screens since it's in sidebar */}
         <div className="flex-1">
