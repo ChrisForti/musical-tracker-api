@@ -135,6 +135,7 @@ async function getCastingByIdHandler(
         .json({ errors: [{ field: "casting", message: "not found" }] });
       return;
     }
+    res.status(200).json(result); // Added this line to return the casting data
   } catch (error) {
     console.error("Error in getCastingById:", error);
     res.status(500).json({ error: SERVER_ERROR });

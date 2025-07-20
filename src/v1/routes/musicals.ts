@@ -149,8 +149,10 @@ async function getMusicalByIdHandler(
       res.status(404).json({ error: "Musical not found" });
       return;
     }
+
+    res.status(200).json({ musical }); // added this line to return the musical data
   } catch (error) {
-    console.error("Error in getActorById:", error);
+    console.error("Error in getMusicalById:", error);
     res.status(500).json({ error: SERVER_ERROR });
   }
 }

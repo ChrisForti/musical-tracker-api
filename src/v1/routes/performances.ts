@@ -106,10 +106,12 @@ async function getPerformanceByIdHandler(
       where: eq(PerformanceTable.id, id),
     });
 
-    if (!!performance) {
+    if (!performance) {
       res.status(404).json({ error: "Performance not found" });
       return;
     }
+
+    res.status(200).json(performance); // Added this line
   } catch (error) {
     console.error("Error in getPerformanceById:", error);
     res.status(500).json({ error: SERVER_ERROR });
