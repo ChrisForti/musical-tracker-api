@@ -182,16 +182,16 @@ async function getproductionByIdHandler(
       return;
     }
 
-    const performance = await db.query.PerformanceTable.findFirst({
+    const production = await db.query.ProductionTable.findFirst({
       where: eq(ProductionTable.id, id),
     });
 
-    if (!performance) {
-      res.status(404).json({ error: "Performance not found" });
+    if (!production) {
+      res.status(404).json({ error: "Production not found" });
       return;
     }
   } catch (error) {
-    console.error("Error in getProductionById:", error);
+    console.error("Error in get ProductionById:", error);
     res.status(500).json({ error: SERVER_ERROR });
   }
 }

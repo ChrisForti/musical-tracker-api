@@ -142,16 +142,16 @@ async function getRoleByIdHandler(
       return;
     }
 
-    const theater = await db.query.TheaterTable.findFirst({
+    const role = await db.query.RoleTable.findFirst({
       where: eq(RoleTable.id, id),
     });
 
-    if (!theater) {
+    if (!role) {
       res.status(404).json({ error: "'id' is invalid" });
       return;
     }
 
-    res.status(200).json({ theater });
+    res.status(200).json({ role });
   } catch (error) {
     console.error("Error in getRoleByIdHandler:", error);
     res.status(500).json({ error: SERVER_ERROR });
