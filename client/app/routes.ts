@@ -4,11 +4,14 @@ export default [
   // Home page
   index("routes/home.tsx"),
 
-  // Single splat route for all actor paths
+  // Actor routes (using catch-all)
   route("actors/*", "routes/ActorRoute.tsx"),
 
-  // Single splat route for all musical paths
+  // Musical  routes (using catch-all)
   route("musicals/*", "routes/MusicalRoute.tsx"),
+
+  // Performance routes (using catch-all)
+  route("performances/*", "routes/PerformanceRoute.tsx"),
 
   // Other routes...
 ] satisfies RouteConfig;

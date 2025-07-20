@@ -1,7 +1,7 @@
 import { useState } from "react";
-
-import ActorPage from "../actors/ActorPage"; // Import your ActorPage component
+import ActorPage from "../actors/ActorPage";
 import MusicalPage from "../musicals/MusicalPage";
+import PerformancePage from "../performances/PerformancePage";
 
 export default function AdminPage({ closeAdmin }: { closeAdmin: () => void }) {
   const [currentSection, setCurrentSection] = useState<string>("dashboard");
@@ -17,7 +17,7 @@ export default function AdminPage({ closeAdmin }: { closeAdmin: () => void }) {
   };
 
   return (
-    <div className="bg-white dark:bg-gray-900 border-l border-gray-200 dark:border-gray-800 h-full overflow-y-auto">
+    <div className="bg-white dark:bg-gray-900 border-l border-gray-200 dark:border-gray-800 h-full">
       <header className="bg-white dark:bg-gray-900 border-b border-gray-200 dark:border-gray-800 p-4 flex justify-between items-center">
         <h1 className="text-2xl font-bold text-teal-600">Admin Dashboard</h1>
         <div className="flex space-x-3">
@@ -110,12 +110,35 @@ export default function AdminPage({ closeAdmin }: { closeAdmin: () => void }) {
                   </a>
                 </div>
               </section>
+              <section>
+                <div className="bg-white dark:bg-gray-800 rounded-lg shadow p-6 border border-gray-200 dark:border-gray-700">
+                  <h2 className="text-xl font-semibold mb-4 text-gray-800 dark:text-white">
+                    Performances
+                  </h2>
+                  <div className="space-y-2">
+                    <p className="text-gray-700 dark:text-gray-300">
+                      Total performances: 12 {/* Replace with actual count */}
+                    </p>
+                    <p className="text-gray-700 dark:text-gray-300">
+                      Pending approval: 3
+                    </p>
+                  </div>
+                  <button
+                    onClick={() => showSection("performances")}
+                    className="mt-4 px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-md"
+                  >
+                    Manage Performances
+                  </button>
+                </div>
+              </section>
             </div>
           </>
         ) : currentSection === "actors" ? (
           <ActorPage />
         ) : currentSection === "musicals" ? (
           <MusicalPage />
+        ) : currentSection === "performances" ? (
+          <PerformancePage />
         ) : null}
       </main>
     </div>

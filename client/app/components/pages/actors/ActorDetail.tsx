@@ -62,16 +62,16 @@ export default function ActorDetail({ actorId }: ActorDetailProps) {
     setLoading(false);
 
     // In a real app, fetch from API
-    // fetch(`/api/actors/${actorId}`)
-    //   .then(res => res.json())
-    //   .then(data => {
-    //     setActor(data);
-    //     setLoading(false);
-    //   })
-    //   .catch(err => {
-    //     console.error("Error fetching actor:", err);
-    //     setLoading(false);
-    //   });
+    fetch(`http://localhost:3000/v1/routes/actors/${actorId}`)
+      .then((res) => res.json())
+      .then((data) => {
+        setActor(data);
+        setLoading(false);
+      })
+      .catch((err) => {
+        console.error("Error fetching actor:", err);
+        setLoading(false);
+      });
   }, [actorId]);
 
   const handleDelete = async () => {
@@ -80,7 +80,7 @@ export default function ActorDetail({ actorId }: ActorDetailProps) {
     if (confirm("Are you sure you want to delete this actor?")) {
       try {
         // In a real app, make an API call to delete
-        // await fetch(`/api/actors/${actor.id}`, { method: 'DELETE' });
+        await fetch(`/api/actors/${actor.id}`, { method: "DELETE" });
 
         // Navigate back to the list
         navigate("/actors");
