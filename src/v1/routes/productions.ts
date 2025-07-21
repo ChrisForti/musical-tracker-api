@@ -9,6 +9,7 @@ import { validate as validateUuid } from "uuid";
 
 export const productionRouter = Router();
 
+productionRouter.get("/", getAllProductionsHandler); // New handler for all productions (with pending option)
 productionRouter.post("/", createProductionHandler);
 productionRouter.get("/:id", getproductionByIdHandler);
 productionRouter.put(
@@ -29,12 +30,41 @@ productionRouter.post<ApproveProductionParams>(
   ensureAdmin,
   approveProductionHandler
 );
-productionRouter.get(
-  "/pending",
-  ensureAuthenticated,
-  ensureAdmin,
-  getPendingProductionsHandler
-);
+
+// New combined handler for all productions
+async function getAllProductionsHandler(
+  req: Express.AuthenticatedRequest,
+  res: Response
+) {
+  try {
+    // Check if the pending query parameter is set to true
+    const isPending = req.query.pending === "true";
+
+    if (isPending && req.isAuthenticated && req.isAdmin) {
+      // If pending=true and user is admin, get only pending productions
+      const pendingProductions = await db
+        .select()
+        .from(ProductionTable)
+        .where(eq(ProductionTable.approved, false));
+
+      res.status(200).json(pendingProductions);
+    } else {
+      // Otherwise get all productions (or just approved ones for non-admins)
+      const query = req.isAdmin
+        ? db.select().from(ProductionTable)
+        : db
+            .select()
+            .from(ProductionTable)
+            .where(eq(ProductionTable.approved, true));
+
+      const productions = await query;
+      res.status(200).json(productions);
+    }
+  } catch (error) {
+    console.error("Error in getAllProductionsHandler:", error);
+    res.status(500).json({ error: SERVER_ERROR });
+  }
+}
 
 type ApproveProductionParams = {
   id: string;
@@ -77,19 +107,19 @@ async function approveProductionHandler(
   }
 }
 
-async function getPendingProductionsHandler(req: Request, res: Response) {
-  try {
-    const pendingProductions = await db
-      .select()
-      .from(ProductionTable)
-      .where(eq(ProductionTable.approved, false));
+// async function getPendingProductionsHandler(req: Request, res: Response) {
+//   try {
+//     const pendingProductions = await db
+//       .select()
+//       .from(ProductionTable)
+//       .where(eq(ProductionTable.approved, false));
 
-    res.status(200).json(pendingProductions);
-  } catch (error) {
-    console.error("Error in getPendingProductionsHandler:", error);
-    res.status(500).json({ error: SERVER_ERROR });
-  }
-}
+//     res.status(200).json(pendingProductions);
+//   } catch (error) {
+//     console.error("Error in getPendingProductionsHandler:", error);
+//     res.status(500).json({ error: SERVER_ERROR });
+//   }
+// }
 
 type CreateProductionBodyParams = {
   musicalId: string;
@@ -205,10 +235,10 @@ type UpdateProductionBodyParams = {
 };
 
 async function updateproductionHandler(
-  req: Request<{}, {}, UpdateProductionBodyParams>,
+  req: Request<{ id: string }, {}, Omit<UpdateProductionBodyParams, "id">>,
   res: Response
 ) {
-  const id = req.body.id;
+  const id = req.params.id;
   const musicalId = req.body.musicalId;
   const { posterUrl } = req.body;
   const startDate = req.body.startDate
@@ -278,15 +308,11 @@ async function updateproductionHandler(
   }
 }
 
-type DeleteProductionBodtParams = {
-  id: string;
-};
-
 async function deleteproductionHandler(
-  req: Request<DeleteProductionBodtParams>,
+  req: Request<{ id: string }>,
   res: Response
 ) {
-  const id = req.body.id;
+  const id = req.params.id;
   const validator = new Validator();
 
   try {
