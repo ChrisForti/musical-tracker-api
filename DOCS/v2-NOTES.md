@@ -102,8 +102,9 @@ main change is `ID` goes back to bigint
 
 # Endpoints
 
-- Notes for API Development:
-  Update endpoints should not require all parameters to update objects. Refer to the sheet, optional parameters are clearly marked with a question mark ?.
+### Notes for API Development:
+
+Update endpoints should not require all parameters to update objects. Refer to the sheet, optional parameters are clearly marked with a question mark ?.
 
 All update/read/delete endpoints should take in “id” as part of the URL.
 
