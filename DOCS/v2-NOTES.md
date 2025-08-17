@@ -94,4 +94,17 @@ main change is `ID` goes back to bigint
 
 ## musicals
 
-- stays the sme
+- stays the same
+
+## productions
+
+- delete whole table
+
+# Endpoints
+
+- Notes for API Development:
+  Update endpoints should not require all parameters to update objects. Refer to the sheet, optional parameters are clearly marked with a question mark ?.
+
+All update/read/delete endpoints should take in “id” as part of the URL.
+
+For all update endpoints of objects going into the central DB, allow updates if the object is unverified. If the object is verified, require admin access to perform update action.
