@@ -337,14 +337,32 @@ curl -X POST http://localhost:3000/v1/production/ \
 2. Get Production by ID:
 
 ```sh
-curl -X GET http://localhost:3000/v1/production/1 \
+curl -X GET http://localhost:3000/v1/production/1\
 -H "Authorization: Bearer YOUR_ACCESS_TOKEN"
 ```
 
-3. Update Production:
+3. get pending Productions:
 
 ```sh
-curl -X PUT http://localhost:3000/v1/production/ \
+curl -X GET http://localhost:3000/v1/production?pending=true \
+-H "Authorization: Bearer YOUR_ADMIN_ACCESS_TOKEN"
+```
+
+- Requires admin privileges.
+
+4. Approve Production:
+
+```sh
+curl -X POST http://localhost:3000/v1/production/:productionId/approve \
+-H "Authorization: Bearer YOUR_ADMIN_ACCESS_TOKEN"
+```
+
+- Requires admin privileges.
+
+5. Update Production:
+
+```sh
+curl -X PUT http://localhost:3000/v1/production/1 \
 -H "Content-Type: application/json" \
 -H "Authorization: Bearer YOUR_ACCESS_TOKEN" \
 -d '{
@@ -356,31 +374,15 @@ curl -X PUT http://localhost:3000/v1/production/ \
 }'
 ```
 
-4. Delete Production:
+6. Delete Production:
 
 ```sh
-curl -X DELETE http://localhost:3000/v1/production/ \
+curl -X DELETE http://localhost:3000/v1/production/:productionId \
 -H "Content-Type: application/json" \
 -H "Authorization: Bearer YOUR_ACCESS_TOKEN" \
 -d '{
   "id": 1
 }'
-```
-
-5. Approve Production:
-
-```sh
-curl -X POST http://localhost:3000/v1/production/:productionId/approve \
--H "Authorization: Bearer YOUR_ADMIN_ACCESS_TOKEN"
-```
-
-- Requires admin privileges.
-
-6. get pending Productions:
-
-```sh
-curl -X GET http://localhost:3000/v1/production/pending \
--H "Authorization: Bearer YOUR_ADMIN_ACCESS_TOKEN"
 ```
 
 - Requires admin privileges.

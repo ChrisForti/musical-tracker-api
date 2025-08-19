@@ -1,10 +1,11 @@
 import { Request } from "express";
+import { Request as ExpressRequest } from "express";
 
 declare global {
   namespace Express {
     interface User {
       id: string;
-      role: string; // Example: "admin", "user", etc.
+      role: string;
     }
 
     interface Request {
@@ -12,6 +13,11 @@ declare global {
         id: string;
         role: string;
       };
+    }
+
+    interface AuthenticatedRequest extends ExpressRequest {
+      isAuthenticated?: boolean;
+      isAdmin?: boolean;
     }
   }
 }
