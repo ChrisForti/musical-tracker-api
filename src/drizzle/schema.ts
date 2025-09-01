@@ -1,5 +1,5 @@
 import { sql, type SQL } from "drizzle-orm";
-import { pgEnum, primaryKey } from "drizzle-orm/pg-core";
+import { bigserial, pgEnum, primaryKey } from "drizzle-orm/pg-core";
 import {
   boolean,
   uuid,
@@ -17,7 +17,7 @@ export const accountTypeEnum = pgEnum("account_type", ["admin", "user"]);
 export const UserTable = pgTable(
   "users",
   {
-    id: uuid("id").defaultRandom().primaryKey().notNull(),
+    id: bigserial("id", { mode: "number" }).primaryKey().notNull(),
     firstName: varchar("first_name", { length: 100 }).notNull(),
     lastName: varchar("last_name", { length: 100 }).notNull(),
     email: text("email").notNull(),
@@ -40,7 +40,7 @@ export function lower(email: AnyPgColumn): SQL {
 
 export const TokenTable = pgTable("tokens", {
   hash: text("hash").primaryKey(),
-  userId: uuid("user_id")
+  userId: bigint("user_id", { mode: "number" })
     .notNull()
     .references(() => UserTable.id, { onDelete: "cascade" }),
   expiry: bigint("expiry", { mode: "number" }).notNull(),
@@ -50,19 +50,21 @@ export const TokenTable = pgTable("tokens", {
 export const TheaterTable = pgTable("theater", {
   id: uuid("id").defaultRandom().primaryKey().notNull(),
   name: varchar("name", { length: 255 }).notNull(),
-  approved: boolean("approved").default(false).notNull(),
+  verified: boolean("verified").default(false).notNull(),
+  city: varchar("city", { length: 255 }).notNull(),
 });
 
 export const RoleTable = pgTable("role", {
   id: uuid("id").defaultRandom().primaryKey().notNull(),
   name: varchar("name", { length: 255 }).notNull(),
-  approved: boolean("approved").default(false).notNull(),
+  musicalId: varchar("musical_id", { length: 255 }).notNull(),
+  verified: boolean("verified").default(false).notNull(),
 });
 
 export const ActorTable = pgTable("actor", {
   id: uuid("id").defaultRandom().primaryKey().notNull(),
   name: varchar("name", { length: 255 }).notNull(),
-  approved: boolean("approved").default(false).notNull(),
+  verified: boolean("verified").default(false).notNull(),
 });
 
 export const MusicalTable = pgTable("musical", {
@@ -70,20 +72,19 @@ export const MusicalTable = pgTable("musical", {
   composer: varchar("composer", { length: 255 }).notNull(),
   lyricist: varchar("lyricist", { length: 255 }).notNull(),
   title: varchar("title", { length: 255 }).notNull(),
-  approved: boolean("approved").default(false).notNull(),
+  verified: boolean("verified").default(false).notNull(),
 });
 
 export const PerformanceTable = pgTable("performance", {
   id: uuid("id").defaultRandom().primaryKey().notNull(),
-  productionId: uuid("production_id")
-    .defaultRandom()
+  musicalId: uuid("musical_id")
     .notNull()
-    .references(() => ProductionTable.id),
-  date: date("date", { mode: "date" }).notNull(),
-  theaterId: uuid("theater_id")
-    .defaultRandom()
+    .references(() => MusicalTable.id),
+  userId: bigint("user_id", { mode: "number" })
     .notNull()
-    .references(() => TheaterTable.id),
+    .references(() => UserTable.id),
+  notes: text("notes"),
+  posterUrl: varchar("poster_url", { length: 255 }),
 });
 
 export const CastingTable = pgTable(
