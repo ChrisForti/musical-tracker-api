@@ -1,5 +1,5 @@
 {
-  "id": "8f8946f7-c2f3-45c5-9843-385a4d1d84b7",
+  "id": "f6f01056-87f5-49bb-8900-68c46b0fc495",
   "prevId": "00000000-0000-0000-0000-000000000000",
   "version": "7",
   "dialect": "postgresql",
@@ -21,8 +21,8 @@
           "primaryKey": false,
           "notNull": true
         },
-        "approved": {
-          "name": "approved",
+        "verified": {
+          "name": "verified",
           "type": "boolean",
           "primaryKey": false,
           "notNull": true,
@@ -149,8 +149,8 @@
           "primaryKey": false,
           "notNull": true
         },
-        "approved": {
-          "name": "approved",
+        "verified": {
+          "name": "verified",
           "type": "boolean",
           "primaryKey": false,
           "notNull": true,
@@ -176,35 +176,39 @@
           "notNull": true,
           "default": "gen_random_uuid()"
         },
-        "production_id": {
-          "name": "production_id",
+        "musical_id": {
+          "name": "musical_id",
           "type": "uuid",
-          "primaryKey": false,
-          "notNull": true,
-          "default": "gen_random_uuid()"
-        },
-        "date": {
-          "name": "date",
-          "type": "date",
           "primaryKey": false,
           "notNull": true
         },
-        "theater_id": {
-          "name": "theater_id",
+        "user_id": {
+          "name": "user_id",
           "type": "uuid",
           "primaryKey": false,
-          "notNull": true,
-          "default": "gen_random_uuid()"
+          "notNull": true
+        },
+        "notes": {
+          "name": "notes",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "poster_url": {
+          "name": "poster_url",
+          "type": "varchar(255)",
+          "primaryKey": false,
+          "notNull": false
         }
       },
       "indexes": {},
       "foreignKeys": {
-        "performance_production_id_production_id_fk": {
-          "name": "performance_production_id_production_id_fk",
+        "performance_musical_id_musical_id_fk": {
+          "name": "performance_musical_id_musical_id_fk",
           "tableFrom": "performance",
-          "tableTo": "production",
+          "tableTo": "musical",
           "columnsFrom": [
-            "production_id"
+            "musical_id"
           ],
           "columnsTo": [
             "id"
@@ -212,12 +216,12 @@
           "onDelete": "no action",
           "onUpdate": "no action"
         },
-        "performance_theater_id_theater_id_fk": {
-          "name": "performance_theater_id_theater_id_fk",
+        "performance_user_id_users_id_fk": {
+          "name": "performance_user_id_users_id_fk",
           "tableFrom": "performance",
-          "tableTo": "theater",
+          "tableTo": "users",
           "columnsFrom": [
-            "theater_id"
+            "user_id"
           ],
           "columnsTo": [
             "id"
@@ -314,8 +318,14 @@
           "primaryKey": false,
           "notNull": true
         },
-        "approved": {
-          "name": "approved",
+        "musical_id": {
+          "name": "musical_id",
+          "type": "varchar(255)",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "verified": {
+          "name": "verified",
           "type": "boolean",
           "primaryKey": false,
           "notNull": true,
@@ -347,12 +357,18 @@
           "primaryKey": false,
           "notNull": true
         },
-        "approved": {
-          "name": "approved",
+        "verified": {
+          "name": "verified",
           "type": "boolean",
           "primaryKey": false,
           "notNull": true,
           "default": false
+        },
+        "city": {
+          "name": "city",
+          "type": "varchar(255)",
+          "primaryKey": false,
+          "notNull": true
         }
       },
       "indexes": {},

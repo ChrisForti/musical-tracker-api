@@ -9,95 +9,66 @@ import { validate as validateUuid } from "uuid";
 
 export const theaterRouter = Router();
 
+// Updated route structure - using URL params for PUT/DELETE
+theaterRouter.get("/", getAllTheatersHandler);
 theaterRouter.post("/", ensureAuthenticated, createTheaterHandler);
 theaterRouter.get("/:id", getTheaterByIdHandler);
-theaterRouter.put("/", ensureAuthenticated, ensureAdmin, updateTheaterHandler);
+theaterRouter.put(
+  "/:id",
+  ensureAuthenticated,
+  ensureAdmin,
+  updateTheaterHandler
+);
 theaterRouter.delete(
-  "/",
+  "/:id",
   ensureAuthenticated,
   ensureAdmin,
   deleteTheaterHandler
 );
-theaterRouter.post<ApproveTheaterParams>(
-  "/:id/approve",
+theaterRouter.post(
+  "/:id/verify",
   ensureAuthenticated,
   ensureAdmin,
-  approveTheaterHandler
-);
-theaterRouter.get(
-  "/pending",
-  ensureAuthenticated,
-  ensureAdmin,
-  getPendingTheatersHandler
+  verifyTheaterHandler
 );
 
-type ApproveTheaterParams = {
-  id: string;
-};
-
-async function approveTheaterHandler(
-  req: Request<ApproveTheaterParams>,
-  res: Response
-) {
-  const id = req.params.id;
-  const validator = new Validator();
-
+// Combined handler for all theaters (with pending option)
+async function getAllTheatersHandler(req: Request, res: Response) {
   try {
-    validator.check(!!id, "id", "is required");
-    if (id) {
-      validator.check(validateUuid(id), "id", "must be a valid UUID");
+    const isPending = req.query.pending === "true";
+
+    if (isPending) {
+      const pendingTheaters = await db
+        .select()
+        .from(TheaterTable)
+        .where(eq(TheaterTable.verified, false));
+
+      res.status(200).json(pendingTheaters);
+    } else {
+      const theaters = await db.select().from(TheaterTable);
+      res.status(200).json(theaters);
     }
-
-    if (!validator.valid) {
-      res.status(400).json({ errors: validator.errors });
-      return;
-    }
-
-    const result = await db
-      .update(TheaterTable)
-      .set({ approved: true })
-      .where(eq(TheaterTable.id, id));
-
-    if (result.rowCount === 0) {
-      res.status(404).json({ error: "Theater not found or already approved" });
-      return;
-    }
-
-    res.status(200).json({ message: "Theater approved successfully" });
   } catch (error) {
-    console.error("Error in approveTheaterHandler:", error);
-    res.status(500).json({ error: SERVER_ERROR });
-  }
-}
-
-async function getPendingTheatersHandler(req: Request, res: Response) {
-  try {
-    const pendingTheaters = await db
-      .select()
-      .from(TheaterTable)
-      .where(eq(TheaterTable.approved, false));
-
-    res.status(200).json(pendingTheaters);
-  } catch (error) {
-    console.error("Error in getPendingTheatersHandler:", error);
+    console.error("Error in getAllTheatersHandler:", error);
     res.status(500).json({ error: SERVER_ERROR });
   }
 }
 
 type CreateTheaterBodyParams = {
   name: string;
+  city: string;
 };
 
 async function createTheaterHandler(
   req: Request<{}, {}, CreateTheaterBodyParams>,
   res: Response
 ) {
-  const name = req.body.name;
+  const { name, city } = req.body;
   const validator = new Validator();
-  console.log(req.body);
 
   try {
     validator.check(!!name, "name", "is required");
+    validator.check(!!city, "city", "is required");
 
     if (!validator.valid) {
       res.status(400).json({ errors: validator.errors });
@@ -106,9 +77,7 @@ async function createTheaterHandler(
 
     const [newTheater] = await db
       .insert(TheaterTable)
-      .values({
-        name,
-      })
+      .values({ name, city })
       .returning({ id: TheaterTable.id });
 
     if (!newTheater) {
@@ -118,7 +87,7 @@ async function createTheaterHandler(
 
     res.status(201).json({
       message: "Theater created successfully",
-      theater: newTheater.id,
+      id: newTheater.id,
     });
   } catch (error) {
     console.error("Error in createTheaterHandler:", error);
@@ -126,12 +95,12 @@ async function createTheaterHandler(
   }
 }
 
-type GetTheaterByIdQueryParams = {
+type GetTheaterByIdParams = {
   id: string;
 };
 
 async function getTheaterByIdHandler(
-  req: Request<GetTheaterByIdQueryParams>,
+  req: Request<GetTheaterByIdParams>,
   res: Response
 ) {
   const id = req.params.id;
@@ -153,11 +122,11 @@ async function getTheaterByIdHandler(
     });
 
     if (!theater) {
-      res.status(404).json({ error: "'id' is invalid" });
+      res.status(404).json({ error: "Theater not found" });
       return;
     }
 
-    res.status(200).json({ theater });
+    res.status(200).json(theater);
   } catch (error) {
     console.error("Error in getTheaterByIdHandler:", error);
     res.status(500).json({ error: SERVER_ERROR });
@@ -165,16 +134,16 @@ async function getTheaterByIdHandler(
 }
 
 type UpdateTheaterBodyParams = {
-  id: string;
-  name: string;
+  name?: string;
+  city?: string;
 };
 
 async function updateTheaterHandler(
-  req: Request<{}, {}, UpdateTheaterBodyParams>,
+  req: Request<{ id: string }, {}, UpdateTheaterBodyParams>,
   res: Response
 ) {
-  const name = req.body.name;
-  const id = req.body.id;
+  const id = req.params.id;
+  const { name, city } = req.body;
   const validator = new Validator();
 
   try {
@@ -182,41 +151,46 @@ async function updateTheaterHandler(
     if (id) {
       validator.check(validateUuid(id), "id", "must be a valid UUID");
     }
-    validator.check(!!name, "name", "is required");
 
     if (!validator.valid) {
       res.status(400).json({ errors: validator.errors });
       return;
     }
 
-    const updatedTheater = await db
-      .update(TheaterTable)
-      .set({ name })
-      .where(eq(TheaterTable.id, id));
+    // Build update object with only provided fields
+    const updateData: Partial<{ name: string; city: string }> = {};
+    if (name) updateData.name = name;
+    if (city) updateData.city = city;
 
-    if (updatedTheater.rowCount === 0) {
-      res.status(404).json({ error: "'id' is invalid" });
+    if (Object.keys(updateData).length === 0) {
+      res
+        .status(400)
+        .json({ error: "At least one field (name or city) is required" });
       return;
     }
 
-    res.status(200).json({
-      message: "Theater updated successfully",
-    });
+    const result = await db
+      .update(TheaterTable)
+      .set(updateData)
+      .where(eq(TheaterTable.id, id));
+
+    if (result.rowCount === 0) {
+      res.status(404).json({ error: "Theater not found" });
+      return;
+    }
+
+    res.status(200).json({ message: "Theater updated successfully" });
   } catch (error) {
     console.error("Error in updateTheaterHandler:", error);
     res.status(500).json({ error: SERVER_ERROR });
   }
 }
 
-type DeleteTheaterBodyParams = {
-  id: string;
-};
-
 async function deleteTheaterHandler(
-  req: Request<{}, {}, DeleteTheaterBodyParams>,
+  req: Request<{ id: string }>,
   res: Response
 ) {
-  const id = req.body.id;
+  const id = req.params.id;
   const validator = new Validator();
 
   try {
@@ -233,14 +207,52 @@ async function deleteTheaterHandler(
     const result = await db.delete(TheaterTable).where(eq(TheaterTable.id, id));
 
     if (result.rowCount === 0) {
-      throw new Error("'id' is invalid");
+      res.status(404).json({ error: "Theater not found" });
+      return;
     }
 
-    res.status(200).json({
-      message: "Theater deleted successfully",
-    });
+    res.status(200).json({ message: "Theater deleted successfully" });
   } catch (error) {
     console.error("Error in deleteTheaterHandler:", error);
+    res.status(500).json({ error: SERVER_ERROR });
+  }
+}
+
+type VerifyTheaterParams = {
+  id: string;
+};
+
+async function verifyTheaterHandler(
+  req: Request<VerifyTheaterParams>,
+  res: Response
+) {
+  const id = req.params.id;
+  const validator = new Validator();
+
+  try {
+    validator.check(!!id, "id", "is required");
+    if (id) {
+      validator.check(validateUuid(id), "id", "must be a valid UUID");
+    }
+
+    if (!validator.valid) {
+      res.status(400).json({ errors: validator.errors });
+      return;
+    }
+
+    const result = await db
+      .update(TheaterTable)
+      .set({ verified: true })
+      .where(eq(TheaterTable.id, id));
+
+    if (result.rowCount === 0) {
+      res.status(404).json({ error: "Theater not found or already verified" });
+      return;
+    }
+
+    res.status(200).json({ message: "Theater verified successfully" });
+  } catch (error) {
+    console.error("Error in verifyTheaterHandler:", error);
     res.status(500).json({ error: SERVER_ERROR });
   }
 }

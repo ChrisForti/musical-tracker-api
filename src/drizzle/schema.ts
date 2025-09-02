@@ -1,5 +1,5 @@
 import { sql, type SQL } from "drizzle-orm";
-import { pgEnum, primaryKey } from "drizzle-orm/pg-core";
+import { bigserial, pgEnum, primaryKey } from "drizzle-orm/pg-core";
 import {
   boolean,
   uuid,
@@ -50,19 +50,21 @@ export const TokenTable = pgTable("tokens", {
 export const TheaterTable = pgTable("theater", {
   id: uuid("id").defaultRandom().primaryKey().notNull(),
   name: varchar("name", { length: 255 }).notNull(),
-  approved: boolean("approved").default(false).notNull(),
+  verified: boolean("verified").default(false).notNull(),
+  city: varchar("city", { length: 255 }).notNull(),
 });
 
 export const RoleTable = pgTable("role", {
   id: uuid("id").defaultRandom().primaryKey().notNull(),
   name: varchar("name", { length: 255 }).notNull(),
-  approved: boolean("approved").default(false).notNull(),
+  musicalId: varchar("musical_id", { length: 255 }).notNull(),
+  verified: boolean("verified").default(false).notNull(),
 });
 
 export const ActorTable = pgTable("actor", {
   id: uuid("id").defaultRandom().primaryKey().notNull(),
   name: varchar("name", { length: 255 }).notNull(),
-  approved: boolean("approved").default(false).notNull(),
+  verified: boolean("verified").default(false).notNull(),
 });
 
 export const MusicalTable = pgTable("musical", {
@@ -70,20 +72,19 @@ export const MusicalTable = pgTable("musical", {
   composer: varchar("composer", { length: 255 }).notNull(),
   lyricist: varchar("lyricist", { length: 255 }).notNull(),
   title: varchar("title", { length: 255 }).notNull(),
-  approved: boolean("approved").default(false).notNull(),
+  verified: boolean("verified").default(false).notNull(),
 });
 
 export const PerformanceTable = pgTable("performance", {
   id: uuid("id").defaultRandom().primaryKey().notNull(),
-  productionId: uuid("production_id")
-    .defaultRandom()
+  musicalId: uuid("musical_id")
     .notNull()
-    .references(() => ProductionTable.id),
-  date: date("date", { mode: "date" }).notNull(),
-  theaterId: uuid("theater_id")
-    .defaultRandom()
+    .references(() => MusicalTable.id),
+  userId: uuid("user_id")
     .notNull()
-    .references(() => TheaterTable.id),
+    .references(() => UserTable.id),
+  notes: text("notes"),
+  posterUrl: varchar("poster_url", { length: 255 }),
 });
 
 export const CastingTable = pgTable(

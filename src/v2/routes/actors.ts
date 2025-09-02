@@ -9,67 +9,35 @@ import { validate as validateUuid } from "uuid";
 
 export const actorRouter = Router();
 
+actorRouter.get("/", getAllActorsHandler);
 actorRouter.post("/", ensureAuthenticated, createActorHandler);
 actorRouter.get("/:id", getActorByIdHandler);
-actorRouter.put("/", ensureAuthenticated, ensureAdmin, updateActorHandler);
-actorRouter.delete("/", ensureAuthenticated, deleteActorHandler);
-actorRouter.post<ApproveActorParams>(
-  "/:id/approve",
+actorRouter.put("/:id", ensureAuthenticated, ensureAdmin, updateActorHandler);
+actorRouter.delete("/:id", ensureAuthenticated, deleteActorHandler);
+actorRouter.post(
+  "/:id/verify",
   ensureAuthenticated,
   ensureAdmin,
-  approveActorHandler
+  verifyActorHandler
 );
-actorRouter.get("/pending", ensureAdmin, getPendingActorsHandler);
 
-type ApproveActorParams = {
-  id: string;
-};
-
-async function approveActorHandler(
-  req: Request<ApproveActorParams>,
-  res: Response
-) {
-  const id = req.params.id;
-  const validator = new Validator();
-
+async function getAllActorsHandler(req: Request, res: Response) {
   try {
-    validator.check(!!id, "id", "is required");
-    if (id) {
-      validator.check(validateUuid(id), "id", "must be a valid UUID");
+    const isPending = req.query.pending === "true";
+
+    if (isPending) {
+      const pendingActors = await db
+        .select()
+        .from(ActorTable)
+        .where(eq(ActorTable.verified, false));
+
+      res.status(200).json(pendingActors);
+    } else {
+      const actors = await db.select().from(ActorTable);
+      res.status(200).json(actors);
     }
-
-    if (!validator.valid) {
-      res.status(400).json({ errors: validator.errors });
-      return;
-    }
-
-    const result = await db
-      .update(ActorTable)
-      .set({ approved: true })
-      .where(eq(ActorTable.id, id));
-
-    if (result.rowCount === 0) {
-      res.status(404).json({ error: "Actor not found or already approved" });
-      return;
-    }
-
-    res.status(200).json({ message: "Actor approved successfully" });
   } catch (error) {
-    console.error("Error in approveActorHandler:", error);
-    res.status(500).json({ error: SERVER_ERROR });
-  }
-}
-
-async function getPendingActorsHandler(req: Request, res: Response) {
-  try {
-    const pendingActors = await db
-      .select()
-      .from(ActorTable)
-      .where(eq(ActorTable.approved, false));
-
-    res.status(200).json({ actors: pendingActors });
-  } catch (error) {
-    console.error("Error in getPendingActorsHandler:", error);
+    console.error("Error in getAllActorsHandler:", error);
     res.status(500).json({ error: SERVER_ERROR });
   }
 }
@@ -82,7 +50,7 @@ async function createActorHandler(
   req: Request<{}, {}, CreateActorBodyParams>,
   res: Response
 ) {
-  const name = req.body.name;
+  const { name } = req.body;
   const validator = new Validator();
 
   try {
@@ -104,13 +72,12 @@ async function createActorHandler(
     }
 
     res.status(201).json({
-      message: "Created successfully",
-      actor: newActor.id,
+      message: "Actor created successfully",
+      id: newActor.id,
     });
   } catch (error) {
     console.error("Error in createActorHandler:", error);
     res.status(500).json({ error: SERVER_ERROR });
-    return;
   }
 }
 
@@ -124,11 +91,6 @@ async function getActorByIdHandler(
 ) {
   const id = req.params.id;
   const validator = new Validator();
-
-  validator.check(!!id, "id", "is required");
-  if (id) {
-    validator.check(validateUuid(id), "id", "must be a valid UUID");
-  }
 
   try {
     validator.check(!!id, "id", "is required");
@@ -146,79 +108,67 @@ async function getActorByIdHandler(
     });
 
     if (!actor) {
-      res.status(404).json({ error: "Actor with 'id' not found" });
+      res.status(404).json({ error: "Actor not found" });
       return;
     }
 
-    res.status(200).json({ actor });
+    res.status(200).json(actor);
   } catch (error) {
-    console.error("Error in getActorById:", error);
+    console.error("Error in getActorByIdHandler:", error);
     res.status(500).json({ error: SERVER_ERROR });
   }
 }
 
 type UpdateActorBodyParams = {
-  id: string;
-  name: string;
+  name?: string;
 };
 
 async function updateActorHandler(
-  req: Request<{}, {}, UpdateActorBodyParams>,
+  req: Request<{ id: string }, {}, UpdateActorBodyParams>,
   res: Response
 ) {
-  const { id, name } = req.body;
+  const id = req.params.id;
+  const { name } = req.body;
   const validator = new Validator();
-
-  type UpdateData = {
-    id?: string;
-    name?: string;
-  };
 
   try {
     validator.check(!!id, "id", "is required");
     if (id) {
       validator.check(validateUuid(id), "id", "must be a valid UUID");
     }
-    validator.check(!!name, "name", "is required");
 
     if (!validator.valid) {
       res.status(400).json({ errors: validator.errors });
       return;
     }
 
-    const updateData: UpdateData = {};
-    if (id) updateData.id = id; // May not want to change id here?
+    const updateData: Partial<{ name: string }> = {};
     if (name) updateData.name = name;
+
+    if (Object.keys(updateData).length === 0) {
+      res.status(400).json({ error: "At least one field (name) is required" });
+      return;
+    }
 
     const result = await db
       .update(ActorTable)
       .set(updateData)
-      .where(eq(ActorTable.id, id))
-      .returning();
+      .where(eq(ActorTable.id, id));
 
-    if (!result || result.length === 0) {
-      res.status(404).json({ error: "'id' invalid" });
+    if (result.rowCount === 0) {
+      res.status(404).json({ error: "Actor not found" });
       return;
     }
 
-    res.status(200).json({
-      message: "Actor updated successfully",
-    });
+    res.status(200).json({ message: "Actor updated successfully" });
   } catch (error) {
     console.error("Error in updateActorHandler:", error);
     res.status(500).json({ error: SERVER_ERROR });
   }
 }
 
-type DeleteActorBodyParams = {
-  id: string;
-};
-
-async function deleteActorHandler(
-  req: Request<{}, {}, DeleteActorBodyParams>,
-  res: Response
-) {
-  const id = req.body.id;
+async function deleteActorHandler(req: Request<{ id: string }>, res: Response) {
+  const id = req.params.id;
   const validator = new Validator();
 
   try {
@@ -235,15 +185,52 @@ async function deleteActorHandler(
     const result = await db.delete(ActorTable).where(eq(ActorTable.id, id));
 
     if (result.rowCount === 0) {
-      res.status(404).json({ error: "'id' invalid" });
+      res.status(404).json({ error: "Actor not found" });
       return;
     }
 
-    res.status(200).json({
-      message: "Actor deleted successfully",
-    });
+    res.status(200).json({ message: "Actor deleted successfully" });
   } catch (error) {
     console.error("Error in deleteActorHandler:", error);
+    res.status(500).json({ error: SERVER_ERROR });
+  }
+}
+
+type VerifyActorParams = {
+  id: string;
+};
+
+async function verifyActorHandler(
+  req: Request<VerifyActorParams>,
+  res: Response
+) {
+  const id = req.params.id;
+  const validator = new Validator();
+
+  try {
+    validator.check(!!id, "id", "is required");
+    if (id) {
+      validator.check(validateUuid(id), "id", "must be a valid UUID");
+    }
+
+    if (!validator.valid) {
+      res.status(400).json({ errors: validator.errors });
+      return;
+    }
+
+    const result = await db
+      .update(ActorTable)
+      .set({ verified: true })
+      .where(eq(ActorTable.id, id));
+
+    if (result.rowCount === 0) {
+      res.status(404).json({ error: "Actor not found or already verified" });
+      return;
+    }
+
+    res.status(200).json({ message: "Actor verified successfully" });
+  } catch (error) {
+    console.error("Error in verifyActorHandler:", error);
     res.status(500).json({ error: SERVER_ERROR });
   }
 }

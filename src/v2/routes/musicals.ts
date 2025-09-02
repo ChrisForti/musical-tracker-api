@@ -2,74 +2,47 @@ import { Router, type Request, type Response } from "express";
 import { MusicalTable } from "../../drizzle/schema.js";
 import { db } from "../../drizzle/db.js";
 import { SERVER_ERROR } from "../../lib/errors.js";
-import { and, eq } from "drizzle-orm";
+import { eq } from "drizzle-orm";
 import { Validator } from "../../lib/validator.js";
 import { ensureAdmin, ensureAuthenticated } from "../../lib/auth.js";
 import { validate as validateUuid } from "uuid";
 
 export const musicalRouter = Router();
 
+musicalRouter.get("/", getAllMusicalsHandler);
 musicalRouter.post("/", ensureAuthenticated, createMusicalHandler);
 musicalRouter.get("/:id", getMusicalByIdHandler);
-musicalRouter.put("/", ensureAuthenticated, ensureAdmin, updateMusicalHandler);
-musicalRouter.delete("/", ensureAuthenticated, deleteMusicalHandler);
-musicalRouter.post<ApproveMusicalParams>(
-  "/:id/approve",
+musicalRouter.put(
+  "/:id",
   ensureAuthenticated,
   ensureAdmin,
-  approveMusicalHandler
+  updateMusicalHandler
 );
-musicalRouter.get("/pending", ensureAdmin, getPendingMusicalsHandler);
+musicalRouter.delete("/:id", ensureAuthenticated, deleteMusicalHandler);
+musicalRouter.post(
+  "/:id/verify",
+  ensureAuthenticated,
+  ensureAdmin,
+  verifyMusicalHandler
+);
 
-type ApproveMusicalParams = {
-  id: string;
-};
-
-async function approveMusicalHandler(
-  req: Request<ApproveMusicalParams>,
-  res: Response
-) {
-  const id = req.params.id;
-  const validator = new Validator();
-
+async function getAllMusicalsHandler(req: Request, res: Response) {
   try {
-    validator.check(!!id, "id", "is required");
-    if (id) {
-      validator.check(validateUuid(id), "id", "must be a valid UUID");
+    const isPending = req.query.pending === "true";
+
+    if (isPending) {
+      const pendingMusicals = await db
+        .select()
+        .from(MusicalTable)
+        .where(eq(MusicalTable.verified, false));
+
+      res.status(200).json(pendingMusicals);
+    } else {
+      const musicals = await db.select().from(MusicalTable);
+      res.status(200).json(musicals);
     }
-
-    if (!validator.valid) {
-      res.status(400).json({ errors: validator.errors });
-      return;
-    }
-
-    const result = await db
-      .update(MusicalTable)
-      .set({ approved: true })
-      .where(eq(MusicalTable.id, id));
-
-    if (result.rowCount === 0) {
-      res.status(404).json({ error: "Musical not found or already approved" });
-      return;
-    }
-
-    res.status(200).json({ message: "Musical approved successfully" });
   } catch (error) {
-    console.error("Error in approveMusicalHandler:", error);
-    res.status(500).json({ error: SERVER_ERROR });
-  }
-}
-
-async function getPendingMusicalsHandler(req: Request, res: Response) {
-  try {
-    const pendingMusicals = await db
-      .select()
-      .from(MusicalTable)
-      .where(eq(MusicalTable.approved, false));
-
-    res.status(200).json(pendingMusicals);
-  } catch (error) {
-    console.error("Error in getPendingMusicalsHandler:", error);
+    console.error("Error in getAllMusicalsHandler:", error);
     res.status(500).json({ error: SERVER_ERROR });
   }
 }
@@ -85,7 +58,6 @@ async function createMusicalHandler(
   res: Response
 ) {
   const { composer, lyricist, title } = req.body;
-
   const validator = new Validator();
 
   try {
@@ -109,13 +81,12 @@ async function createMusicalHandler(
     }
 
     res.status(201).json({
-      message: "Created successfully",
-      musical: newMusical.id,
+      message: "Musical created successfully",
+      id: newMusical.id,
     });
   } catch (error) {
-    console.error("Error in createActorHandler:", error);
+    console.error("Error in createMusicalHandler:", error);
     res.status(500).json({ error: SERVER_ERROR });
-    return;
   }
 }
 
@@ -150,33 +121,26 @@ async function getMusicalByIdHandler(
       return;
     }
 
-    res.status(200).json({ musical }); // added this line to return the musical data
+    res.status(200).json(musical);
   } catch (error) {
-    console.error("Error in getMusicalById:", error);
+    console.error("Error in getMusicalByIdHandler:", error);
     res.status(500).json({ error: SERVER_ERROR });
   }
 }
 
 type UpdateMusicalBodyParams = {
-  id: string;
   composer?: string;
   lyricist?: string;
   title?: string;
 };
 
 async function updateMusicalHandler(
-  req: Request<{}, {}, UpdateMusicalBodyParams>,
+  req: Request<{ id: string }, {}, UpdateMusicalBodyParams>,
   res: Response
 ) {
+  const id = req.params.id;
   const { composer, lyricist, title } = req.body;
-  const id = req.body.id;
   const validator = new Validator();
-
-  type UpdatedData = {
-    composer?: string;
-    lyricist?: string;
-    title?: string;
-  };
 
   try {
     validator.check(!!id, "id", "is required");
@@ -189,64 +153,109 @@ async function updateMusicalHandler(
       return;
     }
 
-    const updatedData: UpdatedData = {};
-    if (composer) {
-      updatedData.composer = composer;
-    }
-    if (lyricist) {
-      updatedData.lyricist = lyricist;
-    }
-    if (title) {
-      updatedData.title = title;
-    }
+    const updateData: Partial<{
+      composer: string;
+      lyricist: string;
+      title: string;
+    }> = {};
+    if (composer) updateData.composer = composer;
+    if (lyricist) updateData.lyricist = lyricist;
+    if (title) updateData.title = title;
 
-    const updatedMusical = await db
-      .update(MusicalTable)
-      .set({ composer, lyricist, title })
-      .where(eq(MusicalTable.id, id));
-
-    if (updatedMusical.rowCount === 0) {
-      res.status(404).json({ error: "'id' invalid" });
+    if (Object.keys(updateData).length === 0) {
+      res
+        .status(400)
+        .json({
+          error:
+            "At least one field (composer, lyricist, or title) is required",
+        });
       return;
     }
-    res.status(200).json({
-      message: "Musical updated successfully",
-    });
+
+    const result = await db
+      .update(MusicalTable)
+      .set(updateData)
+      .where(eq(MusicalTable.id, id));
+
+    if (result.rowCount === 0) {
+      res.status(404).json({ error: "Musical not found" });
+      return;
+    }
+
+    res.status(200).json({ message: "Musical updated successfully" });
   } catch (error) {
     console.error("Error in updateMusicalHandler:", error);
     res.status(500).json({ error: SERVER_ERROR });
   }
 }
 
-type DeleteMusicalBodyParams = {
-  id: string;
-};
-
 async function deleteMusicalHandler(
-  req: Request<{}, {}, DeleteMusicalBodyParams>,
+  req: Request<{ id: string }>,
   res: Response
 ) {
-  const id = req.body.id;
+  const id = req.params.id;
   const validator = new Validator();
 
-  validator.check(!!id, "id", "is required");
-  if (id) {
-    validator.check(validateUuid(id), "id", "must be a valid UUID");
-  }
-
   try {
-    const result = await db.delete(MusicalTable).where(eq(MusicalTable.id, id));
+    validator.check(!!id, "id", "is required");
+    if (id) {
+      validator.check(validateUuid(id), "id", "must be a valid UUID");
+    }
 
-    if (result.rowCount === 0) {
-      res.status(404).json({ error: "'id' invalid" });
+    if (!validator.valid) {
+      res.status(400).json({ errors: validator.errors });
       return;
     }
 
-    res.status(200).json({
-      message: "Musical deleted successfully",
-    });
+    const result = await db.delete(MusicalTable).where(eq(MusicalTable.id, id));
+
+    if (result.rowCount === 0) {
+      res.status(404).json({ error: "Musical not found" });
+      return;
+    }
+
+    res.status(200).json({ message: "Musical deleted successfully" });
   } catch (error) {
-    console.error("Error in deletemusicalHandler:", error);
+    console.error("Error in deleteMusicalHandler:", error);
+    res.status(500).json({ error: SERVER_ERROR });
+  }
+}
+
+type VerifyMusicalParams = {
+  id: string;
+};
+
+async function verifyMusicalHandler(
+  req: Request<VerifyMusicalParams>,
+  res: Response
+) {
+  const id = req.params.id;
+  const validator = new Validator();
+
+  try {
+    validator.check(!!id, "id", "is required");
+    if (id) {
+      validator.check(validateUuid(id), "id", "must be a valid UUID");
+    }
+
+    if (!validator.valid) {
+      res.status(400).json({ errors: validator.errors });
+      return;
+    }
+
+    const result = await db
+      .update(MusicalTable)
+      .set({ verified: true })
+      .where(eq(MusicalTable.id, id));
+
+    if (result.rowCount === 0) {
+      res.status(404).json({ error: "Musical not found or already verified" });
+      return;
+    }
+
+    res.status(200).json({ message: "Musical verified successfully" });
+  } catch (error) {
+    console.error("Error in verifyMusicalHandler:", error);
     res.status(500).json({ error: SERVER_ERROR });
   }
 }

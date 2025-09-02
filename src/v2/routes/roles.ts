@@ -9,89 +9,54 @@ import { validate as validateUuid } from "uuid";
 
 export const roleRouter = Router();
 
+roleRouter.get("/", getAllRolesHandler);
 roleRouter.post("/", ensureAuthenticated, createRoleHandler);
 roleRouter.get("/:id", getRoleByIdHandler);
-roleRouter.put("/", ensureAuthenticated, ensureAdmin, updateRoleHandler);
-roleRouter.delete("/", ensureAuthenticated, ensureAdmin, deleteRoleHandler);
-roleRouter.post<ApproveRoleParams>(
-  "/:id/approve",
+roleRouter.put("/:id", ensureAuthenticated, ensureAdmin, updateRoleHandler);
+roleRouter.delete("/:id", ensureAuthenticated, ensureAdmin, deleteRoleHandler);
+roleRouter.post(
+  "/:id/verify",
   ensureAuthenticated,
   ensureAdmin,
-  approveRoleHandler
-);
-roleRouter.get(
-  "/pending",
-  ensureAuthenticated,
-  ensureAdmin,
-  getPendingRolesHandler
+  verifyRoleHandler
 );
 
-type ApproveRoleParams = {
-  id: string;
-};
-
-async function approveRoleHandler(
-  req: Request<ApproveRoleParams>,
-  res: Response
-) {
-  const id = req.params.id;
-  const validator = new Validator();
-
+async function getAllRolesHandler(req: Request, res: Response) {
   try {
-    validator.check(!!id, "id", "is required");
-    if (id) {
-      validator.check(validateUuid(id), "id", "must be a valid UUID");
+    const isPending = req.query.pending === "true";
+
+    if (isPending) {
+      const pendingRoles = await db
+        .select()
+        .from(RoleTable)
+        .where(eq(RoleTable.verified, false));
+
+      res.status(200).json(pendingRoles);
+    } else {
+      const roles = await db.select().from(RoleTable);
+      res.status(200).json(roles);
     }
-
-    if (!validator.valid) {
-      res.status(400).json({ errors: validator.errors });
-      return;
-    }
-
-    const result = await db
-      .update(RoleTable)
-      .set({ approved: true })
-      .where(eq(RoleTable.id, id));
-
-    if (result.rowCount === 0) {
-      res.status(404).json({ error: "Role not found or already approved" });
-      return;
-    }
-
-    res.status(200).json({ message: "Role approved successfully" });
   } catch (error) {
-    console.error("Error in approveRoleHandler:", error);
-    res.status(500).json({ error: SERVER_ERROR });
-  }
-}
-
-async function getPendingRolesHandler(req: Request, res: Response) {
-  try {
-    const pendingRoles = await db
-      .select()
-      .from(RoleTable)
-      .where(eq(RoleTable.approved, false));
-
-    res.status(200).json(pendingRoles);
-  } catch (error) {
-    console.error("Error in getPendingRolesHandler:", error);
+    console.error("Error in getAllRolesHandler:", error);
     res.status(500).json({ error: SERVER_ERROR });
   }
 }
 
 type CreateRoleBodyParams = {
   name: string;
+  musicalId: string;
 };
 
 async function createRoleHandler(
   req: Request<{}, {}, CreateRoleBodyParams>,
   res: Response
 ) {
-  const name = req.body.name;
+  const { name, musicalId } = req.body;
   const validator = new Validator();
 
   try {
     validator.check(!!name, "name", "is required");
+    validator.check(!!musicalId, "musicalId", "is required");
 
     if (!validator.valid) {
       res.status(400).json({ errors: validator.errors });
@@ -100,9 +65,7 @@ async function createRoleHandler(
 
     const [newRole] = await db
       .insert(RoleTable)
-      .values({
-        name,
-      })
+      .values({ name, musicalId })
       .returning({ id: RoleTable.id });
 
     if (!newRole) {
@@ -112,7 +75,7 @@ async function createRoleHandler(
 
     res.status(201).json({
       message: "Role created successfully",
-      role: newRole?.id,
+      id: newRole.id,
     });
   } catch (error) {
     console.error("Error in createRoleHandler:", error);
@@ -120,12 +83,12 @@ async function createRoleHandler(
   }
 }
 
-type GetRoleByIdQueryParams = {
+type GetRoleByIdParams = {
   id: string;
 };
 
 async function getRoleByIdHandler(
-  req: Request<GetRoleByIdQueryParams>,
+  req: Request<GetRoleByIdParams>,
   res: Response
 ) {
   const id = req.params.id;
@@ -147,11 +110,11 @@ async function getRoleByIdHandler(
     });
 
     if (!role) {
-      res.status(404).json({ error: "'id' is invalid" });
+      res.status(404).json({ error: "Role not found" });
       return;
     }
 
-    res.status(200).json({ role });
+    res.status(200).json(role);
   } catch (error) {
     console.error("Error in getRoleByIdHandler:", error);
     res.status(500).json({ error: SERVER_ERROR });
@@ -159,16 +122,16 @@ async function getRoleByIdHandler(
 }
 
 type UpdateRoleBodyParams = {
-  id: string;
-  name: string;
+  name?: string;
+  musicalId?: string;
 };
 
 async function updateRoleHandler(
-  req: Request<{}, {}, UpdateRoleBodyParams>,
+  req: Request<{ id: string }, {}, UpdateRoleBodyParams>,
   res: Response
 ) {
-  const name = req.body.name;
-  const id = req.body.id;
+  const id = req.params.id;
+  const { name, musicalId } = req.body;
   const validator = new Validator();
 
   try {
@@ -176,41 +139,42 @@ async function updateRoleHandler(
     if (id) {
       validator.check(validateUuid(id), "id", "must be a valid UUID");
     }
-    validator.check(!!name, "name", "is required");
 
     if (!validator.valid) {
       res.status(400).json({ errors: validator.errors });
       return;
     }
 
-    const updatedRole = await db
-      .update(RoleTable)
-      .set({ name })
-      .where(eq(RoleTable.id, id));
+    const updateData: Partial<{ name: string; musicalId: string }> = {};
+    if (name) updateData.name = name;
+    if (musicalId) updateData.musicalId = musicalId;
 
-    if (updatedRole.rowCount === 0) {
-      res.status(404).json({ error: "'id' is invalid" });
+    if (Object.keys(updateData).length === 0) {
+      res
+        .status(400)
+        .json({ error: "At least one field (name or musicalId) is required" });
       return;
     }
 
-    res.status(200).json({
-      message: "Role updated successfully",
-    });
+    const result = await db
+      .update(RoleTable)
+      .set(updateData)
+      .where(eq(RoleTable.id, id));
+
+    if (result.rowCount === 0) {
+      res.status(404).json({ error: "Role not found" });
+      return;
+    }
+
+    res.status(200).json({ message: "Role updated successfully" });
   } catch (error) {
     console.error("Error in updateRoleHandler:", error);
     res.status(500).json({ error: SERVER_ERROR });
   }
 }
 
-type DeleteRoleBodyParams = {
-  id: string;
-};
-
-async function deleteRoleHandler(
-  req: Request<{}, {}, DeleteRoleBodyParams>,
-  res: Response
-) {
-  const id = req.body.id;
+async function deleteRoleHandler(req: Request<{ id: string }>, res: Response) {
+  const id = req.params.id;
   const validator = new Validator();
 
   try {
@@ -227,15 +191,52 @@ async function deleteRoleHandler(
     const result = await db.delete(RoleTable).where(eq(RoleTable.id, id));
 
     if (result.rowCount === 0) {
-      res.status(404).json({ error: "'id' is invalid" });
+      res.status(404).json({ error: "Role not found" });
       return;
     }
 
-    res.status(200).json({
-      message: "Role deleted successfully",
-    });
+    res.status(200).json({ message: "Role deleted successfully" });
   } catch (error) {
     console.error("Error in deleteRoleHandler:", error);
+    res.status(500).json({ error: SERVER_ERROR });
+  }
+}
+
+type VerifyRoleParams = {
+  id: string;
+};
+
+async function verifyRoleHandler(
+  req: Request<VerifyRoleParams>,
+  res: Response
+) {
+  const id = req.params.id;
+  const validator = new Validator();
+
+  try {
+    validator.check(!!id, "id", "is required");
+    if (id) {
+      validator.check(validateUuid(id), "id", "must be a valid UUID");
+    }
+
+    if (!validator.valid) {
+      res.status(400).json({ errors: validator.errors });
+      return;
+    }
+
+    const result = await db
+      .update(RoleTable)
+      .set({ verified: true })
+      .where(eq(RoleTable.id, id));
+
+    if (result.rowCount === 0) {
+      res.status(404).json({ error: "Role not found or already verified" });
+      return;
+    }
+
+    res.status(200).json({ message: "Role verified successfully" });
+  } catch (error) {
+    console.error("Error in verifyRoleHandler:", error);
     res.status(500).json({ error: SERVER_ERROR });
   }
 }
