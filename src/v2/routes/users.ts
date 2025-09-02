@@ -79,7 +79,7 @@ async function createUserHandler(
       lastName,
       email,
       passwordHash,
-      account_type: "user",
+      role: "user",
     });
 
     res.json({ message: "User created successfully" });
