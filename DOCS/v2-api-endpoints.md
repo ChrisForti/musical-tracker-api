@@ -59,6 +59,13 @@ curl -X GET http://localhost:3000/v2/user/all \
 -H "Authorization: Bearer YOUR_ACCESS_TOKEN"
 ```
 
+#### Delete Current User
+
+```bash
+curl -X DELETE http://localhost:3000/v2/user \
+-H "Authorization: Bearer YOUR_ACCESS_TOKEN"
+```
+
 ## Theater Endpoints
 
 #### Get All Verified Theaters
