@@ -26,8 +26,8 @@ export const UserTable = pgTable(
       .default(false)
       .notNull(),
     isAdmin: boolean("is_admin").default(false).notNull(),
+    role: accountTypeEnum().default("user").notNull(),
     passwordHash: text("password_hash").notNull(),
-    account_type: accountTypeEnum().default("user").notNull(),
   },
   (table) => {
     return [uniqueIndex("emailUniqueIndex").on(lower(table.email))];
@@ -57,7 +57,9 @@ export const TheaterTable = pgTable("theater", {
 export const RoleTable = pgTable("role", {
   id: uuid("id").defaultRandom().primaryKey().notNull(),
   name: varchar("name", { length: 255 }).notNull(),
-  musicalId: varchar("musical_id", { length: 255 }).notNull(),
+  musicalId: uuid("musical_id")
+    .notNull()
+    .references(() => MusicalTable.id),
   verified: boolean("verified").default(false).notNull(),
 });
 
@@ -87,26 +89,16 @@ export const PerformanceTable = pgTable("performance", {
   posterUrl: varchar("poster_url", { length: 255 }),
 });
 
-export const CastingTable = pgTable(
-  "casting",
-  {
-    roleId: uuid("role_id")
-      .defaultRandom()
-      .notNull()
-      .references(() => RoleTable.id),
-    actorId: uuid("actor_id")
-      .defaultRandom()
-      .notNull()
-      .references(() => ActorTable.id),
-    performanceId: uuid("performance_id")
-      .defaultRandom()
-      .notNull()
-      .references(() => PerformanceTable.id),
-  },
-  (table) => [
-    primaryKey({ columns: [table.roleId, table.actorId, table.performanceId] }),
-  ]
-);
+export const CastingTable = pgTable("casting", {
+  id: uuid("id").defaultRandom().primaryKey().notNull(),
+  roleId: uuid("role_id")
+    .notNull()
+    .references(() => RoleTable.id),
+  actorId: uuid("actor_id")
+    .notNull()
+    .references(() => ActorTable.id),
+  verified: boolean("verified").default(false).notNull(),
+});
 
 export const ProductionTable = pgTable("production", {
   id: uuid("id").defaultRandom().primaryKey().notNull(),
@@ -116,5 +108,5 @@ export const ProductionTable = pgTable("production", {
   startDate: date("start_date", { mode: "date" }).notNull(),
   endDate: date("end_date", { mode: "date" }).notNull(),
   posterUrl: text("poster_url").notNull(),
-  approved: boolean("approved").default(false).notNull(),
+  verified: boolean("verified").default(false).notNull(),
 });
