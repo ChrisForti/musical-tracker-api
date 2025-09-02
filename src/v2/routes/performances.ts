@@ -24,8 +24,6 @@ async function getAllPerformancesHandler(req: Request, res: Response) {
       return;
     }
 
-    const userIdNumber = parseInt(userId);
-
     // Users can only see their own performances unless they're admin
     if (req.user?.role === "admin") {
       const performances = await db.select().from(PerformanceTable);
@@ -34,7 +32,7 @@ async function getAllPerformancesHandler(req: Request, res: Response) {
       const userPerformances = await db
         .select()
         .from(PerformanceTable)
-        .where(eq(PerformanceTable.userId, userIdNumber));
+        .where(eq(PerformanceTable.userId, userId));
       res.status(200).json(userPerformances);
     }
   } catch (error) {
@@ -42,7 +40,6 @@ async function getAllPerformancesHandler(req: Request, res: Response) {
     res.status(500).json({ error: SERVER_ERROR });
   }
 }
-
 type CreatePerformanceBodyParams = {
   musicalId: string;
   notes?: string;
@@ -73,13 +70,11 @@ async function createPerformanceHandler(
       return;
     }
 
-    const userIdNumber = parseInt(userId!);
-
     const [newPerformance] = await db
       .insert(PerformanceTable)
       .values({
         musicalId,
-        userId: userIdNumber,
+        userId: userId!,
         notes: notes || null,
         posterUrl: posterUrl || null,
       })
@@ -132,10 +127,8 @@ async function getPerformanceByIdHandler(
       return;
     }
 
-    const userIdNumber = parseInt(userId!);
-
     // Users can only access their own performances unless they're admin
-    if (req.user?.role !== "admin" && performance.userId !== userIdNumber) {
+    if (req.user?.role !== "admin" && performance.userId !== userId) {
       res.status(403).json({ error: "Access denied" });
       return;
     }
@@ -190,13 +183,8 @@ async function updatePerformanceHandler(
       return;
     }
 
-    const userIdNumber = parseInt(userId!);
-
     // Users can only update their own performances unless they're admin
-    if (
-      req.user?.role !== "admin" &&
-      existingPerformance.userId !== userIdNumber
-    ) {
+    if (req.user?.role !== "admin" && existingPerformance.userId !== userId) {
       res.status(403).json({ error: "Access denied" });
       return;
     }
@@ -211,12 +199,10 @@ async function updatePerformanceHandler(
     if (posterUrl !== undefined) updateData.posterUrl = posterUrl;
 
     if (Object.keys(updateData).length === 0) {
-      res
-        .status(400)
-        .json({
-          error:
-            "At least one field (musicalId, notes, or posterUrl) is required",
-        });
+      res.status(400).json({
+        error:
+          "At least one field (musicalId, notes, or posterUrl) is required",
+      });
       return;
     }
 
@@ -266,13 +252,8 @@ async function deletePerformanceHandler(
       return;
     }
 
-    const userIdNumber = parseInt(userId!);
-
     // Users can only delete their own performances unless they're admin
-    if (
-      req.user?.role !== "admin" &&
-      existingPerformance.userId !== userIdNumber
-    ) {
+    if (req.user?.role !== "admin" && existingPerformance.userId !== userId) {
       res.status(403).json({ error: "Access denied" });
       return;
     }

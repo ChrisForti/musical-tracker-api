@@ -290,11 +290,7 @@ async function deleteUserHandler(req: Request, res: Response) {
       return;
     }
 
-    const userIdStr = userId!;
-
-    const result = await db
-      .delete(UserTable)
-      .where(eq(UserTable.id, userIdStr));
+    const result = await db.delete(UserTable).where(eq(UserTable.id, userId!)); // Use string UUID directly
 
     if (result.rowCount === 0) {
       throw new Error("User not found or already deleted");
