@@ -1,5 +1,5 @@
 {
-  "id": "f6f01056-87f5-49bb-8900-68c46b0fc495",
+  "id": "35dafd09-4778-40c6-9f5b-ac1198434647",
   "prevId": "00000000-0000-0000-0000-000000000000",
   "version": "7",
   "dialect": "postgresql",
@@ -41,26 +41,31 @@
       "name": "casting",
       "schema": "",
       "columns": {
+        "id": {
+          "name": "id",
+          "type": "uuid",
+          "primaryKey": true,
+          "notNull": true,
+          "default": "gen_random_uuid()"
+        },
         "role_id": {
           "name": "role_id",
           "type": "uuid",
           "primaryKey": false,
-          "notNull": true,
-          "default": "gen_random_uuid()"
+          "notNull": true
         },
         "actor_id": {
           "name": "actor_id",
           "type": "uuid",
           "primaryKey": false,
-          "notNull": true,
-          "default": "gen_random_uuid()"
+          "notNull": true
         },
-        "performance_id": {
-          "name": "performance_id",
-          "type": "uuid",
+        "verified": {
+          "name": "verified",
+          "type": "boolean",
           "primaryKey": false,
           "notNull": true,
-          "default": "gen_random_uuid()"
+          "default": false
         }
       },
       "indexes": {},
@@ -90,31 +95,9 @@
           ],
           "onDelete": "no action",
           "onUpdate": "no action"
-        },
-        "casting_performance_id_performance_id_fk": {
-          "name": "casting_performance_id_performance_id_fk",
-          "tableFrom": "casting",
-          "tableTo": "performance",
-          "columnsFrom": [
-            "performance_id"
-          ],
-          "columnsTo": [
-            "id"
-          ],
-          "onDelete": "no action",
-          "onUpdate": "no action"
         }
       },
-      "compositePrimaryKeys": {
-        "casting_role_id_actor_id_performance_id_pk": {
-          "name": "casting_role_id_actor_id_performance_id_pk",
-          "columns": [
-            "role_id",
-            "actor_id",
-            "performance_id"
-          ]
-        }
-      },
+      "compositePrimaryKeys": {},
       "uniqueConstraints": {},
       "policies": {},
       "checkConstraints": {},
@@ -271,8 +254,8 @@
           "primaryKey": false,
           "notNull": true
         },
-        "approved": {
-          "name": "approved",
+        "verified": {
+          "name": "verified",
           "type": "boolean",
           "primaryKey": false,
           "notNull": true,
@@ -320,7 +303,7 @@
         },
         "musical_id": {
           "name": "musical_id",
-          "type": "varchar(255)",
+          "type": "uuid",
           "primaryKey": false,
           "notNull": true
         },
@@ -333,7 +316,21 @@
         }
       },
       "indexes": {},
-      "foreignKeys": {},
+      "foreignKeys": {
+        "role_musical_id_musical_id_fk": {
+          "name": "role_musical_id_musical_id_fk",
+          "tableFrom": "role",
+          "tableTo": "musical",
+          "columnsFrom": [
+            "musical_id"
+          ],
+          "columnsTo": [
+            "id"
+          ],
+          "onDelete": "no action",
+          "onUpdate": "no action"
+        }
+      },
       "compositePrimaryKeys": {},
       "uniqueConstraints": {},
       "policies": {},
@@ -480,19 +477,19 @@
           "notNull": true,
           "default": false
         },
-        "password_hash": {
-          "name": "password_hash",
-          "type": "text",
-          "primaryKey": false,
-          "notNull": true
-        },
-        "account_type": {
-          "name": "account_type",
+        "role": {
+          "name": "role",
           "type": "account_type",
           "typeSchema": "public",
           "primaryKey": false,
           "notNull": true,
           "default": "'user'"
+        },
+        "password_hash": {
+          "name": "password_hash",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true
         }
       },
       "indexes": {
