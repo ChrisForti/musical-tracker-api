@@ -1,10 +1,14 @@
 import "dotenv/config";
 import assert from "assert";
 
-// Railway provides DATABASE_URL when you add PostgreSQL service
-export const connectionString = process.env.DATABASE_URL;
+// Check for various Railway database URL patterns
+export const connectionString = 
+  process.env.DATABASE_URL || 
+  process.env.POSTGRES_URL ||
+  process.env.POSTGRESQL_URL ||
+  process.env.DB_URL;
 
 assert(
   connectionString,
-  "DATABASE_URL must be set. Make sure you have added a PostgreSQL service to your Railway project."
+  "No database URL found. Checked: DATABASE_URL, POSTGRES_URL, POSTGRESQL_URL, DB_URL. Make sure PostgreSQL service is linked to your app."
 );
