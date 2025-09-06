@@ -10,7 +10,7 @@
     "build": "tsc",
     "start": "node ./build/server.js",
     "debug-env": "node debug-env.js",
-    "pre-deploy": "node debug-env.js && node ./build/drizzle/migrate.js",
+    "pre-deploy": "node ./build/drizzle/migrate.js",
     "deploy": "npm run build && npm run pre-deploy && npm run start",
     "psql": "psql -U postgres -h localhost ",
     "db:generate": "drizzle-kit generate",
