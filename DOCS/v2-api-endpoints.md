@@ -4,6 +4,20 @@
 
 All V2 endpoints use UUID-based identifiers and the "verified" field pattern instead of "approved". Authentication is required for most endpoints via Bearer token.
 
+## Recent Updates (api-improvements branch)
+
+### Changes Made:
+- **Musical**: Added optional `posterUrl` field to POST and PUT endpoints
+- **Performance**: Added optional `date` field to POST and PUT endpoints  
+- **Casting**: 
+  - Added **required** `performanceId` field to all endpoints
+  - POST response now returns only `{"id": "casting-uuid"}` 
+  - Removed `verified` field completely
+  - Removed pending query parameter and verify endpoint
+  - GET `/casting` now returns all castings (no filtering)
+
+---
+
 ## Authentication Endpoints
 
 ### Users
@@ -206,7 +220,8 @@ curl -X POST http://localhost:3000/v2/musical \
 -d '{
   "title": "Hamilton",
   "composer": "Lin-Manuel Miranda",
-  "lyricist": "Lin-Manuel Miranda"
+  "lyricist": "Lin-Manuel Miranda",
+  "posterUrl": "https://example.com/hamilton-poster.jpg"
 }'
 ```
 
@@ -225,7 +240,8 @@ curl -X PUT http://localhost:3000/v2/musical/:id \
 -d '{
   "title": "Updated Musical Title",
   "composer": "Updated Composer",
-  "lyricist": "Updated Lyricist"
+  "lyricist": "Updated Lyricist",
+  "posterUrl": "https://example.com/updated-poster.jpg"
 }'
 ```
 
@@ -304,17 +320,10 @@ curl -X POST http://localhost:3000/v2/role/:id/verify \
 
 ## Casting Endpoints
 
-#### Get All Verified Castings
+#### Get All Castings
 
 ```bash
 curl -X GET http://localhost:3000/v2/casting
-```
-
-#### Get Pending Castings (Admin Only)
-
-```bash
-curl -X GET "http://localhost:3000/v2/casting?pending=true" \
--H "Authorization: Bearer YOUR_ACCESS_TOKEN"
 ```
 
 #### Create Casting
@@ -325,8 +334,16 @@ curl -X POST http://localhost:3000/v2/casting \
 -H "Content-Type: application/json" \
 -d '{
   "actorId": "uuid-of-actor",
-  "roleId": "uuid-of-role"
+  "roleId": "uuid-of-role",
+  "performanceId": "uuid-of-performance"
 }'
+```
+
+**Response:**
+```json
+{
+  "id": "uuid-of-created-casting"
+}
 ```
 
 #### Get Casting by ID
@@ -343,7 +360,8 @@ curl -X PUT http://localhost:3000/v2/casting/:id \
 -H "Content-Type: application/json" \
 -d '{
   "actorId": "uuid-of-actor",
-  "roleId": "uuid-of-role"
+  "roleId": "uuid-of-role",
+  "performanceId": "uuid-of-performance"
 }'
 ```
 
@@ -351,13 +369,6 @@ curl -X PUT http://localhost:3000/v2/casting/:id \
 
 ```bash
 curl -X DELETE http://localhost:3000/v2/casting/:id \
--H "Authorization: Bearer YOUR_ACCESS_TOKEN"
-```
-
-#### Verify Casting (Admin Only)
-
-```bash
-curl -X POST http://localhost:3000/v2/casting/:id/verify \
 -H "Authorization: Bearer YOUR_ACCESS_TOKEN"
 ```
 
@@ -385,6 +396,7 @@ curl -X POST http://localhost:3000/v2/performance \
 -H "Content-Type: application/json" \
 -d '{
   "musicalId": "uuid-of-musical",
+  "date": "2024-12-25",
   "notes": "Amazing show!",
   "posterUrl": "https://example.com/poster.jpg"
 }'
@@ -405,6 +417,7 @@ curl -X PUT http://localhost:3000/v2/performance/:id \
 -H "Content-Type: application/json" \
 -d '{
   "musicalId": "uuid-of-musical",
+  "date": "2024-12-26",
   "notes": "Updated notes",
   "posterUrl": "https://example.com/updated-poster.jpg"
 }'
