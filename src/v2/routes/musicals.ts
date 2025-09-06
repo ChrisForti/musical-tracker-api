@@ -51,13 +51,14 @@ type CreateMusicalBodyParams = {
   composer: string;
   lyricist: string;
   title: string;
+  posterUrl?: string;
 };
 
 async function createMusicalHandler(
   req: Request<{}, {}, CreateMusicalBodyParams>,
   res: Response
 ) {
-  const { composer, lyricist, title } = req.body;
+  const { composer, lyricist, title, posterUrl } = req.body;
   const validator = new Validator();
 
   try {
@@ -72,7 +73,7 @@ async function createMusicalHandler(
 
     const [newMusical] = await db
       .insert(MusicalTable)
-      .values({ composer, lyricist, title })
+      .values({ composer, lyricist, title, posterUrl })
       .returning({ id: MusicalTable.id });
 
     if (!newMusical) {
@@ -132,6 +133,7 @@ type UpdateMusicalBodyParams = {
   composer?: string;
   lyricist?: string;
   title?: string;
+  posterUrl?: string;
 };
 
 async function updateMusicalHandler(
@@ -139,7 +141,7 @@ async function updateMusicalHandler(
   res: Response
 ) {
   const id = req.params.id;
-  const { composer, lyricist, title } = req.body;
+  const { composer, lyricist, title, posterUrl } = req.body;
   const validator = new Validator();
 
   try {
@@ -157,18 +159,18 @@ async function updateMusicalHandler(
       composer: string;
       lyricist: string;
       title: string;
+      posterUrl: string;
     }> = {};
     if (composer) updateData.composer = composer;
     if (lyricist) updateData.lyricist = lyricist;
     if (title) updateData.title = title;
+    if (posterUrl !== undefined) updateData.posterUrl = posterUrl;
 
     if (Object.keys(updateData).length === 0) {
-      res
-        .status(400)
-        .json({
-          error:
-            "At least one field (composer, lyricist, or title) is required",
-        });
+      res.status(400).json({
+        error:
+          "At least one field (composer, lyricist, title, or posterUrl) is required",
+      });
       return;
     }
 

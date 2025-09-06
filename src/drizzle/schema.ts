@@ -74,6 +74,7 @@ export const MusicalTable = pgTable("musical", {
   composer: varchar("composer", { length: 255 }).notNull(),
   lyricist: varchar("lyricist", { length: 255 }).notNull(),
   title: varchar("title", { length: 255 }).notNull(),
+  posterUrl: varchar("poster_url", { length: 255 }),
   verified: boolean("verified").default(false).notNull(),
 });
 
@@ -85,6 +86,7 @@ export const PerformanceTable = pgTable("performance", {
   userId: uuid("user_id")
     .notNull()
     .references(() => UserTable.id),
+  date: date("date", { mode: "date" }),
   notes: text("notes"),
   posterUrl: varchar("poster_url", { length: 255 }),
 });
@@ -97,7 +99,9 @@ export const CastingTable = pgTable("casting", {
   actorId: uuid("actor_id")
     .notNull()
     .references(() => ActorTable.id),
-  verified: boolean("verified").default(false).notNull(),
+  performanceId: uuid("performance_id")
+    .notNull()
+    .references(() => PerformanceTable.id),
 });
 
 export const ProductionTable = pgTable("production", {

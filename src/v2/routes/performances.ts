@@ -42,6 +42,7 @@ async function getAllPerformancesHandler(req: Request, res: Response) {
 }
 type CreatePerformanceBodyParams = {
   musicalId: string;
+  date?: string;
   notes?: string;
   posterUrl?: string;
 };
@@ -50,7 +51,7 @@ async function createPerformanceHandler(
   req: Request<{}, {}, CreatePerformanceBodyParams>,
   res: Response
 ) {
-  const { musicalId, notes, posterUrl } = req.body;
+  const { musicalId, date, notes, posterUrl } = req.body;
   const userId = req.user?.id;
   const validator = new Validator();
 
@@ -75,6 +76,7 @@ async function createPerformanceHandler(
       .values({
         musicalId,
         userId: userId!,
+        date: date ? new Date(date) : null,
         notes: notes || null,
         posterUrl: posterUrl || null,
       })
@@ -142,6 +144,7 @@ async function getPerformanceByIdHandler(
 
 type UpdatePerformanceBodyParams = {
   musicalId?: string;
+  date?: string;
   notes?: string;
   posterUrl?: string;
 };
@@ -151,7 +154,7 @@ async function updatePerformanceHandler(
   res: Response
 ) {
   const id = req.params.id;
-  const { musicalId, notes, posterUrl } = req.body;
+  const { musicalId, date, notes, posterUrl } = req.body;
   const userId = req.user?.id;
   const validator = new Validator();
 
@@ -191,17 +194,19 @@ async function updatePerformanceHandler(
 
     const updateData: Partial<{
       musicalId: string;
+      date: Date;
       notes: string;
       posterUrl: string;
     }> = {};
     if (musicalId) updateData.musicalId = musicalId;
+    if (date) updateData.date = new Date(date);
     if (notes !== undefined) updateData.notes = notes;
     if (posterUrl !== undefined) updateData.posterUrl = posterUrl;
 
     if (Object.keys(updateData).length === 0) {
       res.status(400).json({
         error:
-          "At least one field (musicalId, notes, or posterUrl) is required",
+          "At least one field (musicalId, date, notes, or posterUrl) is required",
       });
       return;
     }
