@@ -9,15 +9,10 @@ import { validate as validateUuid } from "uuid";
 
 export const musicalRouter = Router();
 
-musicalRouter.get("/", getAllMusicalsHandler);
+musicalRouter.get("/", ensureAuthenticated, getAllMusicalsHandler);
 musicalRouter.post("/", ensureAuthenticated, createMusicalHandler);
-musicalRouter.get("/:id", getMusicalByIdHandler);
-musicalRouter.put(
-  "/:id",
-  ensureAuthenticated,
-  ensureAdmin,
-  updateMusicalHandler
-);
+musicalRouter.get("/:id", ensureAuthenticated, getMusicalByIdHandler);
+musicalRouter.put("/:id", ensureAuthenticated, updateMusicalHandler);
 musicalRouter.delete("/:id", ensureAuthenticated, deleteMusicalHandler);
 musicalRouter.post(
   "/:id/verify",
@@ -152,6 +147,24 @@ async function updateMusicalHandler(
 
     if (!validator.valid) {
       res.status(400).json({ errors: validator.errors });
+      return;
+    }
+
+    // Check if the musical exists and get its verified status
+    const existingMusical = await db.query.MusicalTable.findFirst({
+      where: eq(MusicalTable.id, id),
+    });
+
+    if (!existingMusical) {
+      res.status(404).json({ error: "Musical not found" });
+      return;
+    }
+
+    // If musical is verified, only admin can make changes
+    if (existingMusical.verified && req.user?.role !== "admin") {
+      res.status(403).json({ 
+        error: "Only admins can modify verified musicals" 
+      });
       return;
     }
 

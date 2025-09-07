@@ -190,12 +190,10 @@ async function updateCastingHandler(
     if (performanceId) updateData.performanceId = performanceId;
 
     if (Object.keys(updateData).length === 0) {
-      res
-        .status(400)
-        .json({
-          error:
-            "At least one field (roleId, actorId, or performanceId) is required",
-        });
+      res.status(400).json({
+        error:
+          "At least one field (roleId, actorId, or performanceId) is required",
+      });
       return;
     }
 

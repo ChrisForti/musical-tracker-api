@@ -7,11 +7,15 @@ All V2 endpoints use UUID-based identifiers and the "verified" field pattern ins
 ## Recent Updates (api-improvements branch)
 
 ### Changes Made:
-- **Musical**: Added optional `posterUrl` field to POST and PUT endpoints
-- **Performance**: Added optional `date` field to POST and PUT endpoints  
-- **Casting**: 
+
+- **Musical**: 
+  - Added optional `posterUrl` field to POST and PUT endpoints
+  - **All endpoints now require authentication**
+  - PUT endpoint requires admin access if musical is verified
+- **Performance**: Added optional `date` field to POST and PUT endpoints
+- **Casting**:
   - Added **required** `performanceId` field to all endpoints
-  - POST response now returns only `{"id": "casting-uuid"}` 
+  - POST response now returns only `{"id": "casting-uuid"}`
   - Removed `verified` field completely
   - Removed pending query parameter and verify endpoint
   - GET `/casting` now returns all castings (no filtering)
@@ -198,10 +202,11 @@ curl -X POST http://localhost:3000/v2/actor/:id/verify \
 
 ## Musical Endpoints
 
-#### Get All Verified Musicals
+#### Get All Musicals (Authentication Required)
 
 ```bash
-curl -X GET http://localhost:3000/v2/musical
+curl -X GET http://localhost:3000/v2/musical \
+-H "Authorization: Bearer YOUR_ACCESS_TOKEN"
 ```
 
 #### Get Pending Musicals (Admin Only)
@@ -211,7 +216,7 @@ curl -X GET "http://localhost:3000/v2/musical?pending=true" \
 -H "Authorization: Bearer YOUR_ACCESS_TOKEN"
 ```
 
-#### Create Musical
+#### Create Musical (Authentication Required)
 
 ```bash
 curl -X POST http://localhost:3000/v2/musical \
@@ -225,13 +230,16 @@ curl -X POST http://localhost:3000/v2/musical \
 }'
 ```
 
-#### Get Musical by ID
+#### Get Musical by ID (Authentication Required)
 
 ```bash
-curl -X GET http://localhost:3000/v2/musical/:id
+curl -X GET http://localhost:3000/v2/musical/:id \
+-H "Authorization: Bearer YOUR_ACCESS_TOKEN"
 ```
 
-#### Update Musical
+#### Update Musical (Authentication Required, Admin Required if Verified)
+
+**Note**: If the musical is verified, only admins can make changes.
 
 ```bash
 curl -X PUT http://localhost:3000/v2/musical/:id \
@@ -340,6 +348,7 @@ curl -X POST http://localhost:3000/v2/casting \
 ```
 
 **Response:**
+
 ```json
 {
   "id": "uuid-of-created-casting"
