@@ -8,7 +8,7 @@ All V2 endpoints use UUID-based identifiers and the "verified" field pattern ins
 
 ### Changes Made:
 
-- **Musical**: 
+- **Musical**:
   - Added optional `posterUrl` field to POST and PUT endpoints
   - **All endpoints now require authentication**
   - PUT endpoint requires admin access if musical is verified

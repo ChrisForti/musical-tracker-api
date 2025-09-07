@@ -162,8 +162,8 @@ async function updateMusicalHandler(
 
     // If musical is verified, only admin can make changes
     if (existingMusical.verified && req.user?.role !== "admin") {
-      res.status(403).json({ 
-        error: "Only admins can modify verified musicals" 
+      res.status(403).json({
+        error: "Only admins can modify verified musicals",
       });
       return;
     }
