@@ -12,12 +12,16 @@ All V2 endpoints use UUID-based identifiers and the "verified" field pattern ins
   - Added optional `posterUrl` field to POST and PUT endpoints
   - **All endpoints now require authentication**
   - PUT endpoint requires admin access if musical is verified
-- **Performance**: Added optional `date` field to POST and PUT endpoints
+- **Performance**:
+  - Added optional `date` field to POST and PUT endpoints
+  - **GET /performance/:id now requires authentication**
+  - Added actor filtering: `?actorId=uuid` to get performances where specific actor was cast
 - **Casting**:
   - Added **required** `performanceId` field to all endpoints
   - POST response now returns only `{"id": "casting-uuid"}`
   - Removed `verified` field completely
   - Removed pending query parameter and verify endpoint
+  - **All endpoints now require authentication**
   - GET `/casting` now returns all castings (no filtering)
 
 ---
@@ -328,13 +332,14 @@ curl -X POST http://localhost:3000/v2/role/:id/verify \
 
 ## Casting Endpoints
 
-#### Get All Castings
+#### Get All Castings (Authentication Required)
 
 ```bash
-curl -X GET http://localhost:3000/v2/casting
+curl -X GET http://localhost:3000/v2/casting \
+-H "Authorization: Bearer YOUR_ACCESS_TOKEN"
 ```
 
-#### Create Casting
+#### Create Casting (Authentication Required)
 
 ```bash
 curl -X POST http://localhost:3000/v2/casting \
@@ -355,13 +360,14 @@ curl -X POST http://localhost:3000/v2/casting \
 }
 ```
 
-#### Get Casting by ID
+#### Get Casting by ID (Authentication Required)
 
 ```bash
-curl -X GET http://localhost:3000/v2/casting/:id
+curl -X GET http://localhost:3000/v2/casting/:id \
+-H "Authorization: Bearer YOUR_ACCESS_TOKEN"
 ```
 
-#### Update Casting
+#### Update Casting (Authentication Required)
 
 ```bash
 curl -X PUT http://localhost:3000/v2/casting/:id \
@@ -374,7 +380,7 @@ curl -X PUT http://localhost:3000/v2/casting/:id \
 }'
 ```
 
-#### Delete Casting
+#### Delete Casting (Authentication Required)
 
 ```bash
 curl -X DELETE http://localhost:3000/v2/casting/:id \
@@ -387,6 +393,7 @@ curl -X DELETE http://localhost:3000/v2/casting/:id \
 
 - **User**: Returns only their own performances
 - **Admin**: Returns all performances, or use `?userId=uuid` to filter by user
+- **Actor Filter**: Use `?actorId=uuid` to get performances where a specific actor was cast (users see only their own performances, admins see all)
 
 ```bash
 curl -X GET http://localhost:3000/v2/performance \
@@ -394,6 +401,10 @@ curl -X GET http://localhost:3000/v2/performance \
 
 # Admin can filter by user
 curl -X GET "http://localhost:3000/v2/performance?userId=specific-user-uuid" \
+-H "Authorization: Bearer YOUR_ACCESS_TOKEN"
+
+# Filter by actor (returns performances where this actor was cast)
+curl -X GET "http://localhost:3000/v2/performance?actorId=specific-actor-uuid" \
 -H "Authorization: Bearer YOUR_ACCESS_TOKEN"
 ```
 
@@ -411,14 +422,14 @@ curl -X POST http://localhost:3000/v2/performance \
 }'
 ```
 
-#### Get Performance by ID
+#### Get Performance by ID (Authentication Required)
 
 ```bash
 curl -X GET http://localhost:3000/v2/performance/:id \
 -H "Authorization: Bearer YOUR_ACCESS_TOKEN"
 ```
 
-#### Update Performance
+#### Update Performance (Authentication Required)
 
 ```bash
 curl -X PUT http://localhost:3000/v2/performance/:id \

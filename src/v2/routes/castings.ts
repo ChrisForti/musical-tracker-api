@@ -9,9 +9,9 @@ import { validate as validateUuid } from "uuid";
 
 export const castingRouter = Router();
 
-castingRouter.get("/", getAllCastingsHandler);
+castingRouter.get("/", ensureAuthenticated, getAllCastingsHandler);
 castingRouter.post("/", ensureAuthenticated, createCastingHandler);
-castingRouter.get("/:id", getCastingByIdHandler);
+castingRouter.get("/:id", ensureAuthenticated, getCastingByIdHandler);
 castingRouter.put("/:id", ensureAuthenticated, updateCastingHandler);
 castingRouter.delete("/:id", ensureAuthenticated, deleteCastingHandler);
 

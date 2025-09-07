@@ -1,9 +1,9 @@
 import { Router, type Request, type Response } from "express";
-import { PerformanceTable } from "../../drizzle/schema.js";
+import { PerformanceTable, CastingTable } from "../../drizzle/schema.js";
 import { Validator } from "../../lib/validator.js";
 import { db } from "../../drizzle/db.js";
 import { SERVER_ERROR } from "../../lib/errors.js";
-import { eq } from "drizzle-orm";
+import { eq, and } from "drizzle-orm";
 import { ensureAdmin, ensureAuthenticated } from "../../lib/auth.js";
 import { validate as validateUuid } from "uuid";
 
@@ -11,20 +11,73 @@ export const performanceRouter = Router();
 
 performanceRouter.get("/", ensureAuthenticated, getAllPerformancesHandler);
 performanceRouter.post("/", ensureAuthenticated, createPerformanceHandler);
-performanceRouter.get("/:id", getPerformanceByIdHandler);
+performanceRouter.get("/:id", ensureAuthenticated, getPerformanceByIdHandler);
 performanceRouter.put("/:id", ensureAuthenticated, updatePerformanceHandler);
 performanceRouter.delete("/:id", ensureAuthenticated, deletePerformanceHandler);
 
 async function getAllPerformancesHandler(req: Request, res: Response) {
   try {
     const userId = req.user?.id;
+    const actorId = req.query.actorId as string;
 
     if (!userId) {
       res.status(401).json({ error: "Authentication required" });
       return;
     }
 
-    // Users can only see their own performances unless they're admin
+    // Validate actorId if provided
+    if (actorId && !validateUuid(actorId)) {
+      res.status(400).json({ error: "Invalid actorId format" });
+      return;
+    }
+
+    // If filtering by actor, get performances where the actor was cast
+    if (actorId) {
+      // Users can only see their own performances with this actor unless they're admin
+      if (req.user?.role === "admin") {
+        const performancesWithActor = await db
+          .select({
+            id: PerformanceTable.id,
+            musicalId: PerformanceTable.musicalId,
+            userId: PerformanceTable.userId,
+            date: PerformanceTable.date,
+            notes: PerformanceTable.notes,
+            posterUrl: PerformanceTable.posterUrl,
+          })
+          .from(PerformanceTable)
+          .innerJoin(
+            CastingTable,
+            eq(CastingTable.performanceId, PerformanceTable.id)
+          )
+          .where(eq(CastingTable.actorId, actorId));
+        res.status(200).json(performancesWithActor);
+      } else {
+        const userPerformancesWithActor = await db
+          .select({
+            id: PerformanceTable.id,
+            musicalId: PerformanceTable.musicalId,
+            userId: PerformanceTable.userId,
+            date: PerformanceTable.date,
+            notes: PerformanceTable.notes,
+            posterUrl: PerformanceTable.posterUrl,
+          })
+          .from(PerformanceTable)
+          .innerJoin(
+            CastingTable,
+            eq(CastingTable.performanceId, PerformanceTable.id)
+          )
+          .where(
+            and(
+              eq(CastingTable.actorId, actorId),
+              eq(PerformanceTable.userId, userId)
+            )
+          );
+        res.status(200).json(userPerformancesWithActor);
+      }
+      return;
+    }
+
+    // Regular performance listing (without actor filter)
     if (req.user?.role === "admin") {
       const performances = await db.select().from(PerformanceTable);
       res.status(200).json(performances);
