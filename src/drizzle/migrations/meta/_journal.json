@@ -15,6 +15,13 @@
       "when": 1757184186142,
       "tag": "0001_ordinary_human_cannonball",
       "breakpoints": true
+    },
+    {
+      "idx": 2,
+      "version": "7",
+      "when": 1757284637187,
+      "tag": "0002_gorgeous_reavers",
+      "breakpoints": true
     }
   ]
 }

@@ -28,16 +28,21 @@
   },
   "homepage": "https://github.com/ChrisForti/musical-tracker-api#readme",
   "dependencies": {
+    "@aws-sdk/client-s3": "^3.883.0",
     "bcrypt": "^5.1.1",
     "dotenv": "^16.5.0",
     "drizzle-orm": "^0.43.1",
     "express": "^5.1.0",
+    "file-type": "^21.0.0",
+    "multer": "^2.0.2",
     "pg": "^8.15.6",
+    "sharp": "^0.34.3",
     "uuid": "^11.1.0"
   },
   "devDependencies": {
     "@types/bcrypt": "^5.0.2",
     "@types/express": "^5.0.1",
+    "@types/multer": "^2.0.0",
     "@types/node": "^22.15.9",
     "@types/pg": "^8.15.1",
     "@types/uuid": "^10.0.0",

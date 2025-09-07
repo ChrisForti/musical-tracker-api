@@ -10,6 +10,8 @@ import {
   varchar,
   type AnyPgColumn,
   date,
+  integer,
+  timestamp,
 } from "drizzle-orm/pg-core";
 
 export const accountTypeEnum = pgEnum("account_type", ["admin", "user"]);
@@ -113,4 +115,23 @@ export const ProductionTable = pgTable("production", {
   endDate: date("end_date", { mode: "date" }).notNull(),
   posterUrl: text("poster_url").notNull(),
   verified: boolean("verified").default(false).notNull(),
+});
+
+export const UploadedImagesTable = pgTable("uploaded_images", {
+  id: uuid("id").defaultRandom().primaryKey().notNull(),
+  originalFilename: varchar("original_filename", { length: 255 }).notNull(),
+  s3Key: varchar("s3_key", { length: 500 }).notNull(),
+  s3Url: varchar("s3_url", { length: 500 }).notNull(),
+  fileSize: integer("file_size").notNull(),
+  mimeType: varchar("mime_type", { length: 100 }).notNull(),
+  width: integer("width"),
+  height: integer("height"),
+  uploadedBy: uuid("uploaded_by")
+    .notNull()
+    .references(() => UserTable.id),
+  entityType: varchar("entity_type", { length: 50 }), // 'musical', 'performance', 'user'
+  entityId: uuid("entity_id"),
+  imageType: varchar("image_type", { length: 50 }).notNull(), // 'poster', 'profile', 'thumbnail'
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+  updatedAt: timestamp("updated_at").defaultNow().notNull(),
 });

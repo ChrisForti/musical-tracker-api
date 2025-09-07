@@ -6,8 +6,38 @@ import { eq } from "drizzle-orm";
 import { Validator } from "../../lib/validator.js";
 import { ensureAdmin, ensureAuthenticated } from "../../lib/auth.js";
 import { validate as validateUuid } from "uuid";
+import { imageDb } from "../../lib/imageDb.js";
 
 export const musicalRouter = Router();
+
+// Helper function to add images to musical data
+async function addImagesToMusical(musical: any) {
+  try {
+    const images = await imageDb.getImagesByEntity("musical", musical.id);
+    return {
+      ...musical,
+      images: images.map((img) => ({
+        id: img.id,
+        url: img.s3Url,
+        type: img.imageType,
+        width: img.width,
+        height: img.height,
+        createdAt: img.createdAt,
+      })),
+    };
+  } catch (error) {
+    console.error(`Error fetching images for musical ${musical.id}:`, error);
+    return {
+      ...musical,
+      images: [],
+    };
+  }
+}
+
+// Helper function to add images to multiple musicals
+async function addImagesToMusicals(musicals: any[]) {
+  return Promise.all(musicals.map((musical) => addImagesToMusical(musical)));
+}
 
 musicalRouter.get("/", ensureAuthenticated, getAllMusicalsHandler);
 musicalRouter.post("/", ensureAuthenticated, createMusicalHandler);
@@ -31,10 +61,12 @@ async function getAllMusicalsHandler(req: Request, res: Response) {
         .from(MusicalTable)
         .where(eq(MusicalTable.verified, false));
 
-      res.status(200).json(pendingMusicals);
+      const musicalsWithImages = await addImagesToMusicals(pendingMusicals);
+      res.status(200).json(musicalsWithImages);
     } else {
       const musicals = await db.select().from(MusicalTable);
-      res.status(200).json(musicals);
+      const musicalsWithImages = await addImagesToMusicals(musicals);
+      res.status(200).json(musicalsWithImages);
     }
   } catch (error) {
     console.error("Error in getAllMusicalsHandler:", error);
@@ -117,7 +149,8 @@ async function getMusicalByIdHandler(
       return;
     }
 
-    res.status(200).json(musical);
+    const musicalWithImages = await addImagesToMusical(musical);
+    res.status(200).json(musicalWithImages);
   } catch (error) {
     console.error("Error in getMusicalByIdHandler:", error);
     res.status(500).json({ error: SERVER_ERROR });

@@ -12,10 +12,12 @@ All V2 endpoints use UUID-based identifiers and the "verified" field pattern ins
   - Added optional `posterUrl` field to POST and PUT endpoints
   - **All endpoints now require authentication**
   - PUT endpoint requires admin access if musical is verified
+  - **GET responses now include associated images array**
 - **Performance**:
   - Added optional `date` field to POST and PUT endpoints
   - **GET /performance/:id now requires authentication**
   - Added actor filtering: `?actorId=uuid` to get performances where specific actor was cast
+  - **GET responses now include associated images array**
 - **Casting**:
   - Added **required** `performanceId` field to all endpoints
   - POST response now returns only `{"id": "casting-uuid"}`
@@ -23,6 +25,14 @@ All V2 endpoints use UUID-based identifiers and the "verified" field pattern ins
   - Removed pending query parameter and verify endpoint
   - **All endpoints now require authentication**
   - GET `/casting` now returns all castings (no filtering)
+- **Upload System**:
+  - **NEW**: Complete image upload system with AWS S3 integration
+  - **NEW**: `POST /upload/poster` - Upload posters for musicals/performances
+  - **NEW**: `POST /upload/profile` - Upload user profile pictures
+  - **NEW**: `DELETE /upload/:imageId` - Delete uploaded images
+  - **NEW**: `GET /upload/entity/:entityType/:entityId` - Get images for entities
+  - Automatic image processing (resize, compress, format conversion)
+  - Secure file validation and user permission checks
 
 ---
 
@@ -449,6 +459,154 @@ curl -X PUT http://localhost:3000/v2/performance/:id \
 curl -X DELETE http://localhost:3000/v2/performance/:id \
 -H "Authorization: Bearer YOUR_ACCESS_TOKEN"
 ```
+
+## Upload Endpoints
+
+The upload system provides secure image storage with AWS S3 integration. All uploaded images are automatically processed (resized, compressed) and stored with organized folder structures.
+
+### File Requirements
+
+- **Poster Images**: Max 5MB, formats: JPG, PNG, WebP
+- **Profile Images**: Max 2MB, formats: JPG, PNG, WebP
+- **Processing**: Automatic resize, compression, and format optimization
+- **Storage**: AWS S3 with organized folder structure
+
+#### Upload Poster Image
+
+Upload poster images for musicals or performances.
+
+```bash
+curl -X POST http://localhost:3000/v2/upload/poster \
+-H "Authorization: Bearer YOUR_ACCESS_TOKEN" \
+-F "file=@/path/to/poster.jpg" \
+-F "type=musical" \
+-F "entityId=uuid-of-musical"
+
+# For performance posters
+curl -X POST http://localhost:3000/v2/upload/poster \
+-H "Authorization: Bearer YOUR_ACCESS_TOKEN" \
+-F "file=@/path/to/poster.jpg" \
+-F "type=performance" \
+-F "entityId=uuid-of-performance"
+```
+
+**Response:**
+
+```json
+{
+  "success": true,
+  "imageId": "uuid-of-created-image",
+  "url": "https://your-bucket.s3.amazonaws.com/posters/musicals/musical-id/poster-timestamp.jpg",
+  "width": 1200,
+  "height": 1600,
+  "fileSize": 245760
+}
+```
+
+#### Upload Profile Picture
+
+Upload user profile pictures (automatically cropped to square).
+
+```bash
+curl -X POST http://localhost:3000/v2/upload/profile \
+-H "Authorization: Bearer YOUR_ACCESS_TOKEN" \
+-F "file=@/path/to/profile.jpg"
+```
+
+**Response:**
+
+```json
+{
+  "success": true,
+  "imageId": "uuid-of-created-image",
+  "url": "https://your-bucket.s3.amazonaws.com/profiles/users/user-id/avatar-timestamp.jpg",
+  "width": 300,
+  "height": 300,
+  "fileSize": 45120
+}
+```
+
+#### Get Images for Entity
+
+Retrieve all images associated with a specific entity.
+
+```bash
+# Get all images for a musical
+curl -X GET http://localhost:3000/v2/upload/entity/musical/uuid-of-musical \
+-H "Authorization: Bearer YOUR_ACCESS_TOKEN"
+
+# Get only poster images for a performance
+curl -X GET "http://localhost:3000/v2/upload/entity/performance/uuid-of-performance?imageType=poster" \
+-H "Authorization: Bearer YOUR_ACCESS_TOKEN"
+
+# Get user profile pictures
+curl -X GET http://localhost:3000/v2/upload/entity/user/uuid-of-user \
+-H "Authorization: Bearer YOUR_ACCESS_TOKEN"
+```
+
+**Response:**
+
+```json
+{
+  "success": true,
+  "images": [
+    {
+      "id": "uuid-of-image",
+      "url": "https://your-bucket.s3.amazonaws.com/posters/musicals/musical-id/poster.jpg",
+      "imageType": "poster",
+      "width": 1200,
+      "height": 1600,
+      "fileSize": 245760,
+      "createdAt": "2025-09-07T18:30:00Z"
+    }
+  ]
+}
+```
+
+#### Delete Uploaded Image
+
+Delete an uploaded image (users can only delete their own images).
+
+```bash
+curl -X DELETE http://localhost:3000/v2/upload/uuid-of-image \
+-H "Authorization: Bearer YOUR_ACCESS_TOKEN"
+```
+
+**Response:**
+
+```json
+{
+  "success": true,
+  "message": "Image deleted successfully"
+}
+```
+
+### Enhanced Entity Responses
+
+**Musical and Performance GET endpoints now include associated images:**
+
+```json
+{
+  "id": "uuid-of-musical",
+  "title": "Hamilton",
+  "composer": "Lin-Manuel Miranda",
+  "lyricist": "Lin-Manuel Miranda",
+  "posterUrl": "https://example.com/old-poster.jpg",
+  "verified": true,
+  "images": [
+    {
+      "id": "uuid-of-image",
+      "url": "https://your-bucket.s3.amazonaws.com/posters/musicals/musical-id/poster.jpg",
+      "type": "poster",
+      "width": 1200,
+      "height": 1600,
+      "createdAt": "2025-09-07T18:30:00Z"
+    }
+  ]
+}
+```
+
+**Note**: The `posterUrl` field is maintained for backward compatibility, but the new `images` array provides more comprehensive image management.
 
 ## Response Formats
 

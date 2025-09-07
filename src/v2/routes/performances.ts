@@ -6,8 +6,46 @@ import { SERVER_ERROR } from "../../lib/errors.js";
 import { eq, and } from "drizzle-orm";
 import { ensureAdmin, ensureAuthenticated } from "../../lib/auth.js";
 import { validate as validateUuid } from "uuid";
+import { imageDb } from "../../lib/imageDb.js";
 
 export const performanceRouter = Router();
+
+// Helper function to add images to performance data
+async function addImagesToPerformance(performance: any) {
+  try {
+    const images = await imageDb.getImagesByEntity(
+      "performance",
+      performance.id
+    );
+    return {
+      ...performance,
+      images: images.map((img) => ({
+        id: img.id,
+        url: img.s3Url,
+        type: img.imageType,
+        width: img.width,
+        height: img.height,
+        createdAt: img.createdAt,
+      })),
+    };
+  } catch (error) {
+    console.error(
+      `Error fetching images for performance ${performance.id}:`,
+      error
+    );
+    return {
+      ...performance,
+      images: [],
+    };
+  }
+}
+
+// Helper function to add images to multiple performances
+async function addImagesToPerformances(performances: any[]) {
+  return Promise.all(
+    performances.map((performance) => addImagesToPerformance(performance))
+  );
+}
 
 performanceRouter.get("/", ensureAuthenticated, getAllPerformancesHandler);
 performanceRouter.post("/", ensureAuthenticated, createPerformanceHandler);
@@ -50,7 +88,10 @@ async function getAllPerformancesHandler(req: Request, res: Response) {
             eq(CastingTable.performanceId, PerformanceTable.id)
           )
           .where(eq(CastingTable.actorId, actorId));
-        res.status(200).json(performancesWithActor);
+        const performancesWithImages = await addImagesToPerformances(
+          performancesWithActor
+        );
+        res.status(200).json(performancesWithImages);
       } else {
         const userPerformancesWithActor = await db
           .select({
@@ -72,7 +113,10 @@ async function getAllPerformancesHandler(req: Request, res: Response) {
               eq(PerformanceTable.userId, userId)
             )
           );
-        res.status(200).json(userPerformancesWithActor);
+        const performancesWithImages = await addImagesToPerformances(
+          userPerformancesWithActor
+        );
+        res.status(200).json(performancesWithImages);
       }
       return;
     }
@@ -80,13 +124,19 @@ async function getAllPerformancesHandler(req: Request, res: Response) {
     // Regular performance listing (without actor filter)
     if (req.user?.role === "admin") {
       const performances = await db.select().from(PerformanceTable);
-      res.status(200).json(performances);
+      const performancesWithImages = await addImagesToPerformances(
+        performances
+      );
+      res.status(200).json(performancesWithImages);
     } else {
       const userPerformances = await db
         .select()
         .from(PerformanceTable)
         .where(eq(PerformanceTable.userId, userId));
-      res.status(200).json(userPerformances);
+      const performancesWithImages = await addImagesToPerformances(
+        userPerformances
+      );
+      res.status(200).json(performancesWithImages);
     }
   } catch (error) {
     console.error("Error in getAllPerformancesHandler:", error);
@@ -188,7 +238,8 @@ async function getPerformanceByIdHandler(
       return;
     }
 
-    res.status(200).json(performance);
+    const performanceWithImages = await addImagesToPerformance(performance);
+    res.status(200).json(performanceWithImages);
   } catch (error) {
     console.error("Error in getPerformanceByIdHandler:", error);
     res.status(500).json({ error: SERVER_ERROR });
