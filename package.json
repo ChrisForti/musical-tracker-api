@@ -9,7 +9,6 @@
     "dev": "nodemon",
     "build": "tsc",
     "start": "node ./build/server.js",
-    "debug-env": "node debug-env.js",
     "pre-deploy": "node ./build/drizzle/migrate.js",
     "deploy": "npm run build && npm run pre-deploy && npm run start",
     "psql": "psql -U postgres -h localhost ",
