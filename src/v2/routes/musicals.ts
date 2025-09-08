@@ -43,7 +43,12 @@ musicalRouter.get("/", ensureAuthenticated, getAllMusicalsHandler);
 musicalRouter.post("/", ensureAuthenticated, createMusicalHandler);
 musicalRouter.get("/:id", ensureAuthenticated, getMusicalByIdHandler);
 musicalRouter.put("/:id", ensureAuthenticated, updateMusicalHandler);
-musicalRouter.delete("/:id", ensureAuthenticated, deleteMusicalHandler);
+musicalRouter.delete(
+  "/:id",
+  ensureAuthenticated,
+  ensureAdmin,
+  deleteMusicalHandler
+);
 musicalRouter.post(
   "/:id/verify",
   ensureAuthenticated,
