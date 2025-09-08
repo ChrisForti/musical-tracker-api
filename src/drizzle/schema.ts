@@ -10,6 +10,8 @@ import {
   varchar,
   type AnyPgColumn,
   date,
+  integer,
+  timestamp,
 } from "drizzle-orm/pg-core";
 
 export const accountTypeEnum = pgEnum("account_type", ["admin", "user"]);
@@ -74,6 +76,7 @@ export const MusicalTable = pgTable("musical", {
   composer: varchar("composer", { length: 255 }).notNull(),
   lyricist: varchar("lyricist", { length: 255 }).notNull(),
   title: varchar("title", { length: 255 }).notNull(),
+  posterUrl: varchar("poster_url", { length: 255 }),
   verified: boolean("verified").default(false).notNull(),
 });
 
@@ -85,6 +88,7 @@ export const PerformanceTable = pgTable("performance", {
   userId: uuid("user_id")
     .notNull()
     .references(() => UserTable.id),
+  date: date("date", { mode: "date" }),
   notes: text("notes"),
   posterUrl: varchar("poster_url", { length: 255 }),
 });
@@ -97,7 +101,9 @@ export const CastingTable = pgTable("casting", {
   actorId: uuid("actor_id")
     .notNull()
     .references(() => ActorTable.id),
-  verified: boolean("verified").default(false).notNull(),
+  performanceId: uuid("performance_id")
+    .notNull()
+    .references(() => PerformanceTable.id),
 });
 
 export const ProductionTable = pgTable("production", {
@@ -109,4 +115,23 @@ export const ProductionTable = pgTable("production", {
   endDate: date("end_date", { mode: "date" }).notNull(),
   posterUrl: text("poster_url").notNull(),
   verified: boolean("verified").default(false).notNull(),
+});
+
+export const UploadedImagesTable = pgTable("uploaded_images", {
+  id: uuid("id").defaultRandom().primaryKey().notNull(),
+  originalFilename: varchar("original_filename", { length: 255 }).notNull(),
+  s3Key: varchar("s3_key", { length: 500 }).notNull(),
+  s3Url: varchar("s3_url", { length: 500 }).notNull(),
+  fileSize: integer("file_size").notNull(),
+  mimeType: varchar("mime_type", { length: 100 }).notNull(),
+  width: integer("width"),
+  height: integer("height"),
+  uploadedBy: uuid("uploaded_by")
+    .notNull()
+    .references(() => UserTable.id),
+  entityType: varchar("entity_type", { length: 50 }), // 'musical', 'performance', 'user'
+  entityId: uuid("entity_id"),
+  imageType: varchar("image_type", { length: 50 }).notNull(), // 'poster', 'profile', 'thumbnail'
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+  updatedAt: timestamp("updated_at").defaultNow().notNull(),
 });

@@ -1,7 +1,7 @@
 import { Router, type Request, type Response } from "express";
 import { db } from "../../drizzle/db.js";
 import { RoleTable } from "../../drizzle/schema.js";
-import { eq } from "drizzle-orm";
+import { eq, and } from "drizzle-orm";
 import { SERVER_ERROR } from "../../lib/errors.js";
 import { Validator } from "../../lib/validator.js";
 import { ensureAdmin, ensureAuthenticated } from "../../lib/auth.js";
@@ -9,10 +9,10 @@ import { validate as validateUuid } from "uuid";
 
 export const roleRouter = Router();
 
-roleRouter.get("/", getAllRolesHandler);
+roleRouter.get("/", ensureAuthenticated, getAllRolesHandler);
 roleRouter.post("/", ensureAuthenticated, createRoleHandler);
-roleRouter.get("/:id", getRoleByIdHandler);
-roleRouter.put("/:id", ensureAuthenticated, ensureAdmin, updateRoleHandler);
+roleRouter.get("/:id", ensureAuthenticated, getRoleByIdHandler);
+roleRouter.put("/:id", ensureAuthenticated, updateRoleHandler);
 roleRouter.delete("/:id", ensureAuthenticated, ensureAdmin, deleteRoleHandler);
 roleRouter.post(
   "/:id/verify",
@@ -24,18 +24,37 @@ roleRouter.post(
 async function getAllRolesHandler(req: Request, res: Response) {
   try {
     const isPending = req.query.pending === "true";
+    const musicalId = req.query.musicalId as string;
 
-    if (isPending) {
-      const pendingRoles = await db
+    if (musicalId && !validateUuid(musicalId)) {
+      res.status(400).json({ error: "Invalid musicalId format" });
+      return;
+    }
+
+    let roles;
+
+    if (isPending && musicalId) {
+      roles = await db
+        .select()
+        .from(RoleTable)
+        .where(
+          and(eq(RoleTable.verified, false), eq(RoleTable.musicalId, musicalId))
+        );
+    } else if (isPending) {
+      roles = await db
         .select()
         .from(RoleTable)
         .where(eq(RoleTable.verified, false));
-
-      res.status(200).json(pendingRoles);
+    } else if (musicalId) {
+      roles = await db
+        .select()
+        .from(RoleTable)
+        .where(eq(RoleTable.musicalId, musicalId));
     } else {
-      const roles = await db.select().from(RoleTable);
-      res.status(200).json(roles);
+      roles = await db.select().from(RoleTable);
     }
+
+    res.status(200).json(roles);
   } catch (error) {
     console.error("Error in getAllRolesHandler:", error);
     res.status(500).json({ error: SERVER_ERROR });
@@ -153,6 +172,23 @@ async function updateRoleHandler(
       res
         .status(400)
         .json({ error: "At least one field (name or musicalId) is required" });
+      return;
+    }
+
+    // Check if role exists and get verification status
+    const [role] = await db
+      .select()
+      .from(RoleTable)
+      .where(eq(RoleTable.id, id));
+
+    if (!role) {
+      res.status(404).json({ error: "Role not found" });
+      return;
+    }
+
+    // Only admin can update verified roles
+    if (role.verified && req.user?.role !== "admin") {
+      res.status(403).json({ error: "Only admins can update verified roles" });
       return;
     }
 

@@ -6,19 +6,49 @@ import { eq } from "drizzle-orm";
 import { Validator } from "../../lib/validator.js";
 import { ensureAdmin, ensureAuthenticated } from "../../lib/auth.js";
 import { validate as validateUuid } from "uuid";
+import { imageDb } from "../../lib/imageDb.js";
 
 export const musicalRouter = Router();
 
-musicalRouter.get("/", getAllMusicalsHandler);
+// Helper function to add images to musical data
+async function addImagesToMusical(musical: any) {
+  try {
+    const images = await imageDb.getImagesByEntity("musical", musical.id);
+    return {
+      ...musical,
+      images: images.map((img) => ({
+        id: img.id,
+        url: img.s3Url,
+        type: img.imageType,
+        width: img.width,
+        height: img.height,
+        createdAt: img.createdAt,
+      })),
+    };
+  } catch (error) {
+    console.error(`Error fetching images for musical ${musical.id}:`, error);
+    return {
+      ...musical,
+      images: [],
+    };
+  }
+}
+
+// Helper function to add images to multiple musicals
+async function addImagesToMusicals(musicals: any[]) {
+  return Promise.all(musicals.map((musical) => addImagesToMusical(musical)));
+}
+
+musicalRouter.get("/", ensureAuthenticated, getAllMusicalsHandler);
 musicalRouter.post("/", ensureAuthenticated, createMusicalHandler);
-musicalRouter.get("/:id", getMusicalByIdHandler);
-musicalRouter.put(
+musicalRouter.get("/:id", ensureAuthenticated, getMusicalByIdHandler);
+musicalRouter.put("/:id", ensureAuthenticated, updateMusicalHandler);
+musicalRouter.delete(
   "/:id",
   ensureAuthenticated,
   ensureAdmin,
-  updateMusicalHandler
+  deleteMusicalHandler
 );
-musicalRouter.delete("/:id", ensureAuthenticated, deleteMusicalHandler);
 musicalRouter.post(
   "/:id/verify",
   ensureAuthenticated,
@@ -36,10 +66,12 @@ async function getAllMusicalsHandler(req: Request, res: Response) {
         .from(MusicalTable)
         .where(eq(MusicalTable.verified, false));
 
-      res.status(200).json(pendingMusicals);
+      const musicalsWithImages = await addImagesToMusicals(pendingMusicals);
+      res.status(200).json(musicalsWithImages);
     } else {
       const musicals = await db.select().from(MusicalTable);
-      res.status(200).json(musicals);
+      const musicalsWithImages = await addImagesToMusicals(musicals);
+      res.status(200).json(musicalsWithImages);
     }
   } catch (error) {
     console.error("Error in getAllMusicalsHandler:", error);
@@ -51,13 +83,14 @@ type CreateMusicalBodyParams = {
   composer: string;
   lyricist: string;
   title: string;
+  posterUrl?: string;
 };
 
 async function createMusicalHandler(
   req: Request<{}, {}, CreateMusicalBodyParams>,
   res: Response
 ) {
-  const { composer, lyricist, title } = req.body;
+  const { composer, lyricist, title, posterUrl } = req.body;
   const validator = new Validator();
 
   try {
@@ -72,7 +105,7 @@ async function createMusicalHandler(
 
     const [newMusical] = await db
       .insert(MusicalTable)
-      .values({ composer, lyricist, title })
+      .values({ composer, lyricist, title, posterUrl })
       .returning({ id: MusicalTable.id });
 
     if (!newMusical) {
@@ -121,7 +154,8 @@ async function getMusicalByIdHandler(
       return;
     }
 
-    res.status(200).json(musical);
+    const musicalWithImages = await addImagesToMusical(musical);
+    res.status(200).json(musicalWithImages);
   } catch (error) {
     console.error("Error in getMusicalByIdHandler:", error);
     res.status(500).json({ error: SERVER_ERROR });
@@ -132,6 +166,7 @@ type UpdateMusicalBodyParams = {
   composer?: string;
   lyricist?: string;
   title?: string;
+  posterUrl?: string;
 };
 
 async function updateMusicalHandler(
@@ -139,7 +174,7 @@ async function updateMusicalHandler(
   res: Response
 ) {
   const id = req.params.id;
-  const { composer, lyricist, title } = req.body;
+  const { composer, lyricist, title, posterUrl } = req.body;
   const validator = new Validator();
 
   try {
@@ -153,22 +188,40 @@ async function updateMusicalHandler(
       return;
     }
 
+    // Check if the musical exists and get its verified status
+    const existingMusical = await db.query.MusicalTable.findFirst({
+      where: eq(MusicalTable.id, id),
+    });
+
+    if (!existingMusical) {
+      res.status(404).json({ error: "Musical not found" });
+      return;
+    }
+
+    // If musical is verified, only admin can make changes
+    if (existingMusical.verified && req.user?.role !== "admin") {
+      res.status(403).json({
+        error: "Only admins can modify verified musicals",
+      });
+      return;
+    }
+
     const updateData: Partial<{
       composer: string;
       lyricist: string;
       title: string;
+      posterUrl: string;
     }> = {};
     if (composer) updateData.composer = composer;
     if (lyricist) updateData.lyricist = lyricist;
     if (title) updateData.title = title;
+    if (posterUrl !== undefined) updateData.posterUrl = posterUrl;
 
     if (Object.keys(updateData).length === 0) {
-      res
-        .status(400)
-        .json({
-          error:
-            "At least one field (composer, lyricist, or title) is required",
-        });
+      res.status(400).json({
+        error:
+          "At least one field (composer, lyricist, title, or posterUrl) is required",
+      });
       return;
     }
 
