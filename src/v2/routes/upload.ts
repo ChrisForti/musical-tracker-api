@@ -6,6 +6,9 @@ import { s3Service } from "../../lib/s3.js";
 import { imageDb } from "../../lib/imageDb.js";
 import { Validator } from "../../lib/validator.js";
 import { validate as validateUuid } from "uuid";
+import { db } from "../../drizzle/db.js";
+import { MusicalTable, PerformanceTable } from "../../drizzle/schema.js";
+import { eq } from "drizzle-orm";
 
 export const uploadRouter = Router();
 
@@ -82,6 +85,25 @@ async function uploadPosterHandler(
     if (!validator.valid) {
       res.status(400).json({ errors: validator.errors });
       return;
+    }
+
+    // Validate that the entity exists in the database
+    if (type === "musical") {
+      const musical = await db.query.MusicalTable.findFirst({
+        where: eq(MusicalTable.id, entityId),
+      });
+      if (!musical) {
+        res.status(404).json({ error: "Musical not found" });
+        return;
+      }
+    } else if (type === "performance") {
+      const performance = await db.query.PerformanceTable.findFirst({
+        where: eq(PerformanceTable.id, entityId),
+      });
+      if (!performance) {
+        res.status(404).json({ error: "Performance not found" });
+        return;
+      }
     }
 
     if (!userId) {
