@@ -37,8 +37,8 @@ export class S3Service {
         Body: file,
         ContentType: contentType,
         Metadata: metadata,
-        // Make images publicly readable
-        ACL: "public-read",
+        // Note: ACL removed because bucket doesn't allow ACLs
+        // Make sure bucket has public read policy instead
       });
 
       await this.s3Client.send(command);
@@ -47,7 +47,11 @@ export class S3Service {
       return `https://${this.bucketName}.s3.${process.env.AWS_REGION}.amazonaws.com/${key}`;
     } catch (error) {
       console.error("Error uploading to S3:", error);
-      throw new Error("Failed to upload file to S3");
+      if (error instanceof Error) {
+        throw new Error(`S3 Upload Error: ${error.message}`);
+      } else {
+        throw new Error("Failed to upload file to S3");
+      }
     }
   }
 

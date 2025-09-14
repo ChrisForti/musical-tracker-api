@@ -189,7 +189,19 @@ async function uploadPosterHandler(
     }
 
     console.error("Error in uploadPosterHandler:", error);
-    res.status(500).json({ error: "Failed to upload poster" });
+    
+    // Provide more specific error information
+    if (error instanceof Error) {
+      if (error.message.includes('AWS') || error.message.includes('S3')) {
+        res.status(500).json({ error: "AWS S3 configuration error", details: error.message });
+      } else if (error.message.includes('database') || error.message.includes('Database')) {
+        res.status(500).json({ error: "Database error", details: error.message });
+      } else {
+        res.status(500).json({ error: "Upload failed", details: error.message });
+      }
+    } else {
+      res.status(500).json({ error: "Failed to upload poster" });
+    }
   }
 }
 
