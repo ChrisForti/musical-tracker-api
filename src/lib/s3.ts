@@ -7,18 +7,40 @@ import {
 import { v4 as uuidv4 } from "uuid";
 
 export class S3Service {
-  private s3Client: S3Client;
+  private s3Client: S3Client | null = null;
   private bucketName: string;
 
   constructor() {
-    this.s3Client = new S3Client({
-      region: process.env.AWS_REGION || "us-east-1",
-      credentials: {
-        accessKeyId: process.env.AWS_ACCESS_KEY_ID!,
-        secretAccessKey: process.env.AWS_SECRET_ACCESS_KEY!,
-      },
-    });
-    this.bucketName = process.env.AWS_S3_BUCKET!;
+    // Initialize S3 client only if all required env vars are present
+    // Validation will happen when upload is attempted
+    const accessKeyId = process.env.AWS_ACCESS_KEY_ID;
+    const secretAccessKey = process.env.AWS_SECRET_ACCESS_KEY;
+    const bucketName = process.env.AWS_S3_BUCKET;
+
+    if (accessKeyId && secretAccessKey && bucketName) {
+      this.s3Client = new S3Client({
+        region: process.env.AWS_REGION || "us-east-1",
+        credentials: {
+          accessKeyId,
+          secretAccessKey,
+        },
+      });
+      this.bucketName = bucketName;
+    } else {
+      // Will be caught by upload route validation
+      this.bucketName = "";
+    }
+  }
+
+  /**
+   * Check if S3 is properly configured
+   */
+  private checkS3Configuration(): void {
+    if (!this.s3Client || !this.bucketName) {
+      throw new Error(
+        "AWS S3 not properly configured. Missing environment variables."
+      );
+    }
   }
 
   /**
@@ -30,6 +52,8 @@ export class S3Service {
     contentType: string,
     metadata?: Record<string, string>
   ): Promise<string> {
+    this.checkS3Configuration();
+
     try {
       const command = new PutObjectCommand({
         Bucket: this.bucketName,
@@ -41,7 +65,7 @@ export class S3Service {
         // Make sure bucket has public read policy instead
       });
 
-      await this.s3Client.send(command);
+      await this.s3Client!.send(command);
 
       // Return the public URL
       return `https://${this.bucketName}.s3.${process.env.AWS_REGION}.amazonaws.com/${key}`;
@@ -59,13 +83,15 @@ export class S3Service {
    * Delete a file from S3
    */
   async deleteFile(key: string): Promise<void> {
+    this.checkS3Configuration();
+
     try {
       const command = new DeleteObjectCommand({
         Bucket: this.bucketName,
         Key: key,
       });
 
-      await this.s3Client.send(command);
+      await this.s3Client!.send(command);
     } catch (error) {
       console.error("Error deleting from S3:", error);
       throw new Error("Failed to delete file from S3");

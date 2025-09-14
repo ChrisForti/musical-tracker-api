@@ -38,6 +38,9 @@ uploadRouter.get(
   getEntityImagesHandler
 );
 
+// GET /v2/upload/debug - Debug AWS configuration
+uploadRouter.get("/debug", debugConfigHandler);
+
 // Interfaces for request bodies
 interface UploadPosterBody {
   type: "musical" | "performance";
@@ -108,6 +111,30 @@ async function uploadPosterHandler(
 
     if (!userId) {
       res.status(401).json({ error: "Authentication required" });
+      return;
+    }
+
+    // Validate AWS configuration early
+    if (!process.env.AWS_ACCESS_KEY_ID) {
+      res.status(500).json({
+        error: "Server configuration error",
+        details: "AWS_ACCESS_KEY_ID not configured",
+      });
+      return;
+    }
+    if (!process.env.AWS_SECRET_ACCESS_KEY) {
+      res.status(500).json({
+        error: "Server configuration error",
+        details: "AWS_SECRET_ACCESS_KEY not configured",
+      });
+      return;
+    }
+    if (!process.env.AWS_S3_BUCKET) {
+      res.status(500).json({
+        error: "Server configuration error",
+        details:
+          "AWS_S3_BUCKET not configured - this causes 'No value provided for input HTTP label: Bucket' error",
+      });
       return;
     }
 
@@ -193,12 +220,10 @@ async function uploadPosterHandler(
     // Provide more specific error information
     if (error instanceof Error) {
       if (error.message.includes("AWS") || error.message.includes("S3")) {
-        res
-          .status(500)
-          .json({
-            error: "AWS S3 configuration error",
-            details: error.message,
-          });
+        res.status(500).json({
+          error: "AWS S3 configuration error",
+          details: error.message,
+        });
       } else if (
         error.message.includes("database") ||
         error.message.includes("Database")
@@ -446,4 +471,42 @@ async function getEntityImagesHandler(
     console.error("Error in getEntityImagesHandler:", error);
     res.status(500).json({ error: "Failed to get images" });
   }
+}
+
+/**
+ * Debug AWS configuration (development only)
+ */
+async function debugConfigHandler(req: Request, res: Response) {
+  // Only allow in development environment
+  if (process.env.NODE_ENV === "production") {
+    res.status(404).json({ error: "Not found" });
+    return;
+  }
+
+  const awsConfig = {
+    AWS_ACCESS_KEY_ID: process.env.AWS_ACCESS_KEY_ID ? "SET" : "NOT SET",
+    AWS_SECRET_ACCESS_KEY: process.env.AWS_SECRET_ACCESS_KEY
+      ? "SET"
+      : "NOT SET",
+    AWS_S3_BUCKET: process.env.AWS_S3_BUCKET || "NOT SET",
+    AWS_REGION: process.env.AWS_REGION || "NOT SET (defaulting to us-east-1)",
+  };
+
+  res.json({
+    message: "AWS Configuration Debug (Development Only)",
+    config: awsConfig,
+    issues: [
+      ...(awsConfig.AWS_ACCESS_KEY_ID === "NOT SET"
+        ? ["Missing AWS_ACCESS_KEY_ID"]
+        : []),
+      ...(awsConfig.AWS_SECRET_ACCESS_KEY === "NOT SET"
+        ? ["Missing AWS_SECRET_ACCESS_KEY"]
+        : []),
+      ...(awsConfig.AWS_S3_BUCKET === "NOT SET"
+        ? [
+            "Missing AWS_S3_BUCKET - This causes 'No value provided for input HTTP label: Bucket' error",
+          ]
+        : []),
+    ],
+  });
 }
