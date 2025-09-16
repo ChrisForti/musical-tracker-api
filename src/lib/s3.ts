@@ -4,6 +4,7 @@ import {
   DeleteObjectCommand,
   GetObjectCommand,
 } from "@aws-sdk/client-s3";
+import { getSignedUrl } from "@aws-sdk/s3-request-presigner";
 import { v4 as uuidv4 } from "uuid";
 
 export class S3Service {
@@ -67,8 +68,8 @@ export class S3Service {
 
       await this.s3Client!.send(command);
 
-      // Return the public URL
-      return `https://${this.bucketName}.s3.${process.env.AWS_REGION}.amazonaws.com/${key}`;
+      // Generate a signed URL that works for 24 hours
+      return await this.getSignedUrl(key);
     } catch (error) {
       console.error("Error uploading to S3:", error);
       if (error instanceof Error) {
@@ -76,6 +77,30 @@ export class S3Service {
       } else {
         throw new Error("Failed to upload file to S3");
       }
+    }
+  }
+
+  /**
+   * Generate a signed URL for viewing an object (24 hour expiry)
+   */
+  async getSignedUrl(key: string): Promise<string> {
+    this.checkS3Configuration();
+
+    try {
+      const command = new GetObjectCommand({
+        Bucket: this.bucketName,
+        Key: key,
+      });
+
+      const signedUrl = await getSignedUrl(this.s3Client!, command, {
+        expiresIn: 86400, // 24 hours
+      });
+
+      return signedUrl;
+    } catch (error) {
+      console.error("Error generating signed URL:", error);
+      // Fallback to regular URL if signing fails
+      return `https://${this.bucketName}.s3.${process.env.AWS_REGION}.amazonaws.com/${key}`;
     }
   }
 

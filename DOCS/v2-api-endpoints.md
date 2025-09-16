@@ -470,6 +470,7 @@ The upload system provides secure image storage with AWS S3 integration. All upl
 - **Profile Images**: Max 2MB, formats: JPG, PNG, WebP
 - **Processing**: Automatic resize, compression, and format optimization
 - **Storage**: AWS S3 with organized folder structure
+- **URLs**: All image URLs are signed and valid for 24 hours, allowing direct browser access
 
 #### Upload Poster Image
 
@@ -496,12 +497,14 @@ curl -X POST http://localhost:3000/v2/upload/poster \
 {
   "success": true,
   "imageId": "uuid-of-created-image",
-  "url": "https://your-bucket.s3.amazonaws.com/posters/musicals/musical-id/poster-timestamp.jpg",
+  "url": "https://musical-tracker-images.s3.us-east-2.amazonaws.com/posters/musicals/musical-id/poster-timestamp.jpg?X-Amz-Algorithm=AWS4-HMAC-SHA256&X-Amz-Expires=86400&X-Amz-Signature=...",
   "width": 1200,
   "height": 1600,
   "fileSize": 245760
 }
 ```
+
+**Note:** URLs are signed and valid for 24 hours. They work directly in browsers without additional authentication.
 
 #### Upload Profile Picture
 
@@ -519,12 +522,14 @@ curl -X POST http://localhost:3000/v2/upload/profile \
 {
   "success": true,
   "imageId": "uuid-of-created-image",
-  "url": "https://your-bucket.s3.amazonaws.com/profiles/users/user-id/avatar-timestamp.jpg",
+  "url": "https://musical-tracker-images.s3.us-east-2.amazonaws.com/profiles/users/user-id/avatar-timestamp.jpg?X-Amz-Algorithm=AWS4-HMAC-SHA256&X-Amz-Expires=86400&X-Amz-Signature=...",
   "width": 300,
   "height": 300,
   "fileSize": 45120
 }
 ```
+
+**Note:** URLs are signed and valid for 24 hours. They work directly in browsers without additional authentication.
 
 #### Get Images for Entity
 
@@ -552,7 +557,7 @@ curl -X GET http://localhost:3000/v2/upload/entity/user/uuid-of-user \
   "images": [
     {
       "id": "uuid-of-image",
-      "url": "https://your-bucket.s3.amazonaws.com/posters/musicals/musical-id/poster.jpg",
+      "url": "https://musical-tracker-images.s3.us-east-2.amazonaws.com/posters/musicals/musical-id/poster.jpg?X-Amz-Algorithm=AWS4-HMAC-SHA256&X-Amz-Expires=86400&X-Amz-Signature=...",
       "imageType": "poster",
       "width": 1200,
       "height": 1600,
@@ -562,6 +567,8 @@ curl -X GET http://localhost:3000/v2/upload/entity/user/uuid-of-user \
   ]
 }
 ```
+
+**Note:** All image URLs are signed and valid for 24 hours. They can be opened directly in browsers.
 
 #### Delete Uploaded Image
 
