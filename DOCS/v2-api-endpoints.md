@@ -49,13 +49,13 @@ This refactor improves data integrity through proper foreign key relationships a
   - Removed pending query parameter and verify endpoint
   - **All endpoints now require authentication**
   - GET `/casting` now returns all castings (no filtering)
-- **Upload System**:
+- **Media System**:
   - **NEW**: Complete image upload system with AWS S3 integration
-  - **NEW**: `POST /upload/poster` - Upload posters for musicals/performances
-  - **NEW**: `POST /upload/profile` - Upload user profile pictures
-  - **NEW**: `DELETE /upload/:imageId` - Delete uploaded images
-  - **DEPRECATED**: `GET /upload/entity/:entityType/:entityId` - Returns 501 error (use foreign key relationships)
+  - **NEW**: `POST /media` - Unified endpoint for all image uploads (poster, profile)
+  - **NEW**: `DELETE /media/:imageId` - Delete uploaded images
+  - **DEPRECATED**: `GET /media/entity/:entityType/:entityId` - Returns 501 error (use foreign key relationships)
   - **ARCHITECTURAL CHANGE**: Removed entity linking, now uses foreign key relationships
+  - **SIMPLIFIED**: Single endpoint replaces separate poster/profile upload endpoints
   - Automatic image processing (resize, compress, format conversion)
   - Secure file validation and user permission checks
 
@@ -485,9 +485,9 @@ curl -X DELETE http://localhost:3000/v2/performance/:id \
 -H "Authorization: Bearer YOUR_ACCESS_TOKEN"
 ```
 
-## Upload Endpoints
+## Media Endpoints
 
-The upload system provides secure image storage with AWS S3 integration. All uploaded images are automatically processed (resized, compressed) and stored with organized folder structures.
+The media system provides secure image storage with AWS S3 integration. All uploaded images are automatically processed (resized, compressed) and stored with organized folder structures.
 
 ### File Requirements
 
@@ -497,24 +497,39 @@ The upload system provides secure image storage with AWS S3 integration. All upl
 - **Storage**: AWS S3 with organized folder structure
 - **URLs**: All image URLs are signed and valid for 24 hours, allowing direct browser access
 
-#### Upload Poster Image
+#### Upload Media (Unified Endpoint)
 
-Upload poster images for musicals or performances. **Note**: After uploading, use the returned `imageId` as the `posterId` when creating or updating musicals/performances.
+Upload any type of media with a single endpoint. The `imageType` parameter determines the upload behavior and validation rules.
 
 ```bash
-curl -X POST http://localhost:3000/v2/upload/poster \
+# Upload poster for musical
+curl -X POST http://localhost:3000/v2/media \
 -H "Authorization: Bearer YOUR_ACCESS_TOKEN" \
 -F "file=@/path/to/poster.jpg" \
+-F "imageType=poster" \
 -F "type=musical" \
 -F "entityId=uuid-of-musical"
 
-# For performance posters
-curl -X POST http://localhost:3000/v2/upload/poster \
+# Upload poster for performance
+curl -X POST http://localhost:3000/v2/media \
 -H "Authorization: Bearer YOUR_ACCESS_TOKEN" \
 -F "file=@/path/to/poster.jpg" \
+-F "imageType=poster" \
 -F "type=performance" \
 -F "entityId=uuid-of-performance"
+
+# Upload profile picture
+curl -X POST http://localhost:3000/v2/media \
+-H "Authorization: Bearer YOUR_ACCESS_TOKEN" \
+-F "file=@/path/to/profile.jpg" \
+-F "imageType=profile"
 ```
+
+**Parameters:**
+- `file` (required): The image file to upload
+- `imageType` (required): Type of image - "poster" or "profile"
+- `type` (required for poster): Entity type - "musical" or "performance" 
+- `entityId` (required for poster): UUID of the musical or performance
 
 **Response:**
 
@@ -525,63 +540,19 @@ curl -X POST http://localhost:3000/v2/upload/poster \
   "url": "https://musical-tracker-images.s3.us-east-2.amazonaws.com/posters/musicals/musical-id/poster-timestamp.jpg?X-Amz-Algorithm=AWS4-HMAC-SHA256&X-Amz-Expires=86400&X-Amz-Signature=...",
   "width": 1200,
   "height": 1600,
-  "fileSize": 245760
+  "fileSize": 245760,
+  "imageType": "poster"
 }
 ```
 
-**Note:** URLs are signed and valid for 24 hours. They work directly in browsers without additional authentication.
-
-#### Upload Profile Picture
-
-Upload user profile pictures (automatically cropped to square).
-
-```bash
-curl -X POST http://localhost:3000/v2/upload/profile \
--H "Authorization: Bearer YOUR_ACCESS_TOKEN" \
--F "file=@/path/to/profile.jpg"
-```
-
-**Response:**
-
-```json
-{
-  "success": true,
-  "imageId": "uuid-of-created-image",
-  "url": "https://musical-tracker-images.s3.us-east-2.amazonaws.com/profiles/users/user-id/avatar-timestamp.jpg?X-Amz-Algorithm=AWS4-HMAC-SHA256&X-Amz-Expires=86400&X-Amz-Signature=...",
-  "width": 300,
-  "height": 300,
-  "fileSize": 45120
-}
-```
-
-**Note:** URLs are signed and valid for 24 hours. They work directly in browsers without additional authentication.
-
-#### Get Images for Entity (DEPRECATED)
-
-**⚠️ DEPRECATED**: This endpoint now returns a 501 error. Use foreign key relationships instead.
-
-```bash
-# This endpoint is deprecated and returns 501 error
-curl -X GET http://localhost:3000/v2/upload/entity/musical/uuid-of-musical \
--H "Authorization: Bearer YOUR_ACCESS_TOKEN"
-```
-
-**Response:**
-
-```json
-{
-  "error": "Entity image lookup not yet implemented in new architecture"
-}
-```
-
-**Migration Guide**: Instead of fetching entity images, use the `posterId` field in musicals/performances to reference uploaded images directly.
+**Note**: After uploading, use the returned `imageId` as the `posterId` when creating or updating musicals/performances.
 
 #### Delete Uploaded Image
 
 Delete an uploaded image (users can only delete their own images).
 
 ```bash
-curl -X DELETE http://localhost:3000/v2/upload/uuid-of-image \
+curl -X DELETE http://localhost:3000/v2/media/uuid-of-image \
 -H "Authorization: Bearer YOUR_ACCESS_TOKEN"
 ```
 
@@ -591,6 +562,29 @@ curl -X DELETE http://localhost:3000/v2/upload/uuid-of-image \
 {
   "success": true,
   "message": "Image deleted successfully"
+}
+```
+
+#### Debug Media Configuration (Development Only)
+
+Check AWS configuration status (only available in development environment).
+
+```bash
+curl -X GET http://localhost:3000/v2/media/debug
+```
+
+**Response:**
+
+```json
+{
+  "message": "AWS Configuration Debug (Development Only)",
+  "config": {
+    "AWS_ACCESS_KEY_ID": "SET",
+    "AWS_SECRET_ACCESS_KEY": "SET", 
+    "AWS_S3_BUCKET": "musical-tracker-images",
+    "AWS_REGION": "us-east-2"
+  },
+  "issues": []
 }
 ```
 
