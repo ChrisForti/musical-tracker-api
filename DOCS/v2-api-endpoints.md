@@ -4,20 +4,41 @@
 
 All V2 endpoints use UUID-based identifiers and the "verified" field pattern instead of "approved". Authentication is required for most endpoints via Bearer token.
 
+## ⚠️ **BREAKING CHANGES - Architecture Refactor**
+
+**Database Schema Changes (September 2025):**
+- Changed `poster_url` (VARCHAR) → `poster_id` (UUID) with foreign key constraints
+- Removed entity linking (`entity_type`, `entity_id`) from uploaded_images table
+- Implemented foreign key relationships: `musicals.poster_id` → `uploaded_images.id`
+- Implemented foreign key relationships: `performances.poster_id` → `uploaded_images.id`
+
+**API Response Changes:**
+- Musicals and performances now return `posterId` field instead of embedded images
+- Entity-based image lookup endpoints return 501 (deprecated)
+- Simplified responses focus on foreign key relationships
+
+**Migration Path:**
+1. Upload images using `POST /upload/poster` or `POST /upload/profile`
+2. Use returned `imageId` as `posterId` when creating/updating musicals/performances
+3. Fetch image details separately using the `posterId` if needed
+
+This refactor improves data integrity through proper foreign key relationships and follows radical simplicity principles.
+
 ## Recent Updates (api-improvements branch)
 
 ### Changes Made:
 
 - **Musical**:
-  - Added optional `posterUrl` field to POST and PUT endpoints
+  - Changed from `posterUrl` field to `posterId` field with foreign key to uploaded_images
   - **All endpoints now require authentication**
   - PUT endpoint requires admin access if musical is verified
-  - **GET responses now include associated images array**
+  - **GET responses now return posterId instead of embedded images**
 - **Performance**:
+  - Changed from `posterUrl` field to `posterId` field with foreign key to uploaded_images
   - Added optional `date` field to POST and PUT endpoints
   - **GET /performance/:id now requires authentication**
   - Added actor filtering: `?actorId=uuid` to get performances where specific actor was cast
-  - **GET responses now include associated images array**
+  - **GET responses now return posterId instead of embedded images**
 - **Casting**:
   - Added **required** `performanceId` field to all endpoints
   - POST response now returns only `{"id": "casting-uuid"}`
@@ -30,7 +51,8 @@ All V2 endpoints use UUID-based identifiers and the "verified" field pattern ins
   - **NEW**: `POST /upload/poster` - Upload posters for musicals/performances
   - **NEW**: `POST /upload/profile` - Upload user profile pictures
   - **NEW**: `DELETE /upload/:imageId` - Delete uploaded images
-  - **NEW**: `GET /upload/entity/:entityType/:entityId` - Get images for entities
+  - **DEPRECATED**: `GET /upload/entity/:entityType/:entityId` - Returns 501 error (use foreign key relationships)
+  - **ARCHITECTURAL CHANGE**: Removed entity linking, now uses foreign key relationships
   - Automatic image processing (resize, compress, format conversion)
   - Secure file validation and user permission checks
 
@@ -240,7 +262,7 @@ curl -X POST http://localhost:3000/v2/musical \
   "title": "Hamilton",
   "composer": "Lin-Manuel Miranda",
   "lyricist": "Lin-Manuel Miranda",
-  "posterUrl": "https://example.com/hamilton-poster.jpg"
+  "posterId": "uuid-of-uploaded-image"
 }'
 ```
 
@@ -263,7 +285,7 @@ curl -X PUT http://localhost:3000/v2/musical/:id \
   "title": "Updated Musical Title",
   "composer": "Updated Composer",
   "lyricist": "Updated Lyricist",
-  "posterUrl": "https://example.com/updated-poster.jpg"
+  "posterId": "uuid-of-uploaded-image"
 }'
 ```
 
@@ -428,7 +450,7 @@ curl -X POST http://localhost:3000/v2/performance \
   "musicalId": "uuid-of-musical",
   "date": "2024-12-25",
   "notes": "Amazing show!",
-  "posterUrl": "https://example.com/poster.jpg"
+  "posterId": "uuid-of-uploaded-image"
 }'
 ```
 
@@ -449,7 +471,7 @@ curl -X PUT http://localhost:3000/v2/performance/:id \
   "musicalId": "uuid-of-musical",
   "date": "2024-12-26",
   "notes": "Updated notes",
-  "posterUrl": "https://example.com/updated-poster.jpg"
+  "posterId": "uuid-of-uploaded-image"
 }'
 ```
 
@@ -474,7 +496,7 @@ The upload system provides secure image storage with AWS S3 integration. All upl
 
 #### Upload Poster Image
 
-Upload poster images for musicals or performances.
+Upload poster images for musicals or performances. **Note**: After uploading, use the returned `imageId` as the `posterId` when creating or updating musicals/performances.
 
 ```bash
 curl -X POST http://localhost:3000/v2/upload/poster \
@@ -531,21 +553,13 @@ curl -X POST http://localhost:3000/v2/upload/profile \
 
 **Note:** URLs are signed and valid for 24 hours. They work directly in browsers without additional authentication.
 
-#### Get Images for Entity
+#### Get Images for Entity (DEPRECATED)
 
-Retrieve all images associated with a specific entity.
+**⚠️ DEPRECATED**: This endpoint now returns a 501 error. Use foreign key relationships instead.
 
 ```bash
-# Get all images for a musical
+# This endpoint is deprecated and returns 501 error
 curl -X GET http://localhost:3000/v2/upload/entity/musical/uuid-of-musical \
--H "Authorization: Bearer YOUR_ACCESS_TOKEN"
-
-# Get only poster images for a performance
-curl -X GET "http://localhost:3000/v2/upload/entity/performance/uuid-of-performance?imageType=poster" \
--H "Authorization: Bearer YOUR_ACCESS_TOKEN"
-
-# Get user profile pictures
-curl -X GET http://localhost:3000/v2/upload/entity/user/uuid-of-user \
 -H "Authorization: Bearer YOUR_ACCESS_TOKEN"
 ```
 
@@ -553,22 +567,11 @@ curl -X GET http://localhost:3000/v2/upload/entity/user/uuid-of-user \
 
 ```json
 {
-  "success": true,
-  "images": [
-    {
-      "id": "uuid-of-image",
-      "url": "https://musical-tracker-images.s3.us-east-2.amazonaws.com/posters/musicals/musical-id/poster.jpg?X-Amz-Algorithm=AWS4-HMAC-SHA256&X-Amz-Expires=86400&X-Amz-Signature=...",
-      "imageType": "poster",
-      "width": 1200,
-      "height": 1600,
-      "fileSize": 245760,
-      "createdAt": "2025-09-07T18:30:00Z"
-    }
-  ]
+  "error": "Entity image lookup not yet implemented in new architecture"
 }
 ```
 
-**Note:** All image URLs are signed and valid for 24 hours. They can be opened directly in browsers.
+**Migration Guide**: Instead of fetching entity images, use the `posterId` field in musicals/performances to reference uploaded images directly.
 
 #### Delete Uploaded Image
 
@@ -590,7 +593,7 @@ curl -X DELETE http://localhost:3000/v2/upload/uuid-of-image \
 
 ### Enhanced Entity Responses
 
-**Musical and Performance GET endpoints now include associated images:**
+**Musical and Performance GET endpoints now use foreign key relationships:**
 
 ```json
 {
@@ -598,22 +601,18 @@ curl -X DELETE http://localhost:3000/v2/upload/uuid-of-image \
   "title": "Hamilton",
   "composer": "Lin-Manuel Miranda",
   "lyricist": "Lin-Manuel Miranda",
-  "posterUrl": "https://example.com/old-poster.jpg",
-  "verified": true,
-  "images": [
-    {
-      "id": "uuid-of-image",
-      "url": "https://your-bucket.s3.amazonaws.com/posters/musicals/musical-id/poster.jpg",
-      "type": "poster",
-      "width": 1200,
-      "height": 1600,
-      "createdAt": "2025-09-07T18:30:00Z"
-    }
-  ]
+  "posterId": "uuid-of-associated-image",
+  "verified": true
 }
 ```
 
-**Note**: The `posterUrl` field is maintained for backward compatibility, but the new `images` array provides more comprehensive image management.
+**To get the actual image data, make a separate request to:**
+```bash
+curl -X GET http://localhost:3000/v2/upload/uuid-of-associated-image \
+-H "Authorization: Bearer YOUR_ACCESS_TOKEN"
+```
+
+**Note**: The architecture now uses foreign key relationships instead of embedding images. This provides better data integrity and simpler API responses.
 
 ## Response Formats
 
