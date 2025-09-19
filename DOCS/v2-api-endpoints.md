@@ -7,17 +7,20 @@ All V2 endpoints use UUID-based identifiers and the "verified" field pattern ins
 ## ⚠️ **BREAKING CHANGES - Architecture Refactor**
 
 **Database Schema Changes (September 2025):**
+
 - Changed `poster_url` (VARCHAR) → `poster_id` (UUID) with foreign key constraints
 - Removed entity linking (`entity_type`, `entity_id`) from uploaded_images table
 - Implemented foreign key relationships: `musicals.poster_id` → `uploaded_images.id`
 - Implemented foreign key relationships: `performances.poster_id` → `uploaded_images.id`
 
 **API Response Changes:**
+
 - Musicals and performances now return `posterId` field instead of embedded images
 - Entity-based image lookup endpoints return 501 (deprecated)
 - Simplified responses focus on foreign key relationships
 
 **Migration Path:**
+
 1. Upload images using `POST /upload/poster` or `POST /upload/profile`
 2. Use returned `imageId` as `posterId` when creating/updating musicals/performances
 3. Fetch image details separately using the `posterId` if needed
@@ -607,6 +610,7 @@ curl -X DELETE http://localhost:3000/v2/upload/uuid-of-image \
 ```
 
 **To get the actual image data, make a separate request to:**
+
 ```bash
 curl -X GET http://localhost:3000/v2/upload/uuid-of-associated-image \
 -H "Authorization: Bearer YOUR_ACCESS_TOKEN"
