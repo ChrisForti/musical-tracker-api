@@ -10,43 +10,6 @@ import { imageDb } from "../../lib/imageDb.js";
 
 export const performanceRouter = Router();
 
-// Helper function to add images to performance data
-async function addImagesToPerformance(performance: any) {
-  try {
-    const images = await imageDb.getImagesByEntity(
-      "performance",
-      performance.id
-    );
-    return {
-      ...performance,
-      images: images.map((img) => ({
-        id: img.id,
-        url: img.s3Url,
-        type: img.imageType,
-        width: img.width,
-        height: img.height,
-        createdAt: img.createdAt,
-      })),
-    };
-  } catch (error) {
-    console.error(
-      `Error fetching images for performance ${performance.id}:`,
-      error
-    );
-    return {
-      ...performance,
-      images: [],
-    };
-  }
-}
-
-// Helper function to add images to multiple performances
-async function addImagesToPerformances(performances: any[]) {
-  return Promise.all(
-    performances.map((performance) => addImagesToPerformance(performance))
-  );
-}
-
 performanceRouter.get("/", ensureAuthenticated, getAllPerformancesHandler);
 performanceRouter.post("/", ensureAuthenticated, createPerformanceHandler);
 performanceRouter.get("/:id", ensureAuthenticated, getPerformanceByIdHandler);
@@ -80,7 +43,7 @@ async function getAllPerformancesHandler(req: Request, res: Response) {
             userId: PerformanceTable.userId,
             date: PerformanceTable.date,
             notes: PerformanceTable.notes,
-            posterUrl: PerformanceTable.posterUrl,
+            posterId: PerformanceTable.posterId,
           })
           .from(PerformanceTable)
           .innerJoin(
@@ -88,10 +51,7 @@ async function getAllPerformancesHandler(req: Request, res: Response) {
             eq(CastingTable.performanceId, PerformanceTable.id)
           )
           .where(eq(CastingTable.actorId, actorId));
-        const performancesWithImages = await addImagesToPerformances(
-          performancesWithActor
-        );
-        res.status(200).json(performancesWithImages);
+        res.status(200).json(performancesWithActor);
       } else {
         const userPerformancesWithActor = await db
           .select({
@@ -100,7 +60,7 @@ async function getAllPerformancesHandler(req: Request, res: Response) {
             userId: PerformanceTable.userId,
             date: PerformanceTable.date,
             notes: PerformanceTable.notes,
-            posterUrl: PerformanceTable.posterUrl,
+            posterId: PerformanceTable.posterId,
           })
           .from(PerformanceTable)
           .innerJoin(
@@ -113,10 +73,7 @@ async function getAllPerformancesHandler(req: Request, res: Response) {
               eq(PerformanceTable.userId, userId)
             )
           );
-        const performancesWithImages = await addImagesToPerformances(
-          userPerformancesWithActor
-        );
-        res.status(200).json(performancesWithImages);
+        res.status(200).json(userPerformancesWithActor);
       }
       return;
     }
@@ -124,37 +81,32 @@ async function getAllPerformancesHandler(req: Request, res: Response) {
     // Regular performance listing (without actor filter)
     if (req.user?.role === "admin") {
       const performances = await db.select().from(PerformanceTable);
-      const performancesWithImages = await addImagesToPerformances(
-        performances
-      );
-      res.status(200).json(performancesWithImages);
+      res.status(200).json(performances);
     } else {
       const userPerformances = await db
         .select()
         .from(PerformanceTable)
         .where(eq(PerformanceTable.userId, userId));
-      const performancesWithImages = await addImagesToPerformances(
-        userPerformances
-      );
-      res.status(200).json(performancesWithImages);
+      res.status(200).json(userPerformances);
     }
   } catch (error) {
     console.error("Error in getAllPerformancesHandler:", error);
     res.status(500).json({ error: SERVER_ERROR });
   }
 }
+
 type CreatePerformanceBodyParams = {
   musicalId: string;
   date?: string;
   notes?: string;
-  posterUrl?: string;
+  posterId?: string;
 };
 
 async function createPerformanceHandler(
   req: Request<{}, {}, CreatePerformanceBodyParams>,
   res: Response
 ) {
-  const { musicalId, date, notes, posterUrl } = req.body;
+  const { musicalId, date, notes, posterId } = req.body;
   const userId = req.user?.id;
   const validator = new Validator();
 
@@ -181,7 +133,7 @@ async function createPerformanceHandler(
         userId: userId!,
         date: date ? new Date(date) : null,
         notes: notes || null,
-        posterUrl: posterUrl || null,
+        posterId: posterId || null,
       })
       .returning({ id: PerformanceTable.id });
 
@@ -238,8 +190,7 @@ async function getPerformanceByIdHandler(
       return;
     }
 
-    const performanceWithImages = await addImagesToPerformance(performance);
-    res.status(200).json(performanceWithImages);
+    res.status(200).json(performance);
   } catch (error) {
     console.error("Error in getPerformanceByIdHandler:", error);
     res.status(500).json({ error: SERVER_ERROR });
@@ -250,7 +201,7 @@ type UpdatePerformanceBodyParams = {
   musicalId?: string;
   date?: string;
   notes?: string;
-  posterUrl?: string;
+  posterId?: string;
 };
 
 async function updatePerformanceHandler(
@@ -258,7 +209,7 @@ async function updatePerformanceHandler(
   res: Response
 ) {
   const id = req.params.id;
-  const { musicalId, date, notes, posterUrl } = req.body;
+  const { musicalId, date, notes, posterId } = req.body;
   const userId = req.user?.id;
   const validator = new Validator();
 
@@ -300,17 +251,17 @@ async function updatePerformanceHandler(
       musicalId: string;
       date: Date;
       notes: string;
-      posterUrl: string;
+      posterId: string;
     }> = {};
     if (musicalId) updateData.musicalId = musicalId;
     if (date) updateData.date = new Date(date);
     if (notes !== undefined) updateData.notes = notes;
-    if (posterUrl !== undefined) updateData.posterUrl = posterUrl;
+    if (posterId !== undefined) updateData.posterId = posterId;
 
     if (Object.keys(updateData).length === 0) {
       res.status(400).json({
         error:
-          "At least one field (musicalId, date, notes, or posterUrl) is required",
+          "At least one field (musicalId, date, notes, or posterId) is required",
       });
       return;
     }

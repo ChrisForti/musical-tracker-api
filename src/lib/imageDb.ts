@@ -11,8 +11,6 @@ export interface CreateImageParams {
   width?: number;
   height?: number;
   uploadedBy: string;
-  entityType?: "musical" | "performance" | "user";
-  entityId?: string;
   imageType: "poster" | "profile" | "thumbnail";
 }
 
@@ -50,8 +48,6 @@ export class ImageDb {
           width: params.width,
           height: params.height,
           uploadedBy: params.uploadedBy,
-          entityType: params.entityType,
-          entityId: params.entityId,
           imageType: params.imageType,
         })
         .returning();
@@ -80,37 +76,6 @@ export class ImageDb {
     } catch (error) {
       console.error("Error fetching image by ID:", error);
       throw new Error("Failed to fetch image");
-    }
-  }
-
-  /**
-   * Get images by entity (musical, performance, user)
-   */
-  static async getImagesByEntity(
-    entityType: string,
-    entityId: string,
-    imageType?: string
-  ): Promise<ImageRecord[]> {
-    try {
-      const whereConditions = [
-        eq(UploadedImagesTable.entityType, entityType),
-        eq(UploadedImagesTable.entityId, entityId),
-      ];
-
-      if (imageType) {
-        whereConditions.push(eq(UploadedImagesTable.imageType, imageType));
-      }
-
-      const images = await db
-        .select()
-        .from(UploadedImagesTable)
-        .where(and(...whereConditions))
-        .orderBy(UploadedImagesTable.createdAt);
-
-      return images as ImageRecord[];
-    } catch (error) {
-      console.error("Error fetching images by entity:", error);
-      throw new Error("Failed to fetch images");
     }
   }
 
@@ -178,31 +143,6 @@ export class ImageDb {
     } catch (error) {
       console.error("Error updating image record:", error);
       throw new Error("Failed to update image record");
-    }
-  }
-
-  /**
-   * Delete images by entity (when entity is deleted)
-   */
-  static async deleteImagesByEntity(
-    entityType: string,
-    entityId: string
-  ): Promise<ImageRecord[]> {
-    try {
-      const deletedImages = await db
-        .delete(UploadedImagesTable)
-        .where(
-          and(
-            eq(UploadedImagesTable.entityType, entityType),
-            eq(UploadedImagesTable.entityId, entityId)
-          )
-        )
-        .returning();
-
-      return deletedImages as ImageRecord[];
-    } catch (error) {
-      console.error("Error deleting images by entity:", error);
-      throw new Error("Failed to delete entity images");
     }
   }
 }

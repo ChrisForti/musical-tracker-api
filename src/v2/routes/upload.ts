@@ -190,8 +190,6 @@ async function uploadPosterHandler(
       width: processedImage.width,
       height: processedImage.height,
       uploadedBy: userId,
-      entityType: type,
-      entityId,
       imageType: "poster",
     });
 
@@ -300,26 +298,11 @@ async function uploadProfileHandler(
       {
         originalName: req.file.originalname,
         uploadedBy: userId,
-        entityType: "user",
-        entityId: userId,
       }
     );
 
-    // Check if user already has a profile picture and delete the old one
-    const existingImages = await imageDb.getImagesByEntity(
-      "user",
-      userId,
-      "profile"
-    );
-    for (const existingImage of existingImages) {
-      try {
-        await s3Service.deleteFile(existingImage.s3Key);
-        await imageDb.deleteImage(existingImage.id);
-      } catch (error) {
-        console.error("Error deleting old profile picture:", error);
-        // Continue anyway - don't fail the upload for cleanup issues
-      }
-    }
+    // TODO: Check if user already has a profile picture and delete the old one
+    // This functionality needs to be redesigned for the new architecture
 
     // Save to database
     const imageRecord = await imageDb.createImage({
@@ -331,8 +314,6 @@ async function uploadProfileHandler(
       width: processedImage.width,
       height: processedImage.height,
       uploadedBy: userId,
-      entityType: "user",
-      entityId: userId,
       imageType: "profile",
     });
 
@@ -448,24 +429,10 @@ async function getEntityImagesHandler(
       return;
     }
 
-    // Get images
-    const images = await imageDb.getImagesByEntity(
-      entityType,
-      entityId,
-      imageType
-    );
-
-    res.status(200).json({
-      success: true,
-      images: images.map((img) => ({
-        id: img.id,
-        url: img.s3Url,
-        imageType: img.imageType,
-        width: img.width,
-        height: img.height,
-        fileSize: img.fileSize,
-        createdAt: img.createdAt,
-      })),
+    // TODO: This functionality needs to be redesigned for the new architecture
+    // where images are linked via foreign keys instead of entity relationships
+    res.status(501).json({
+      error: "Entity image lookup not yet implemented in new architecture",
     });
   } catch (error) {
     console.error("Error in getEntityImagesHandler:", error);

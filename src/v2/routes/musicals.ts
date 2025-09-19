@@ -10,35 +10,6 @@ import { imageDb } from "../../lib/imageDb.js";
 
 export const musicalRouter = Router();
 
-// Helper function to add images to musical data
-async function addImagesToMusical(musical: any) {
-  try {
-    const images = await imageDb.getImagesByEntity("musical", musical.id);
-    return {
-      ...musical,
-      images: images.map((img) => ({
-        id: img.id,
-        url: img.s3Url,
-        type: img.imageType,
-        width: img.width,
-        height: img.height,
-        createdAt: img.createdAt,
-      })),
-    };
-  } catch (error) {
-    console.error(`Error fetching images for musical ${musical.id}:`, error);
-    return {
-      ...musical,
-      images: [],
-    };
-  }
-}
-
-// Helper function to add images to multiple musicals
-async function addImagesToMusicals(musicals: any[]) {
-  return Promise.all(musicals.map((musical) => addImagesToMusical(musical)));
-}
-
 musicalRouter.get("/", ensureAuthenticated, getAllMusicalsHandler);
 musicalRouter.post("/", ensureAuthenticated, createMusicalHandler);
 musicalRouter.get("/:id", ensureAuthenticated, getMusicalByIdHandler);
@@ -66,12 +37,10 @@ async function getAllMusicalsHandler(req: Request, res: Response) {
         .from(MusicalTable)
         .where(eq(MusicalTable.verified, false));
 
-      const musicalsWithImages = await addImagesToMusicals(pendingMusicals);
-      res.status(200).json(musicalsWithImages);
+      res.status(200).json(pendingMusicals);
     } else {
       const musicals = await db.select().from(MusicalTable);
-      const musicalsWithImages = await addImagesToMusicals(musicals);
-      res.status(200).json(musicalsWithImages);
+      res.status(200).json(musicals);
     }
   } catch (error) {
     console.error("Error in getAllMusicalsHandler:", error);
@@ -83,14 +52,14 @@ type CreateMusicalBodyParams = {
   composer: string;
   lyricist: string;
   title: string;
-  posterUrl?: string;
+  posterId?: string;
 };
 
 async function createMusicalHandler(
   req: Request<{}, {}, CreateMusicalBodyParams>,
   res: Response
 ) {
-  const { composer, lyricist, title, posterUrl } = req.body;
+  const { composer, lyricist, title, posterId } = req.body;
   const validator = new Validator();
 
   try {
@@ -105,7 +74,7 @@ async function createMusicalHandler(
 
     const [newMusical] = await db
       .insert(MusicalTable)
-      .values({ composer, lyricist, title, posterUrl })
+      .values({ composer, lyricist, title, posterId })
       .returning({ id: MusicalTable.id });
 
     if (!newMusical) {
@@ -154,8 +123,7 @@ async function getMusicalByIdHandler(
       return;
     }
 
-    const musicalWithImages = await addImagesToMusical(musical);
-    res.status(200).json(musicalWithImages);
+    res.status(200).json(musical);
   } catch (error) {
     console.error("Error in getMusicalByIdHandler:", error);
     res.status(500).json({ error: SERVER_ERROR });
@@ -166,7 +134,7 @@ type UpdateMusicalBodyParams = {
   composer?: string;
   lyricist?: string;
   title?: string;
-  posterUrl?: string;
+  posterId?: string;
 };
 
 async function updateMusicalHandler(
@@ -174,7 +142,7 @@ async function updateMusicalHandler(
   res: Response
 ) {
   const id = req.params.id;
-  const { composer, lyricist, title, posterUrl } = req.body;
+  const { composer, lyricist, title, posterId } = req.body;
   const validator = new Validator();
 
   try {
@@ -210,17 +178,17 @@ async function updateMusicalHandler(
       composer: string;
       lyricist: string;
       title: string;
-      posterUrl: string;
+      posterId: string;
     }> = {};
     if (composer) updateData.composer = composer;
     if (lyricist) updateData.lyricist = lyricist;
     if (title) updateData.title = title;
-    if (posterUrl !== undefined) updateData.posterUrl = posterUrl;
+    if (posterId !== undefined) updateData.posterId = posterId;
 
     if (Object.keys(updateData).length === 0) {
       res.status(400).json({
         error:
-          "At least one field (composer, lyricist, title, or posterUrl) is required",
+          "At least one field (composer, lyricist, title, or posterId) is required",
       });
       return;
     }
