@@ -526,9 +526,10 @@ curl -X POST http://localhost:3000/v2/media \
 ```
 
 **Parameters:**
+
 - `file` (required): The image file to upload
 - `imageType` (required): Type of image - "poster" or "profile"
-- `type` (required for poster): Entity type - "musical" or "performance" 
+- `type` (required for poster): Entity type - "musical" or "performance"
 - `entityId` (required for poster): UUID of the musical or performance
 
 **Response:**
@@ -580,7 +581,7 @@ curl -X GET http://localhost:3000/v2/media/debug
   "message": "AWS Configuration Debug (Development Only)",
   "config": {
     "AWS_ACCESS_KEY_ID": "SET",
-    "AWS_SECRET_ACCESS_KEY": "SET", 
+    "AWS_SECRET_ACCESS_KEY": "SET",
     "AWS_S3_BUCKET": "musical-tracker-images",
     "AWS_REGION": "us-east-2"
   },

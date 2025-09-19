@@ -164,19 +164,9 @@ async function uploadMediaHandler(
     let s3Key: string;
 
     if (imageType === "poster" && type && entityId) {
-      s3Key = s3Service.generateS3Key(
-        "poster",
-        type,
-        entityId,
-        fileExtension
-      );
+      s3Key = s3Service.generateS3Key("poster", type, entityId, fileExtension);
     } else if (imageType === "profile") {
-      s3Key = s3Service.generateS3Key(
-        "profile",
-        "user",
-        userId,
-        fileExtension
-      );
+      s3Key = s3Service.generateS3Key("profile", "user", userId, fileExtension);
     } else {
       throw new Error(`Unsupported image type: ${imageType}`);
     }
