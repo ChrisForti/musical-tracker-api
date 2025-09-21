@@ -45,7 +45,6 @@ This refactor improves data integrity through proper foreign key relationships a
   - **GET /performance/:id now requires authentication**
   - **Enhanced GET responses with complex joins including musical, theater, and cast data**
   - **Added `posterUrl` resolution in GET responses using imageDb service**
-  - Added actor filtering: `?actorId=uuid` to get performances where specific actor was cast
   - **GET responses now return posterId instead of embedded images**
 - **Casting**:
   - Added **required** `performanceId` field to all endpoints
@@ -339,21 +338,27 @@ curl -X GET http://localhost:3000/v2/pending/musicals \
 
 **Response:**
 
+````json
+**Response:**
 ```json
 [
   {
     "id": "uuid-of-musical",
-    "name": "Unverified Musical"
+    "name": "Unverified Musical Title",
+    "composer": "Composer Name",
+    "lyricist": "Lyricist Name"
   }
 ]
-```
+````
+
+````
 
 #### Get Pending Theaters
 
 ```bash
 curl -X GET http://localhost:3000/v2/pending/theaters \
 -H "Authorization: Bearer YOUR_ACCESS_TOKEN"
-```
+````
 
 **Response:**
 
@@ -524,7 +529,6 @@ curl -X DELETE http://localhost:3000/v2/casting/:id \
 
 - **User**: Returns only their own performances
 - **Admin**: Returns all performances, or use `?userId=uuid` to filter by user
-- **Actor Filter**: Use `?actorId=uuid` to get performances where a specific actor was cast (users see only their own performances, admins see all)
 
 ```bash
 curl -X GET http://localhost:3000/v2/performance \
@@ -533,10 +537,20 @@ curl -X GET http://localhost:3000/v2/performance \
 # Admin can filter by user
 curl -X GET "http://localhost:3000/v2/performance?userId=specific-user-uuid" \
 -H "Authorization: Bearer YOUR_ACCESS_TOKEN"
+```
 
-# Filter by actor (returns performances where this actor was cast)
-curl -X GET "http://localhost:3000/v2/performance?actorId=specific-actor-uuid" \
--H "Authorization: Bearer YOUR_ACCESS_TOKEN"
+**Response:**
+
+```json
+[
+  {
+    "posterUrl": "https://signed-s3-url...",
+    "date": "2024-12-25",
+    "theaterName": "Test Theater",
+    "theaterId": "uuid-of-theater",
+    "musicalName": "Hamilton"
+  }
+]
 ```
 
 #### Create Performance
@@ -565,42 +579,31 @@ curl -X GET http://localhost:3000/v2/performance/:id \
 
 **Response:**
 
+````json
+**Response:**
 ```json
 {
-  "id": "uuid-of-performance",
-  "musicalId": "uuid-of-musical",
-  "theaterId": "uuid-of-theater",
-  "userId": "uuid-of-user",
-  "date": "2024-12-25",
-  "notes": "Amazing show!",
-  "posterId": "uuid-of-uploaded-image",
   "posterUrl": "https://signed-s3-url...",
-  "musical": {
-    "id": "uuid-of-musical",
-    "title": "Hamilton",
-    "composer": "Lin-Manuel Miranda",
-    "lyricist": "Lin-Manuel Miranda"
-  },
-  "theater": {
-    "id": "uuid-of-theater",
-    "name": "Richard Rodgers Theatre",
-    "city": "New York"
-  },
+  "date": "2024-12-25",
+  "theaterName": "Richard Rodgers Theatre",
+  "musicalName": "Hamilton",
+  "notes": "Amazing show!",
   "cast": [
     {
-      "id": "uuid-of-casting",
-      "actor": {
-        "id": "uuid-of-actor",
-        "name": "Lin-Manuel Miranda"
-      },
-      "role": {
-        "id": "uuid-of-role",
-        "name": "Alexander Hamilton"
-      }
+      "id": "uuid-of-actor",
+      "actorName": "Lin-Manuel Miranda",
+      "roles": [
+        {
+          "id": "uuid-of-role",
+          "name": "Alexander Hamilton"
+        }
+      ]
     }
   ]
 }
-```
+````
+
+````
 
 #### Update Performance (Authentication Required)
 
@@ -609,13 +612,12 @@ curl -X PUT http://localhost:3000/v2/performance/:id \
 -H "Authorization: Bearer YOUR_ACCESS_TOKEN" \
 -H "Content-Type: application/json" \
 -d '{
-  "musicalId": "uuid-of-musical",
   "theaterId": "uuid-of-theater",
   "date": "2024-12-26",
   "notes": "Updated notes",
   "posterId": "uuid-of-uploaded-image"
 }'
-```
+````
 
 #### Delete Performance
 
