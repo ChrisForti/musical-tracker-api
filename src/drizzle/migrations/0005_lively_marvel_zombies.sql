@@ -1,0 +1,2 @@
+ALTER TABLE "performance" ADD COLUMN "theater_id" uuid;--> statement-breakpoint
+ALTER TABLE "performance" ADD CONSTRAINT "performance_theater_id_theater_id_fk" FOREIGN KEY ("theater_id") REFERENCES "public"."theater"("id") ON DELETE no action ON UPDATE no action;

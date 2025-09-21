@@ -105,6 +105,7 @@ export const PerformanceTable = pgTable("performance", {
   userId: uuid("user_id")
     .notNull()
     .references(() => UserTable.id),
+  theaterId: uuid("theater_id").references(() => TheaterTable.id),
   date: date("date", { mode: "date" }),
   notes: text("notes"),
   posterId: uuid("poster_id").references(() => UploadedImagesTable.id),

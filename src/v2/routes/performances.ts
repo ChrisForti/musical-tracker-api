@@ -1,5 +1,13 @@
 import { Router, type Request, type Response } from "express";
-import { PerformanceTable, CastingTable } from "../../drizzle/schema.js";
+import {
+  PerformanceTable,
+  CastingTable,
+  MusicalTable,
+  TheaterTable,
+  ActorTable,
+  RoleTable,
+  UploadedImagesTable,
+} from "../../drizzle/schema.js";
 import { Validator } from "../../lib/validator.js";
 import { db } from "../../drizzle/db.js";
 import { SERVER_ERROR } from "../../lib/errors.js";
@@ -19,76 +27,48 @@ performanceRouter.delete("/:id", ensureAuthenticated, deletePerformanceHandler);
 async function getAllPerformancesHandler(req: Request, res: Response) {
   try {
     const userId = req.user?.id;
-    const actorId = req.query.actorId as string;
 
     if (!userId) {
       res.status(401).json({ error: "Authentication required" });
       return;
     }
 
-    // Validate actorId if provided
-    if (actorId && !validateUuid(actorId)) {
-      res.status(400).json({ error: "Invalid actorId format" });
-      return;
-    }
+    // Get user's performances with joined data
+    const performances = await db
+      .select({
+        performanceId: PerformanceTable.id,
+        userId: PerformanceTable.userId,
+        date: PerformanceTable.date,
+        posterId: PerformanceTable.posterId,
+        theaterId: PerformanceTable.theaterId,
+        theaterName: TheaterTable.name,
+        musicalName: MusicalTable.title,
+      })
+      .from(PerformanceTable)
+      .leftJoin(TheaterTable, eq(PerformanceTable.theaterId, TheaterTable.id))
+      .leftJoin(MusicalTable, eq(PerformanceTable.musicalId, MusicalTable.id))
+      .where(eq(PerformanceTable.userId, userId));
 
-    // If filtering by actor, get performances where the actor was cast
-    if (actorId) {
-      // Users can only see their own performances with this actor unless they're admin
-      if (req.user?.role === "admin") {
-        const performancesWithActor = await db
-          .select({
-            id: PerformanceTable.id,
-            musicalId: PerformanceTable.musicalId,
-            userId: PerformanceTable.userId,
-            date: PerformanceTable.date,
-            notes: PerformanceTable.notes,
-            posterId: PerformanceTable.posterId,
-          })
-          .from(PerformanceTable)
-          .innerJoin(
-            CastingTable,
-            eq(CastingTable.performanceId, PerformanceTable.id)
-          )
-          .where(eq(CastingTable.actorId, actorId));
-        res.status(200).json(performancesWithActor);
-      } else {
-        const userPerformancesWithActor = await db
-          .select({
-            id: PerformanceTable.id,
-            musicalId: PerformanceTable.musicalId,
-            userId: PerformanceTable.userId,
-            date: PerformanceTable.date,
-            notes: PerformanceTable.notes,
-            posterId: PerformanceTable.posterId,
-          })
-          .from(PerformanceTable)
-          .innerJoin(
-            CastingTable,
-            eq(CastingTable.performanceId, PerformanceTable.id)
-          )
-          .where(
-            and(
-              eq(CastingTable.actorId, actorId),
-              eq(PerformanceTable.userId, userId)
-            )
-          );
-        res.status(200).json(userPerformancesWithActor);
-      }
-      return;
-    }
+    // Process each performance to get poster URLs
+    const performanceList = await Promise.all(
+      performances.map(async (perf) => {
+        let posterUrl = "";
+        if (perf.posterId) {
+          const posterImage = await imageDb.getImageById(perf.posterId);
+          posterUrl = posterImage?.s3Url || "";
+        }
 
-    // Regular performance listing (without actor filter)
-    if (req.user?.role === "admin") {
-      const performances = await db.select().from(PerformanceTable);
-      res.status(200).json(performances);
-    } else {
-      const userPerformances = await db
-        .select()
-        .from(PerformanceTable)
-        .where(eq(PerformanceTable.userId, userId));
-      res.status(200).json(userPerformances);
-    }
+        return {
+          posterUrl,
+          date: perf.date?.toISOString().split("T")[0] || "",
+          theaterName: perf.theaterName || "",
+          theaterId: perf.theaterId || "",
+          musicalName: perf.musicalName || "",
+        };
+      })
+    );
+
+    res.status(200).json(performanceList);
   } catch (error) {
     console.error("Error in getAllPerformancesHandler:", error);
     res.status(500).json({ error: SERVER_ERROR });
@@ -98,6 +78,7 @@ async function getAllPerformancesHandler(req: Request, res: Response) {
 type CreatePerformanceBodyParams = {
   musicalId: string;
   date?: string;
+  theaterId?: string;
   notes?: string;
   posterId?: string;
 };
@@ -106,7 +87,7 @@ async function createPerformanceHandler(
   req: Request<{}, {}, CreatePerformanceBodyParams>,
   res: Response
 ) {
-  const { musicalId, date, notes, posterId } = req.body;
+  const { musicalId, date, theaterId, notes, posterId } = req.body;
   const userId = req.user?.id;
   const validator = new Validator();
 
@@ -131,6 +112,7 @@ async function createPerformanceHandler(
       .values({
         musicalId,
         userId: userId!,
+        theaterId: theaterId || null,
         date: date ? new Date(date) : null,
         notes: notes || null,
         posterId: posterId || null,
@@ -143,7 +125,6 @@ async function createPerformanceHandler(
     }
 
     res.status(201).json({
-      message: "Performance created successfully",
       id: newPerformance.id,
     });
   } catch (error) {
@@ -175,14 +156,29 @@ async function getPerformanceByIdHandler(
       return;
     }
 
-    const performance = await db.query.PerformanceTable.findFirst({
-      where: eq(PerformanceTable.id, id),
-    });
+    // First get the basic performance data with joins
+    const performanceData = await db
+      .select({
+        performanceId: PerformanceTable.id,
+        userId: PerformanceTable.userId,
+        date: PerformanceTable.date,
+        notes: PerformanceTable.notes,
+        posterId: PerformanceTable.posterId,
+        theaterName: TheaterTable.name,
+        musicalName: MusicalTable.title,
+      })
+      .from(PerformanceTable)
+      .leftJoin(TheaterTable, eq(PerformanceTable.theaterId, TheaterTable.id))
+      .leftJoin(MusicalTable, eq(PerformanceTable.musicalId, MusicalTable.id))
+      .where(eq(PerformanceTable.id, id))
+      .limit(1);
 
-    if (!performance) {
+    if (!performanceData.length) {
       res.status(404).json({ error: "Performance not found" });
       return;
     }
+
+    const performance = performanceData[0]!;
 
     // Users can only access their own performances unless they're admin
     if (req.user?.role !== "admin" && performance.userId !== userId) {
@@ -190,7 +186,54 @@ async function getPerformanceByIdHandler(
       return;
     }
 
-    res.status(200).json(performance);
+    // Get poster URL if available
+    let posterUrl = "";
+    if (performance.posterId) {
+      const posterImage = await imageDb.getImageById(performance.posterId);
+      posterUrl = posterImage?.s3Url || "";
+    }
+
+    // Get cast information
+    const castData = await db
+      .select({
+        actorId: ActorTable.id,
+        actorName: ActorTable.name,
+        roleId: RoleTable.id,
+        roleName: RoleTable.name,
+      })
+      .from(CastingTable)
+      .leftJoin(ActorTable, eq(CastingTable.actorId, ActorTable.id))
+      .leftJoin(RoleTable, eq(CastingTable.roleId, RoleTable.id))
+      .where(eq(CastingTable.performanceId, id));
+
+    // Group cast by actor
+    const castMap = new Map();
+    castData.forEach((row) => {
+      if (!castMap.has(row.actorId)) {
+        castMap.set(row.actorId, {
+          id: row.actorId,
+          actorName: row.actorName,
+          roles: [],
+        });
+      }
+      if (row.roleId && row.roleName) {
+        castMap.get(row.actorId).roles.push({
+          id: row.roleId,
+          name: row.roleName,
+        });
+      }
+    });
+
+    const cast = Array.from(castMap.values());
+
+    res.status(200).json({
+      posterUrl,
+      date: performance.date?.toISOString().split("T")[0] || "",
+      theaterName: performance.theaterName || "",
+      musicalName: performance.musicalName || "",
+      notes: performance.notes || "",
+      cast,
+    });
   } catch (error) {
     console.error("Error in getPerformanceByIdHandler:", error);
     res.status(500).json({ error: SERVER_ERROR });
@@ -198,8 +241,8 @@ async function getPerformanceByIdHandler(
 }
 
 type UpdatePerformanceBodyParams = {
-  musicalId?: string;
   date?: string;
+  theaterId?: string;
   notes?: string;
   posterId?: string;
 };
@@ -209,7 +252,7 @@ async function updatePerformanceHandler(
   res: Response
 ) {
   const id = req.params.id;
-  const { musicalId, date, notes, posterId } = req.body;
+  const { date, theaterId, notes, posterId } = req.body;
   const userId = req.user?.id;
   const validator = new Validator();
 
@@ -218,10 +261,10 @@ async function updatePerformanceHandler(
     if (id) {
       validator.check(validateUuid(id), "id", "must be a valid UUID");
     }
-    if (musicalId) {
+    if (theaterId) {
       validator.check(
-        validateUuid(musicalId),
-        "musicalId",
+        validateUuid(theaterId),
+        "theaterId",
         "must be a valid UUID"
       );
     }
@@ -248,12 +291,12 @@ async function updatePerformanceHandler(
     }
 
     const updateData: Partial<{
-      musicalId: string;
+      theaterId: string;
       date: Date;
       notes: string;
       posterId: string;
     }> = {};
-    if (musicalId) updateData.musicalId = musicalId;
+    if (theaterId !== undefined) updateData.theaterId = theaterId;
     if (date) updateData.date = new Date(date);
     if (notes !== undefined) updateData.notes = notes;
     if (posterId !== undefined) updateData.posterId = posterId;
@@ -261,7 +304,7 @@ async function updatePerformanceHandler(
     if (Object.keys(updateData).length === 0) {
       res.status(400).json({
         error:
-          "At least one field (musicalId, date, notes, or posterId) is required",
+          "At least one field (date, theaterId, notes, or posterId) is required",
       });
       return;
     }
@@ -276,7 +319,7 @@ async function updatePerformanceHandler(
       return;
     }
 
-    res.status(200).json({ message: "Performance updated successfully" });
+    res.status(200).json({});
   } catch (error) {
     console.error("Error in updatePerformanceHandler:", error);
     res.status(500).json({ error: SERVER_ERROR });

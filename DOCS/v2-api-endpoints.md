@@ -21,7 +21,7 @@ All V2 endpoints use UUID-based identifiers and the "verified" field pattern ins
 
 **Migration Path:**
 
-1. Upload images using `POST /upload/poster` or `POST /upload/profile`
+1. Upload images using `POST /media` (unified endpoint for all image types)
 2. Use returned `imageId` as `posterId` when creating/updating musicals/performances
 3. Fetch image details separately using the `posterId` if needed
 
@@ -35,11 +35,16 @@ This refactor improves data integrity through proper foreign key relationships a
   - Changed from `posterUrl` field to `posterId` field with foreign key to uploaded_images
   - **All endpoints now require authentication**
   - PUT endpoint requires admin access if musical is verified
+  - **PUT endpoint now accepts `name` parameter instead of `title`**
+  - **Verify and delete endpoints now return empty responses `{}`**
   - **GET responses now return posterId instead of embedded images**
 - **Performance**:
   - Changed from `posterUrl` field to `posterId` field with foreign key to uploaded_images
+  - **Added required `theaterId` field to POST and PUT endpoints**
   - Added optional `date` field to POST and PUT endpoints
   - **GET /performance/:id now requires authentication**
+  - **Enhanced GET responses with complex joins including musical, theater, and cast data**
+  - **Added `posterUrl` resolution in GET responses using imageDb service**
   - Added actor filtering: `?actorId=uuid` to get performances where specific actor was cast
   - **GET responses now return posterId instead of embedded images**
 - **Casting**:
@@ -49,7 +54,14 @@ This refactor improves data integrity through proper foreign key relationships a
   - Removed pending query parameter and verify endpoint
   - **All endpoints now require authentication**
   - GET `/casting` now returns all castings (no filtering)
+- **Pending System**:
+  - **NEW**: `GET /pending/musicals` - Admin endpoint for unverified musicals
+  - **NEW**: `GET /pending/theaters` - Admin endpoint for unverified theaters
+  - **NEW**: `GET /pending/actors` - Admin endpoint for unverified actors
+  - **NEW**: `GET /pending/roles` - Admin endpoint for unverified roles
+  - **SIMPLIFIED**: All pending endpoints return consistent `{id, name}` format
 - **Media System**:
+  - **ROUTE CHANGE**: `/upload` renamed to `/media` for all endpoints
   - **NEW**: Complete image upload system with AWS S3 integration
   - **NEW**: `POST /media` - Unified endpoint for all image uploads (poster, profile)
   - **NEW**: `DELETE /media/:imageId` - Delete uploaded images
@@ -278,32 +290,116 @@ curl -X GET http://localhost:3000/v2/musical/:id \
 
 #### Update Musical (Authentication Required, Admin Required if Verified)
 
-**Note**: If the musical is verified, only admins can make changes.
+**Note**: If the musical is verified, only admins can make changes. The endpoint now accepts `name` instead of `title`.
 
 ```bash
 curl -X PUT http://localhost:3000/v2/musical/:id \
 -H "Authorization: Bearer YOUR_ACCESS_TOKEN" \
 -H "Content-Type: application/json" \
 -d '{
-  "title": "Updated Musical Title",
+  "name": "Updated Musical Name",
   "composer": "Updated Composer",
   "lyricist": "Updated Lyricist",
   "posterId": "uuid-of-uploaded-image"
 }'
 ```
 
+#### Verify Musical (Admin Only)
+
+**Returns empty response on success.**
+
+```bash
+curl -X POST http://localhost:3000/v2/musical/:id/verify \
+-H "Authorization: Bearer YOUR_ACCESS_TOKEN"
+```
+
+**Response:** `{}` (empty object)
+
 #### Delete Musical
+
+**Returns empty response on success.**
 
 ```bash
 curl -X DELETE http://localhost:3000/v2/musical/:id \
 -H "Authorization: Bearer YOUR_ACCESS_TOKEN"
 ```
 
-#### Verify Musical (Admin Only)
+**Response:** `{}` (empty object)
+
+## Pending Endpoints (Admin Only)
+
+These endpoints allow administrators to retrieve lists of unverified entities across all entity types.
+
+#### Get Pending Musicals
 
 ```bash
-curl -X POST http://localhost:3000/v2/musical/:id/verify \
+curl -X GET http://localhost:3000/v2/pending/musicals \
 -H "Authorization: Bearer YOUR_ACCESS_TOKEN"
+```
+
+**Response:**
+
+```json
+[
+  {
+    "id": "uuid-of-musical",
+    "name": "Unverified Musical"
+  }
+]
+```
+
+#### Get Pending Theaters
+
+```bash
+curl -X GET http://localhost:3000/v2/pending/theaters \
+-H "Authorization: Bearer YOUR_ACCESS_TOKEN"
+```
+
+**Response:**
+
+```json
+[
+  {
+    "id": "uuid-of-theater",
+    "name": "Unverified Theater"
+  }
+]
+```
+
+#### Get Pending Actors
+
+```bash
+curl -X GET http://localhost:3000/v2/pending/actors \
+-H "Authorization: Bearer YOUR_ACCESS_TOKEN"
+```
+
+**Response:**
+
+```json
+[
+  {
+    "id": "uuid-of-actor",
+    "name": "Unverified Actor"
+  }
+]
+```
+
+#### Get Pending Roles
+
+```bash
+curl -X GET http://localhost:3000/v2/pending/roles \
+-H "Authorization: Bearer YOUR_ACCESS_TOKEN"
+```
+
+**Response:**
+
+```json
+[
+  {
+    "id": "uuid-of-role",
+    "name": "Unverified Role"
+  }
+]
 ```
 
 ## Role Endpoints
@@ -451,6 +547,7 @@ curl -X POST http://localhost:3000/v2/performance \
 -H "Content-Type: application/json" \
 -d '{
   "musicalId": "uuid-of-musical",
+  "theaterId": "uuid-of-theater",
   "date": "2024-12-25",
   "notes": "Amazing show!",
   "posterId": "uuid-of-uploaded-image"
@@ -459,9 +556,50 @@ curl -X POST http://localhost:3000/v2/performance \
 
 #### Get Performance by ID (Authentication Required)
 
+**Enhanced response with joined data:**
+
 ```bash
 curl -X GET http://localhost:3000/v2/performance/:id \
 -H "Authorization: Bearer YOUR_ACCESS_TOKEN"
+```
+
+**Response:**
+
+```json
+{
+  "id": "uuid-of-performance",
+  "musicalId": "uuid-of-musical",
+  "theaterId": "uuid-of-theater",
+  "userId": "uuid-of-user",
+  "date": "2024-12-25",
+  "notes": "Amazing show!",
+  "posterId": "uuid-of-uploaded-image",
+  "posterUrl": "https://signed-s3-url...",
+  "musical": {
+    "id": "uuid-of-musical",
+    "title": "Hamilton",
+    "composer": "Lin-Manuel Miranda",
+    "lyricist": "Lin-Manuel Miranda"
+  },
+  "theater": {
+    "id": "uuid-of-theater",
+    "name": "Richard Rodgers Theatre",
+    "city": "New York"
+  },
+  "cast": [
+    {
+      "id": "uuid-of-casting",
+      "actor": {
+        "id": "uuid-of-actor",
+        "name": "Lin-Manuel Miranda"
+      },
+      "role": {
+        "id": "uuid-of-role",
+        "name": "Alexander Hamilton"
+      }
+    }
+  ]
+}
 ```
 
 #### Update Performance (Authentication Required)
@@ -472,6 +610,7 @@ curl -X PUT http://localhost:3000/v2/performance/:id \
 -H "Content-Type: application/json" \
 -d '{
   "musicalId": "uuid-of-musical",
+  "theaterId": "uuid-of-theater",
   "date": "2024-12-26",
   "notes": "Updated notes",
   "posterId": "uuid-of-uploaded-image"
@@ -607,7 +746,7 @@ curl -X GET http://localhost:3000/v2/media/debug
 **To get the actual image data, make a separate request to:**
 
 ```bash
-curl -X GET http://localhost:3000/v2/upload/uuid-of-associated-image \
+curl -X GET http://localhost:3000/v2/media/uuid-of-associated-image \
 -H "Authorization: Bearer YOUR_ACCESS_TOKEN"
 ```
 

@@ -133,7 +133,7 @@ async function getMusicalByIdHandler(
 type UpdateMusicalBodyParams = {
   composer?: string;
   lyricist?: string;
-  title?: string;
+  name?: string;
   posterId?: string;
 };
 
@@ -142,7 +142,7 @@ async function updateMusicalHandler(
   res: Response
 ) {
   const id = req.params.id;
-  const { composer, lyricist, title, posterId } = req.body;
+  const { composer, lyricist, name, posterId } = req.body;
   const validator = new Validator();
 
   try {
@@ -182,13 +182,13 @@ async function updateMusicalHandler(
     }> = {};
     if (composer) updateData.composer = composer;
     if (lyricist) updateData.lyricist = lyricist;
-    if (title) updateData.title = title;
+    if (name) updateData.title = name;
     if (posterId !== undefined) updateData.posterId = posterId;
 
     if (Object.keys(updateData).length === 0) {
       res.status(400).json({
         error:
-          "At least one field (composer, lyricist, title, or posterId) is required",
+          "At least one field (composer, lyricist, name, or posterId) is required",
       });
       return;
     }
@@ -203,7 +203,7 @@ async function updateMusicalHandler(
       return;
     }
 
-    res.status(200).json({ message: "Musical updated successfully" });
+    res.status(200).json({});
   } catch (error) {
     console.error("Error in updateMusicalHandler:", error);
     res.status(500).json({ error: SERVER_ERROR });
@@ -235,7 +235,7 @@ async function deleteMusicalHandler(
       return;
     }
 
-    res.status(200).json({ message: "Musical deleted successfully" });
+    res.status(200).json({});
   } catch (error) {
     console.error("Error in deleteMusicalHandler:", error);
     res.status(500).json({ error: SERVER_ERROR });
@@ -274,7 +274,7 @@ async function verifyMusicalHandler(
       return;
     }
 
-    res.status(200).json({ message: "Musical verified successfully" });
+    res.status(200).json({});
   } catch (error) {
     console.error("Error in verifyMusicalHandler:", error);
     res.status(500).json({ error: SERVER_ERROR });
