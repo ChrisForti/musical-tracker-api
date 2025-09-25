@@ -4,69 +4,6 @@
 
 All V2 endpoints use UUID-based identifiers and the "verified" field pattern instead of "approved". Authentication is required for most endpoints via Bearer token.
 
-## ⚠️ **BREAKING CHANGES - Architecture Refactor**
-
-**Database Schema Changes (September 2025):**
-
-- Changed `poster_url` (VARCHAR) → `poster_id` (UUID) with foreign key constraints
-- Removed entity linking (`entity_type`, `entity_id`) from uploaded_images table
-- Implemented foreign key relationships: `musicals.poster_id` → `uploaded_images.id`
-- Implemented foreign key relationships: `performances.poster_id` → `uploaded_images.id`
-
-**API Response Changes:**
-
-- Musicals and performances now return `posterId` field instead of embedded images
-- Entity-based image lookup endpoints return 501 (deprecated)
-- Simplified responses focus on foreign key relationships
-
-**Migration Path (September 2025):**
-
-1. Upload images using `POST /media` (no entity type/id required)
-2. Use returned `imageId` as `posterId` when creating/updating musicals/performances
-3. **Images now return permanent direct S3 URLs (not temporary signed URLs)**
-4. **Musical field changed: use `name` instead of `title`**
-5. **GET endpoints automatically return `posterUrl` via database JOINs**
-
-This refactor improves data integrity through proper foreign key relationships and follows radical simplicity principles.
-
-## Recent Updates (api-improvements branch)
-
-### Changes Made (September 2025):
-
-- **Musical**:
-  - **FIELD CHANGE**: `title` → `name` (breaking change requiring database migration)
-  - **GET responses return `posterUrl` via LEFT JOIN with uploaded_images table**
-  - **Poster URL resolution via direct database JOINs (no service calls)**
-  - Changed from `posterUrl` field to `posterId` field with foreign key to uploaded_images
-  - All endpoints now require authentication
-  - PUT endpoint requires admin access if musical is verified
-  - POST/PUT endpoints now accept `name` parameter instead of `title`
-  - Verify and delete endpoints now return empty responses `{}`
-- **Performance**:
-  - **GET responses return `posterUrl` via LEFT JOIN with uploaded_images table**
-  - **Simplified response mapping - removed async Promise.all processing**
-  - **Direct database JOINs replace imageDb service calls**
-  - Changed from `posterUrl` field to `posterId` field with foreign key to uploaded_images
-  - Added required `theaterId` field to POST and PUT endpoints
-  - Added optional `date` field to POST and PUT endpoints
-  - GET /performance/:id now requires authentication
-  - Enhanced GET responses with complex joins including musical, theater, and cast data
-- **Media System (Radical Simplification)**:
-  - **BREAKING**: Removed `type` and `entityId` parameters from POST /media\*\*
-  - **BREAKING**: Now stores direct S3 URLs instead of signed URLs\*\*
-  - **SIMPLIFIED**: Upload any image without specifying what it's for\*\*
-  - **ARCHITECTURAL**: Use returned `imageId` as `posterId` when creating/updating entities\*\*
-  - Route change: `/upload` renamed to `/media` for all endpoints
-  - Complete image upload system with AWS S3 integration
-  - `POST /media` - Unified endpoint for all image uploads (poster, profile)
-  - `DELETE /media/:imageId` - Delete uploaded images
-  - **DEPRECATED**: `GET /media/entity/:entityType/:entityId` - Returns 501 error
-  - Single endpoint replaces separate poster/profile upload endpoints
-  - Automatic image processing (resize, compress, format conversion)
-  - Secure file validation and user permission checks
-
----
-
 ## Authentication Endpoints
 
 ### Users
