@@ -83,7 +83,7 @@ export const MusicalTable = pgTable("musical", {
   id: uuid("id").defaultRandom().primaryKey().notNull(),
   composer: varchar("composer", { length: 255 }).notNull(),
   lyricist: varchar("lyricist", { length: 255 }).notNull(),
-  title: varchar("title", { length: 255 }).notNull(),
+  name: varchar("name", { length: 255 }).notNull(),
   posterId: uuid("poster_id").references(() => UploadedImagesTable.id),
   verified: boolean("verified").default(false).notNull(),
 });

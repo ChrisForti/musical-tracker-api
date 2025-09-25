@@ -40,33 +40,28 @@ async function getAllPerformancesHandler(req: Request, res: Response) {
         userId: PerformanceTable.userId,
         date: PerformanceTable.date,
         posterId: PerformanceTable.posterId,
+        posterUrl: UploadedImagesTable.s3Url,
         theaterId: PerformanceTable.theaterId,
         theaterName: TheaterTable.name,
-        musicalName: MusicalTable.title,
+        musicalName: MusicalTable.name,
       })
       .from(PerformanceTable)
       .leftJoin(TheaterTable, eq(PerformanceTable.theaterId, TheaterTable.id))
       .leftJoin(MusicalTable, eq(PerformanceTable.musicalId, MusicalTable.id))
+      .leftJoin(
+        UploadedImagesTable,
+        eq(PerformanceTable.posterId, UploadedImagesTable.id)
+      )
       .where(eq(PerformanceTable.userId, userId));
 
-    // Process each performance to get poster URLs
-    const performanceList = await Promise.all(
-      performances.map(async (perf) => {
-        let posterUrl = "";
-        if (perf.posterId) {
-          const posterImage = await imageDb.getImageById(perf.posterId);
-          posterUrl = posterImage?.s3Url || "";
-        }
-
-        return {
-          posterUrl,
-          date: perf.date?.toISOString().split("T")[0] || "",
-          theaterName: perf.theaterName || "",
-          theaterId: perf.theaterId || "",
-          musicalName: perf.musicalName || "",
-        };
-      })
-    );
+    // Simplify response format
+    const performanceList = performances.map((perf) => ({
+      posterUrl: perf.posterUrl || "",
+      date: perf.date?.toISOString().split("T")[0] || "",
+      theaterName: perf.theaterName || "",
+      theaterId: perf.theaterId || "",
+      musicalName: perf.musicalName || "",
+    }));
 
     res.status(200).json(performanceList);
   } catch (error) {
@@ -164,12 +159,17 @@ async function getPerformanceByIdHandler(
         date: PerformanceTable.date,
         notes: PerformanceTable.notes,
         posterId: PerformanceTable.posterId,
+        posterUrl: UploadedImagesTable.s3Url,
         theaterName: TheaterTable.name,
-        musicalName: MusicalTable.title,
+        musicalName: MusicalTable.name,
       })
       .from(PerformanceTable)
       .leftJoin(TheaterTable, eq(PerformanceTable.theaterId, TheaterTable.id))
       .leftJoin(MusicalTable, eq(PerformanceTable.musicalId, MusicalTable.id))
+      .leftJoin(
+        UploadedImagesTable,
+        eq(PerformanceTable.posterId, UploadedImagesTable.id)
+      )
       .where(eq(PerformanceTable.id, id))
       .limit(1);
 
@@ -186,14 +186,11 @@ async function getPerformanceByIdHandler(
       return;
     }
 
-    // Get poster URL if available
-    let posterUrl = "";
-    if (performance.posterId) {
-      const posterImage = await imageDb.getImageById(performance.posterId);
-      posterUrl = posterImage?.s3Url || "";
-    }
-
-    // Get cast information
+    // Get the poster URL if available
+    let posterUrl: string | null = null;
+    if (performance.posterId && performance.posterUrl) {
+      posterUrl = performance.posterUrl;
+    } // Get cast information
     const castData = await db
       .select({
         actorId: ActorTable.id,

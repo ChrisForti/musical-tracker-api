@@ -45,6 +45,42 @@ export class S3Service {
   }
 
   /**
+   * Upload a file to S3 and return direct URL
+   */
+  async uploadFileWithDirectUrl(
+    file: Buffer,
+    key: string,
+    contentType: string,
+    metadata?: Record<string, string>
+  ): Promise<string> {
+    this.checkS3Configuration();
+
+    try {
+      const command = new PutObjectCommand({
+        Bucket: this.bucketName,
+        Key: key,
+        Body: file,
+        ContentType: contentType,
+        Metadata: metadata,
+      });
+
+      await this.s3Client!.send(command);
+
+      // Return direct S3 URL instead of signed URL
+      return `https://${this.bucketName}.s3.${
+        process.env.AWS_REGION || "us-east-1"
+      }.amazonaws.com/${key}`;
+    } catch (error) {
+      console.error("Error uploading to S3:", error);
+      if (error instanceof Error) {
+        throw new Error(`S3 Upload Error: ${error.message}`);
+      } else {
+        throw new Error("Failed to upload file to S3");
+      }
+    }
+  }
+
+  /**
    * Upload a file to S3
    */
   async uploadFile(

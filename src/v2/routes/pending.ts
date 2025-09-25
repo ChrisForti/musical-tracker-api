@@ -41,7 +41,7 @@ async function getPendingMusicalsHandler(req: Request, res: Response) {
   try {
     const pendingMusicals = await db
       .select({
-        name: MusicalTable.title,
+        name: MusicalTable.name,
         composer: MusicalTable.composer,
         lyricist: MusicalTable.lyricist,
         id: MusicalTable.id,

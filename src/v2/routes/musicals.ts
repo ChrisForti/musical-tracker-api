@@ -1,12 +1,11 @@
 import { Router, type Request, type Response } from "express";
-import { MusicalTable } from "../../drizzle/schema.js";
+import { MusicalTable, UploadedImagesTable } from "../../drizzle/schema.js";
 import { db } from "../../drizzle/db.js";
 import { SERVER_ERROR } from "../../lib/errors.js";
 import { eq } from "drizzle-orm";
 import { Validator } from "../../lib/validator.js";
 import { ensureAdmin, ensureAuthenticated } from "../../lib/auth.js";
 import { validate as validateUuid } from "uuid";
-import { imageDb } from "../../lib/imageDb.js";
 
 export const musicalRouter = Router();
 
@@ -33,13 +32,40 @@ async function getAllMusicalsHandler(req: Request, res: Response) {
 
     if (isPending) {
       const pendingMusicals = await db
-        .select()
+        .select({
+          id: MusicalTable.id,
+          name: MusicalTable.name,
+          composer: MusicalTable.composer,
+          lyricist: MusicalTable.lyricist,
+          posterId: MusicalTable.posterId,
+          verified: MusicalTable.verified,
+          posterUrl: UploadedImagesTable.s3Url,
+        })
         .from(MusicalTable)
+        .leftJoin(
+          UploadedImagesTable,
+          eq(MusicalTable.posterId, UploadedImagesTable.id)
+        )
         .where(eq(MusicalTable.verified, false));
 
       res.status(200).json(pendingMusicals);
     } else {
-      const musicals = await db.select().from(MusicalTable);
+      const musicals = await db
+        .select({
+          id: MusicalTable.id,
+          name: MusicalTable.name,
+          composer: MusicalTable.composer,
+          lyricist: MusicalTable.lyricist,
+          posterId: MusicalTable.posterId,
+          verified: MusicalTable.verified,
+          posterUrl: UploadedImagesTable.s3Url,
+        })
+        .from(MusicalTable)
+        .leftJoin(
+          UploadedImagesTable,
+          eq(MusicalTable.posterId, UploadedImagesTable.id)
+        );
+
       res.status(200).json(musicals);
     }
   } catch (error) {
@@ -51,7 +77,7 @@ async function getAllMusicalsHandler(req: Request, res: Response) {
 type CreateMusicalBodyParams = {
   composer: string;
   lyricist: string;
-  title: string;
+  name: string;
   posterId?: string;
 };
 
@@ -59,13 +85,13 @@ async function createMusicalHandler(
   req: Request<{}, {}, CreateMusicalBodyParams>,
   res: Response
 ) {
-  const { composer, lyricist, title, posterId } = req.body;
+  const { composer, lyricist, name, posterId } = req.body;
   const validator = new Validator();
 
   try {
     validator.check(!!composer, "composer", "is required");
     validator.check(!!lyricist, "lyricist", "is required");
-    validator.check(!!title, "title", "is required");
+    validator.check(!!name, "name", "is required");
 
     if (!validator.valid) {
       res.status(400).json({ errors: validator.errors });
@@ -74,7 +100,7 @@ async function createMusicalHandler(
 
     const [newMusical] = await db
       .insert(MusicalTable)
-      .values({ composer, lyricist, title, posterId })
+      .values({ composer, lyricist, name, posterId })
       .returning({ id: MusicalTable.id });
 
     if (!newMusical) {
@@ -114,16 +140,30 @@ async function getMusicalByIdHandler(
       return;
     }
 
-    const musical = await db.query.MusicalTable.findFirst({
-      where: eq(MusicalTable.id, id),
-    });
+    const musical = await db
+      .select({
+        id: MusicalTable.id,
+        name: MusicalTable.name,
+        composer: MusicalTable.composer,
+        lyricist: MusicalTable.lyricist,
+        posterId: MusicalTable.posterId,
+        verified: MusicalTable.verified,
+        posterUrl: UploadedImagesTable.s3Url,
+      })
+      .from(MusicalTable)
+      .leftJoin(
+        UploadedImagesTable,
+        eq(MusicalTable.posterId, UploadedImagesTable.id)
+      )
+      .where(eq(MusicalTable.id, id))
+      .limit(1);
 
-    if (!musical) {
+    if (!musical.length) {
       res.status(404).json({ error: "Musical not found" });
       return;
     }
 
-    res.status(200).json(musical);
+    res.status(200).json(musical[0]);
   } catch (error) {
     console.error("Error in getMusicalByIdHandler:", error);
     res.status(500).json({ error: SERVER_ERROR });
@@ -177,12 +217,12 @@ async function updateMusicalHandler(
     const updateData: Partial<{
       composer: string;
       lyricist: string;
-      title: string;
+      name: string;
       posterId: string;
     }> = {};
     if (composer) updateData.composer = composer;
     if (lyricist) updateData.lyricist = lyricist;
-    if (name) updateData.title = name;
+    if (name) updateData.name = name;
     if (posterId !== undefined) updateData.posterId = posterId;
 
     if (Object.keys(updateData).length === 0) {

@@ -19,54 +19,49 @@ All V2 endpoints use UUID-based identifiers and the "verified" field pattern ins
 - Entity-based image lookup endpoints return 501 (deprecated)
 - Simplified responses focus on foreign key relationships
 
-**Migration Path:**
+**Migration Path (September 2025):**
 
-1. Upload images using `POST /media` (unified endpoint for all image types)
+1. Upload images using `POST /media` (no entity type/id required)
 2. Use returned `imageId` as `posterId` when creating/updating musicals/performances
-3. Fetch image details separately using the `posterId` if needed
+3. **Images now return permanent direct S3 URLs (not temporary signed URLs)**
+4. **Musical field changed: use `name` instead of `title`**
+5. **GET endpoints automatically return `posterUrl` via database JOINs**
 
 This refactor improves data integrity through proper foreign key relationships and follows radical simplicity principles.
 
 ## Recent Updates (api-improvements branch)
 
-### Changes Made:
+### Changes Made (September 2025):
 
 - **Musical**:
+  - **FIELD CHANGE**: `title` → `name` (breaking change requiring database migration)
+  - **GET responses return `posterUrl` via LEFT JOIN with uploaded_images table**
+  - **Poster URL resolution via direct database JOINs (no service calls)**
   - Changed from `posterUrl` field to `posterId` field with foreign key to uploaded_images
-  - **All endpoints now require authentication**
+  - All endpoints now require authentication
   - PUT endpoint requires admin access if musical is verified
-  - **PUT endpoint now accepts `name` parameter instead of `title`**
-  - **Verify and delete endpoints now return empty responses `{}`**
-  - **GET responses now return posterId instead of embedded images**
+  - POST/PUT endpoints now accept `name` parameter instead of `title`
+  - Verify and delete endpoints now return empty responses `{}`
 - **Performance**:
+  - **GET responses return `posterUrl` via LEFT JOIN with uploaded_images table**
+  - **Simplified response mapping - removed async Promise.all processing**
+  - **Direct database JOINs replace imageDb service calls**
   - Changed from `posterUrl` field to `posterId` field with foreign key to uploaded_images
-  - **Added required `theaterId` field to POST and PUT endpoints**
+  - Added required `theaterId` field to POST and PUT endpoints
   - Added optional `date` field to POST and PUT endpoints
-  - **GET /performance/:id now requires authentication**
-  - **Enhanced GET responses with complex joins including musical, theater, and cast data**
-  - **Added `posterUrl` resolution in GET responses using imageDb service**
-  - **GET responses now return posterId instead of embedded images**
-- **Casting**:
-  - Added **required** `performanceId` field to all endpoints
-  - POST response now returns only `{"id": "casting-uuid"}`
-  - Removed `verified` field completely
-  - Removed pending query parameter and verify endpoint
-  - **All endpoints now require authentication**
-  - GET `/casting` now returns all castings (no filtering)
-- **Pending System**:
-  - **NEW**: `GET /pending/musicals` - Admin endpoint for unverified musicals
-  - **NEW**: `GET /pending/theaters` - Admin endpoint for unverified theaters
-  - **NEW**: `GET /pending/actors` - Admin endpoint for unverified actors
-  - **NEW**: `GET /pending/roles` - Admin endpoint for unverified roles
-  - **SIMPLIFIED**: All pending endpoints return consistent `{id, name}` format
-- **Media System**:
-  - **ROUTE CHANGE**: `/upload` renamed to `/media` for all endpoints
-  - **NEW**: Complete image upload system with AWS S3 integration
-  - **NEW**: `POST /media` - Unified endpoint for all image uploads (poster, profile)
-  - **NEW**: `DELETE /media/:imageId` - Delete uploaded images
-  - **DEPRECATED**: `GET /media/entity/:entityType/:entityId` - Returns 501 error (use foreign key relationships)
-  - **ARCHITECTURAL CHANGE**: Removed entity linking, now uses foreign key relationships
-  - **SIMPLIFIED**: Single endpoint replaces separate poster/profile upload endpoints
+  - GET /performance/:id now requires authentication
+  - Enhanced GET responses with complex joins including musical, theater, and cast data
+- **Media System (Radical Simplification)**:
+  - **BREAKING**: Removed `type` and `entityId` parameters from POST /media**
+  - **BREAKING**: Now stores direct S3 URLs instead of signed URLs**
+  - **SIMPLIFIED**: Upload any image without specifying what it's for**
+  - **ARCHITECTURAL**: Use returned `imageId` as `posterId` when creating/updating entities**
+  - Route change: `/upload` renamed to `/media` for all endpoints
+  - Complete image upload system with AWS S3 integration
+  - `POST /media` - Unified endpoint for all image uploads (poster, profile)
+  - `DELETE /media/:imageId` - Delete uploaded images
+  - **DEPRECATED**: `GET /media/entity/:entityType/:entityId` - Returns 501 error
+  - Single endpoint replaces separate poster/profile upload endpoints
   - Automatic image processing (resize, compress, format conversion)
   - Secure file validation and user permission checks
 
@@ -259,6 +254,22 @@ curl -X GET http://localhost:3000/v2/musical \
 -H "Authorization: Bearer YOUR_ACCESS_TOKEN"
 ```
 
+**Response:**
+
+```json
+[
+  {
+    "id": "uuid-of-musical",
+    "name": "Hamilton Test Updated",
+    "composer": "Lin-Manuel Miranda",
+    "lyricist": "Lin-Manuel Miranda",
+    "posterId": "uuid-of-image",
+    "verified": false,
+    "posterUrl": "https://musical-tracker-images.s3.us-east-2.amazonaws.com/uploads/user/user-id/poster-timestamp-hash.jpg"
+  }
+]
+```
+
 #### Get Pending Musicals (Admin Only)
 
 ```bash
@@ -268,16 +279,29 @@ curl -X GET "http://localhost:3000/v2/musical?pending=true" \
 
 #### Create Musical (Authentication Required)
 
+#### Create Musical (Authentication Required)
+
+**Note**: Field name changed from `title` to `name` (September 2025).
+
 ```bash
 curl -X POST http://localhost:3000/v2/musical \
 -H "Authorization: Bearer YOUR_ACCESS_TOKEN" \
 -H "Content-Type: application/json" \
 -d '{
-  "title": "Hamilton",
+  "name": "Hamilton",
   "composer": "Lin-Manuel Miranda",
   "lyricist": "Lin-Manuel Miranda",
   "posterId": "uuid-of-uploaded-image"
 }'
+```
+
+**Response:**
+
+```json
+{
+  "message": "Musical created successfully",
+  "id": "uuid-of-created-musical"
+}
 ```
 
 #### Get Musical by ID (Authentication Required)
@@ -285,6 +309,20 @@ curl -X POST http://localhost:3000/v2/musical \
 ```bash
 curl -X GET http://localhost:3000/v2/musical/:id \
 -H "Authorization: Bearer YOUR_ACCESS_TOKEN"
+```
+
+**Response:**
+
+```json
+{
+  "id": "uuid-of-musical",
+  "name": "Hamilton Test Updated",
+  "composer": "Lin-Manuel Miranda",
+  "lyricist": "Lin-Manuel Miranda",
+  "posterId": "uuid-of-image",
+  "verified": false,
+  "posterUrl": "https://musical-tracker-images.s3.us-east-2.amazonaws.com/uploads/user/user-id/poster-timestamp-hash.jpg"
+}
 ```
 
 #### Update Musical (Authentication Required, Admin Required if Verified)
@@ -338,8 +376,6 @@ curl -X GET http://localhost:3000/v2/pending/musicals \
 
 **Response:**
 
-````json
-**Response:**
 ```json
 [
   {
@@ -349,7 +385,7 @@ curl -X GET http://localhost:3000/v2/pending/musicals \
     "lyricist": "Lyricist Name"
   }
 ]
-````
+```
 
 ````
 
@@ -544,11 +580,11 @@ curl -X GET "http://localhost:3000/v2/performance?userId=specific-user-uuid" \
 ```json
 [
   {
-    "posterUrl": "https://signed-s3-url...",
-    "date": "2024-12-25",
-    "theaterName": "Test Theater",
+    "posterUrl": "https://musical-tracker-images.s3.us-east-2.amazonaws.com/uploads/user/user-id/poster-timestamp-hash.jpg",
+    "date": "2025-12-01",
+    "theaterName": "Broadway Test Theater",
     "theaterId": "uuid-of-theater",
-    "musicalName": "Hamilton"
+    "musicalName": "Hamilton Test Updated"
   }
 ]
 ```
@@ -562,10 +598,18 @@ curl -X POST http://localhost:3000/v2/performance \
 -d '{
   "musicalId": "uuid-of-musical",
   "theaterId": "uuid-of-theater",
-  "date": "2024-12-25",
+  "date": "2025-12-01",
   "notes": "Amazing show!",
   "posterId": "uuid-of-uploaded-image"
 }'
+```
+
+**Response:**
+
+```json
+{
+  "id": "uuid-of-created-performance"
+}
 ```
 
 #### Get Performance by ID (Authentication Required)
@@ -579,29 +623,16 @@ curl -X GET http://localhost:3000/v2/performance/:id \
 
 **Response:**
 
-````json
-**Response:**
 ```json
 {
-  "posterUrl": "https://signed-s3-url...",
-  "date": "2024-12-25",
-  "theaterName": "Richard Rodgers Theatre",
-  "musicalName": "Hamilton",
-  "notes": "Amazing show!",
-  "cast": [
-    {
-      "id": "uuid-of-actor",
-      "actorName": "Lin-Manuel Miranda",
-      "roles": [
-        {
-          "id": "uuid-of-role",
-          "name": "Alexander Hamilton"
-        }
-      ]
-    }
-  ]
+  "posterUrl": "https://musical-tracker-images.s3.us-east-2.amazonaws.com/uploads/user/user-id/poster-timestamp-hash.jpg",
+  "date": "2025-12-01",
+  "theaterName": "Broadway Test Theater",
+  "musicalName": "Hamilton Test Updated",
+  "notes": "Test performance with poster",
+  "cast": []
 }
-````
+```
 
 ````
 
@@ -640,24 +671,14 @@ The media system provides secure image storage with AWS S3 integration. All uplo
 
 #### Upload Media (Unified Endpoint)
 
-Upload any type of media with a single endpoint. The `imageType` parameter determines the upload behavior and validation rules.
+**SIMPLIFIED (September 2025):** Upload any type of media with a single endpoint following radical simplicity principles. No entity linking required - use the returned `imageId` as `posterId` when creating/updating musicals or performances.
 
 ```bash
-# Upload poster for musical
+# Upload any poster image (no entity type/id required)
 curl -X POST http://localhost:3000/v2/media \
 -H "Authorization: Bearer YOUR_ACCESS_TOKEN" \
 -F "file=@/path/to/poster.jpg" \
--F "imageType=poster" \
--F "type=musical" \
--F "entityId=uuid-of-musical"
-
-# Upload poster for performance
-curl -X POST http://localhost:3000/v2/media \
--H "Authorization: Bearer YOUR_ACCESS_TOKEN" \
--F "file=@/path/to/poster.jpg" \
--F "imageType=poster" \
--F "type=performance" \
--F "entityId=uuid-of-performance"
+-F "imageType=poster"
 
 # Upload profile picture
 curl -X POST http://localhost:3000/v2/media \
@@ -670,8 +691,8 @@ curl -X POST http://localhost:3000/v2/media \
 
 - `file` (required): The image file to upload
 - `imageType` (required): Type of image - "poster" or "profile"
-- `type` (required for poster): Entity type - "musical" or "performance"
-- `entityId` (required for poster): UUID of the musical or performance
+- ~~`type` (REMOVED): No longer required - entity linking simplified~~
+- ~~`entityId` (REMOVED): No longer required - use returned imageId as posterId~~
 
 **Response:**
 
@@ -679,15 +700,15 @@ curl -X POST http://localhost:3000/v2/media \
 {
   "success": true,
   "imageId": "uuid-of-created-image",
-  "url": "https://musical-tracker-images.s3.us-east-2.amazonaws.com/posters/musicals/musical-id/poster-timestamp.jpg?X-Amz-Algorithm=AWS4-HMAC-SHA256&X-Amz-Expires=86400&X-Amz-Signature=...",
+  "url": "https://musical-tracker-images.s3.us-east-2.amazonaws.com/uploads/user/user-id/poster-timestamp-hash.jpg",
   "width": 1200,
-  "height": 1600,
-  "fileSize": 245760,
+  "height": 900,
+  "fileSize": 201141,
   "imageType": "poster"
 }
 ```
 
-**Note**: After uploading, use the returned `imageId` as the `posterId` when creating or updating musicals/performances.
+**Note**: The URL returned is a **permanent direct S3 URL** (not a temporary signed URL). Use the returned `imageId` as the `posterId` when creating or updating musicals/performances.
 
 #### Delete Uploaded Image
 
@@ -737,11 +758,12 @@ curl -X GET http://localhost:3000/v2/media/debug
 ```json
 {
   "id": "uuid-of-musical",
-  "title": "Hamilton",
+  "name": "Hamilton",
   "composer": "Lin-Manuel Miranda",
   "lyricist": "Lin-Manuel Miranda",
   "posterId": "uuid-of-associated-image",
-  "verified": true
+  "verified": true,
+  "posterUrl": "https://musical-tracker-images.s3.us-east-2.amazonaws.com/uploads/user/user-id/poster-timestamp-hash.jpg"
 }
 ```
 

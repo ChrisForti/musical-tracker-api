@@ -1,6 +1,6 @@
 {
-  "id": "b8043c14-b53c-4501-8db0-03d404940937",
-  "prevId": "d07b86a7-8090-4cc3-8a88-71b1778fea11",
+  "id": "522ca9c9-453d-4854-9416-fd11da5b9924",
+  "prevId": "b8043c14-b53c-4501-8db0-03d404940937",
   "version": "7",
   "dialect": "postgresql",
   "tables": {
@@ -138,8 +138,8 @@
           "primaryKey": false,
           "notNull": true
         },
-        "title": {
-          "name": "title",
+        "name": {
+          "name": "name",
           "type": "varchar(255)",
           "primaryKey": false,
           "notNull": true

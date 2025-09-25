@@ -1,0 +1,1 @@
+ALTER TABLE "musical" RENAME COLUMN "title" TO "name";
