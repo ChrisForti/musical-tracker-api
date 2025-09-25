@@ -52,10 +52,10 @@ This refactor improves data integrity through proper foreign key relationships a
   - GET /performance/:id now requires authentication
   - Enhanced GET responses with complex joins including musical, theater, and cast data
 - **Media System (Radical Simplification)**:
-  - **BREAKING**: Removed `type` and `entityId` parameters from POST /media**
-  - **BREAKING**: Now stores direct S3 URLs instead of signed URLs**
-  - **SIMPLIFIED**: Upload any image without specifying what it's for**
-  - **ARCHITECTURAL**: Use returned `imageId` as `posterId` when creating/updating entities**
+  - **BREAKING**: Removed `type` and `entityId` parameters from POST /media\*\*
+  - **BREAKING**: Now stores direct S3 URLs instead of signed URLs\*\*
+  - **SIMPLIFIED**: Upload any image without specifying what it's for\*\*
+  - **ARCHITECTURAL**: Use returned `imageId` as `posterId` when creating/updating entities\*\*
   - Route change: `/upload` renamed to `/media` for all endpoints
   - Complete image upload system with AWS S3 integration
   - `POST /media` - Unified endpoint for all image uploads (poster, profile)
