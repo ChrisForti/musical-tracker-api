@@ -1,5 +1,5 @@
 {
-  "id": "35dafd09-4778-40c6-9f5b-ac1198434647",
+  "id": "6c28dc95-4ab5-4bf2-bcea-f777ec483fe9",
   "prevId": "00000000-0000-0000-0000-000000000000",
   "version": "7",
   "dialect": "postgresql",
@@ -60,12 +60,11 @@
           "primaryKey": false,
           "notNull": true
         },
-        "verified": {
-          "name": "verified",
-          "type": "boolean",
+        "performance_id": {
+          "name": "performance_id",
+          "type": "uuid",
           "primaryKey": false,
-          "notNull": true,
-          "default": false
+          "notNull": true
         }
       },
       "indexes": {},
@@ -89,6 +88,19 @@
           "tableTo": "actor",
           "columnsFrom": [
             "actor_id"
+          ],
+          "columnsTo": [
+            "id"
+          ],
+          "onDelete": "no action",
+          "onUpdate": "no action"
+        },
+        "casting_performance_id_performance_id_fk": {
+          "name": "casting_performance_id_performance_id_fk",
+          "tableFrom": "casting",
+          "tableTo": "performance",
+          "columnsFrom": [
+            "performance_id"
           ],
           "columnsTo": [
             "id"
@@ -126,11 +138,17 @@
           "primaryKey": false,
           "notNull": true
         },
-        "title": {
-          "name": "title",
+        "name": {
+          "name": "name",
           "type": "varchar(255)",
           "primaryKey": false,
           "notNull": true
+        },
+        "poster_id": {
+          "name": "poster_id",
+          "type": "uuid",
+          "primaryKey": false,
+          "notNull": false
         },
         "verified": {
           "name": "verified",
@@ -141,7 +159,21 @@
         }
       },
       "indexes": {},
-      "foreignKeys": {},
+      "foreignKeys": {
+        "musical_poster_id_uploaded_images_id_fk": {
+          "name": "musical_poster_id_uploaded_images_id_fk",
+          "tableFrom": "musical",
+          "tableTo": "uploaded_images",
+          "columnsFrom": [
+            "poster_id"
+          ],
+          "columnsTo": [
+            "id"
+          ],
+          "onDelete": "set null",
+          "onUpdate": "no action"
+        }
+      },
       "compositePrimaryKeys": {},
       "uniqueConstraints": {},
       "policies": {},
@@ -171,15 +203,27 @@
           "primaryKey": false,
           "notNull": true
         },
+        "theater_id": {
+          "name": "theater_id",
+          "type": "uuid",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "date": {
+          "name": "date",
+          "type": "date",
+          "primaryKey": false,
+          "notNull": false
+        },
         "notes": {
           "name": "notes",
           "type": "text",
           "primaryKey": false,
           "notNull": false
         },
-        "poster_url": {
-          "name": "poster_url",
-          "type": "varchar(255)",
+        "poster_id": {
+          "name": "poster_id",
+          "type": "uuid",
           "primaryKey": false,
           "notNull": false
         }
@@ -210,6 +254,32 @@
             "id"
           ],
           "onDelete": "no action",
+          "onUpdate": "no action"
+        },
+        "performance_theater_id_theater_id_fk": {
+          "name": "performance_theater_id_theater_id_fk",
+          "tableFrom": "performance",
+          "tableTo": "theater",
+          "columnsFrom": [
+            "theater_id"
+          ],
+          "columnsTo": [
+            "id"
+          ],
+          "onDelete": "no action",
+          "onUpdate": "no action"
+        },
+        "performance_poster_id_uploaded_images_id_fk": {
+          "name": "performance_poster_id_uploaded_images_id_fk",
+          "tableFrom": "performance",
+          "tableTo": "uploaded_images",
+          "columnsFrom": [
+            "poster_id"
+          ],
+          "columnsTo": [
+            "id"
+          ],
+          "onDelete": "set null",
           "onUpdate": "no action"
         }
       },
@@ -418,6 +488,108 @@
             "id"
           ],
           "onDelete": "cascade",
+          "onUpdate": "no action"
+        }
+      },
+      "compositePrimaryKeys": {},
+      "uniqueConstraints": {},
+      "policies": {},
+      "checkConstraints": {},
+      "isRLSEnabled": false
+    },
+    "public.uploaded_images": {
+      "name": "uploaded_images",
+      "schema": "",
+      "columns": {
+        "id": {
+          "name": "id",
+          "type": "uuid",
+          "primaryKey": true,
+          "notNull": true,
+          "default": "gen_random_uuid()"
+        },
+        "original_filename": {
+          "name": "original_filename",
+          "type": "varchar(255)",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "s3_key": {
+          "name": "s3_key",
+          "type": "varchar(500)",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "s3_url": {
+          "name": "s3_url",
+          "type": "varchar(500)",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "file_size": {
+          "name": "file_size",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "mime_type": {
+          "name": "mime_type",
+          "type": "varchar(100)",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "width": {
+          "name": "width",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "height": {
+          "name": "height",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "uploaded_by": {
+          "name": "uploaded_by",
+          "type": "uuid",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "image_type": {
+          "name": "image_type",
+          "type": "varchar(50)",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "created_at": {
+          "name": "created_at",
+          "type": "timestamp",
+          "primaryKey": false,
+          "notNull": true,
+          "default": "now()"
+        },
+        "updated_at": {
+          "name": "updated_at",
+          "type": "timestamp",
+          "primaryKey": false,
+          "notNull": true,
+          "default": "now()"
+        }
+      },
+      "indexes": {},
+      "foreignKeys": {
+        "uploaded_images_uploaded_by_users_id_fk": {
+          "name": "uploaded_images_uploaded_by_users_id_fk",
+          "tableFrom": "uploaded_images",
+          "tableTo": "users",
+          "columnsFrom": [
+            "uploaded_by"
+          ],
+          "columnsTo": [
+            "id"
+          ],
+          "onDelete": "no action",
           "onUpdate": "no action"
         }
       },

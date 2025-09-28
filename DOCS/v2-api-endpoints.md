@@ -649,7 +649,7 @@ curl -X POST http://localhost:3000/v2/media \
 
 #### Delete Uploaded Image
 
-Delete an uploaded image (users can only delete their own images).
+Delete an uploaded image (users can only delete their own images). **If the image is referenced by musicals or performances, their `posterId` will automatically be set to `null`** - the entities remain intact.
 
 ```bash
 curl -X DELETE http://localhost:3000/v2/media/uuid-of-image \
@@ -664,6 +664,12 @@ curl -X DELETE http://localhost:3000/v2/media/uuid-of-image \
   "message": "Image deleted successfully"
 }
 ```
+
+**Behavior:**
+
+- ✅ **Safe deletion**: Referenced musicals/performances are **not deleted**
+- ✅ **Automatic cleanup**: `posterId` fields set to `null` automatically
+- ✅ **Consistent responses**: GET endpoints return `posterUrl: null` when no image
 
 #### Debug Media Configuration (Development Only)
 

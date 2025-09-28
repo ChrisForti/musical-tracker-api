@@ -5,43 +5,8 @@
     {
       "idx": 0,
       "version": "7",
-      "when": 1756941534066,
-      "tag": "0000_watery_wallflower",
-      "breakpoints": true
-    },
-    {
-      "idx": 1,
-      "version": "7",
-      "when": 1757184186142,
-      "tag": "0001_ordinary_human_cannonball",
-      "breakpoints": true
-    },
-    {
-      "idx": 2,
-      "version": "7",
-      "when": 1757284637187,
-      "tag": "0002_gorgeous_reavers",
-      "breakpoints": true
-    },
-    {
-      "idx": 3,
-      "version": "7",
-      "when": 1758238540713,
-      "tag": "0003_sleepy_malcolm_colcord",
-      "breakpoints": true
-    },
-    {
-      "idx": 4,
-      "version": "7",
-      "when": 1758402541500,
-      "tag": "0005_lively_marvel_zombies",
-      "breakpoints": true
-    },
-    {
-      "idx": 5,
-      "version": "7",
-      "when": 1758765654112,
-      "tag": "0006_careless_iron_fist",
+      "when": 1727477700000,
+      "tag": "0000_initial_schema",
       "breakpoints": true
     }
   ]
