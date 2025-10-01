@@ -1,5 +1,5 @@
 import { Router, type Request, type Response } from "express";
-import { MusicalTable } from "../../drizzle/schema.js";
+import { MusicalTable, UploadedImagesTable } from "../../drizzle/schema.js";
 import { db } from "../../drizzle/db.js";
 import { SERVER_ERROR } from "../../lib/errors.js";
 import { eq } from "drizzle-orm";
@@ -9,16 +9,16 @@ import { validate as validateUuid } from "uuid";
 
 export const musicalRouter = Router();
 
-musicalRouter.get("/", getAllMusicalsHandler);
+musicalRouter.get("/", ensureAuthenticated, getAllMusicalsHandler);
 musicalRouter.post("/", ensureAuthenticated, createMusicalHandler);
-musicalRouter.get("/:id", getMusicalByIdHandler);
-musicalRouter.put(
+musicalRouter.get("/:id", ensureAuthenticated, getMusicalByIdHandler);
+musicalRouter.put("/:id", ensureAuthenticated, updateMusicalHandler);
+musicalRouter.delete(
   "/:id",
   ensureAuthenticated,
   ensureAdmin,
-  updateMusicalHandler
+  deleteMusicalHandler
 );
-musicalRouter.delete("/:id", ensureAuthenticated, deleteMusicalHandler);
 musicalRouter.post(
   "/:id/verify",
   ensureAuthenticated,
@@ -32,13 +32,40 @@ async function getAllMusicalsHandler(req: Request, res: Response) {
 
     if (isPending) {
       const pendingMusicals = await db
-        .select()
+        .select({
+          id: MusicalTable.id,
+          name: MusicalTable.name,
+          composer: MusicalTable.composer,
+          lyricist: MusicalTable.lyricist,
+          posterId: MusicalTable.posterId,
+          verified: MusicalTable.verified,
+          posterUrl: UploadedImagesTable.s3Url,
+        })
         .from(MusicalTable)
+        .leftJoin(
+          UploadedImagesTable,
+          eq(MusicalTable.posterId, UploadedImagesTable.id)
+        )
         .where(eq(MusicalTable.verified, false));
 
       res.status(200).json(pendingMusicals);
     } else {
-      const musicals = await db.select().from(MusicalTable);
+      const musicals = await db
+        .select({
+          id: MusicalTable.id,
+          name: MusicalTable.name,
+          composer: MusicalTable.composer,
+          lyricist: MusicalTable.lyricist,
+          posterId: MusicalTable.posterId,
+          verified: MusicalTable.verified,
+          posterUrl: UploadedImagesTable.s3Url,
+        })
+        .from(MusicalTable)
+        .leftJoin(
+          UploadedImagesTable,
+          eq(MusicalTable.posterId, UploadedImagesTable.id)
+        );
+
       res.status(200).json(musicals);
     }
   } catch (error) {
@@ -50,20 +77,21 @@ async function getAllMusicalsHandler(req: Request, res: Response) {
 type CreateMusicalBodyParams = {
   composer: string;
   lyricist: string;
-  title: string;
+  name: string;
+  posterId?: string;
 };
 
 async function createMusicalHandler(
   req: Request<{}, {}, CreateMusicalBodyParams>,
   res: Response
 ) {
-  const { composer, lyricist, title } = req.body;
+  const { composer, lyricist, name, posterId } = req.body;
   const validator = new Validator();
 
   try {
     validator.check(!!composer, "composer", "is required");
     validator.check(!!lyricist, "lyricist", "is required");
-    validator.check(!!title, "title", "is required");
+    validator.check(!!name, "name", "is required");
 
     if (!validator.valid) {
       res.status(400).json({ errors: validator.errors });
@@ -72,7 +100,7 @@ async function createMusicalHandler(
 
     const [newMusical] = await db
       .insert(MusicalTable)
-      .values({ composer, lyricist, title })
+      .values({ composer, lyricist, name, posterId })
       .returning({ id: MusicalTable.id });
 
     if (!newMusical) {
@@ -112,16 +140,30 @@ async function getMusicalByIdHandler(
       return;
     }
 
-    const musical = await db.query.MusicalTable.findFirst({
-      where: eq(MusicalTable.id, id),
-    });
+    const musical = await db
+      .select({
+        id: MusicalTable.id,
+        name: MusicalTable.name,
+        composer: MusicalTable.composer,
+        lyricist: MusicalTable.lyricist,
+        posterId: MusicalTable.posterId,
+        verified: MusicalTable.verified,
+        posterUrl: UploadedImagesTable.s3Url,
+      })
+      .from(MusicalTable)
+      .leftJoin(
+        UploadedImagesTable,
+        eq(MusicalTable.posterId, UploadedImagesTable.id)
+      )
+      .where(eq(MusicalTable.id, id))
+      .limit(1);
 
-    if (!musical) {
+    if (!musical.length) {
       res.status(404).json({ error: "Musical not found" });
       return;
     }
 
-    res.status(200).json(musical);
+    res.status(200).json(musical[0]);
   } catch (error) {
     console.error("Error in getMusicalByIdHandler:", error);
     res.status(500).json({ error: SERVER_ERROR });
@@ -131,7 +173,8 @@ async function getMusicalByIdHandler(
 type UpdateMusicalBodyParams = {
   composer?: string;
   lyricist?: string;
-  title?: string;
+  name?: string;
+  posterId?: string;
 };
 
 async function updateMusicalHandler(
@@ -139,7 +182,7 @@ async function updateMusicalHandler(
   res: Response
 ) {
   const id = req.params.id;
-  const { composer, lyricist, title } = req.body;
+  const { composer, lyricist, name, posterId } = req.body;
   const validator = new Validator();
 
   try {
@@ -153,22 +196,40 @@ async function updateMusicalHandler(
       return;
     }
 
+    // Check if the musical exists and get its verified status
+    const existingMusical = await db.query.MusicalTable.findFirst({
+      where: eq(MusicalTable.id, id),
+    });
+
+    if (!existingMusical) {
+      res.status(404).json({ error: "Musical not found" });
+      return;
+    }
+
+    // If musical is verified, only admin can make changes
+    if (existingMusical.verified && req.user?.role !== "admin") {
+      res.status(403).json({
+        error: "Only admins can modify verified musicals",
+      });
+      return;
+    }
+
     const updateData: Partial<{
       composer: string;
       lyricist: string;
-      title: string;
+      name: string;
+      posterId: string;
     }> = {};
     if (composer) updateData.composer = composer;
     if (lyricist) updateData.lyricist = lyricist;
-    if (title) updateData.title = title;
+    if (name) updateData.name = name;
+    if (posterId !== undefined) updateData.posterId = posterId;
 
     if (Object.keys(updateData).length === 0) {
-      res
-        .status(400)
-        .json({
-          error:
-            "At least one field (composer, lyricist, or title) is required",
-        });
+      res.status(400).json({
+        error:
+          "At least one field (composer, lyricist, name, or posterId) is required",
+      });
       return;
     }
 
@@ -182,7 +243,7 @@ async function updateMusicalHandler(
       return;
     }
 
-    res.status(200).json({ message: "Musical updated successfully" });
+    res.status(200).json({});
   } catch (error) {
     console.error("Error in updateMusicalHandler:", error);
     res.status(500).json({ error: SERVER_ERROR });
@@ -214,7 +275,7 @@ async function deleteMusicalHandler(
       return;
     }
 
-    res.status(200).json({ message: "Musical deleted successfully" });
+    res.status(200).json({});
   } catch (error) {
     console.error("Error in deleteMusicalHandler:", error);
     res.status(500).json({ error: SERVER_ERROR });
@@ -253,7 +314,7 @@ async function verifyMusicalHandler(
       return;
     }
 
-    res.status(200).json({ message: "Musical verified successfully" });
+    res.status(200).json({});
   } catch (error) {
     console.error("Error in verifyMusicalHandler:", error);
     res.status(500).json({ error: SERVER_ERROR });

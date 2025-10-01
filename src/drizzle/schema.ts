@@ -10,6 +10,8 @@ import {
   varchar,
   type AnyPgColumn,
   date,
+  integer,
+  timestamp,
 } from "drizzle-orm/pg-core";
 
 export const accountTypeEnum = pgEnum("account_type", ["admin", "user"]);
@@ -47,20 +49,28 @@ export const TokenTable = pgTable("tokens", {
   scope: text("scope").notNull(),
 });
 
+export const UploadedImagesTable = pgTable("uploaded_images", {
+  id: uuid("id").defaultRandom().primaryKey().notNull(),
+  originalFilename: varchar("original_filename", { length: 255 }).notNull(),
+  s3Key: varchar("s3_key", { length: 500 }).notNull(),
+  s3Url: varchar("s3_url", { length: 500 }).notNull(),
+  fileSize: integer("file_size").notNull(),
+  mimeType: varchar("mime_type", { length: 100 }).notNull(),
+  width: integer("width"),
+  height: integer("height"),
+  uploadedBy: uuid("uploaded_by")
+    .notNull()
+    .references(() => UserTable.id),
+  imageType: varchar("image_type", { length: 50 }).notNull(), // 'poster', 'profile', 'thumbnail'
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+  updatedAt: timestamp("updated_at").defaultNow().notNull(),
+});
+
 export const TheaterTable = pgTable("theater", {
   id: uuid("id").defaultRandom().primaryKey().notNull(),
   name: varchar("name", { length: 255 }).notNull(),
   verified: boolean("verified").default(false).notNull(),
   city: varchar("city", { length: 255 }).notNull(),
-});
-
-export const RoleTable = pgTable("role", {
-  id: uuid("id").defaultRandom().primaryKey().notNull(),
-  name: varchar("name", { length: 255 }).notNull(),
-  musicalId: uuid("musical_id")
-    .notNull()
-    .references(() => MusicalTable.id),
-  verified: boolean("verified").default(false).notNull(),
 });
 
 export const ActorTable = pgTable("actor", {
@@ -73,7 +83,19 @@ export const MusicalTable = pgTable("musical", {
   id: uuid("id").defaultRandom().primaryKey().notNull(),
   composer: varchar("composer", { length: 255 }).notNull(),
   lyricist: varchar("lyricist", { length: 255 }).notNull(),
-  title: varchar("title", { length: 255 }).notNull(),
+  name: varchar("name", { length: 255 }).notNull(),
+  posterId: uuid("poster_id").references(() => UploadedImagesTable.id, {
+    onDelete: "set null",
+  }),
+  verified: boolean("verified").default(false).notNull(),
+});
+
+export const RoleTable = pgTable("role", {
+  id: uuid("id").defaultRandom().primaryKey().notNull(),
+  name: varchar("name", { length: 255 }).notNull(),
+  musicalId: uuid("musical_id")
+    .notNull()
+    .references(() => MusicalTable.id),
   verified: boolean("verified").default(false).notNull(),
 });
 
@@ -85,8 +107,12 @@ export const PerformanceTable = pgTable("performance", {
   userId: uuid("user_id")
     .notNull()
     .references(() => UserTable.id),
+  theaterId: uuid("theater_id").references(() => TheaterTable.id),
+  date: date("date", { mode: "date" }),
   notes: text("notes"),
-  posterUrl: varchar("poster_url", { length: 255 }),
+  posterId: uuid("poster_id").references(() => UploadedImagesTable.id, {
+    onDelete: "set null",
+  }),
 });
 
 export const CastingTable = pgTable("casting", {
@@ -97,7 +123,9 @@ export const CastingTable = pgTable("casting", {
   actorId: uuid("actor_id")
     .notNull()
     .references(() => ActorTable.id),
-  verified: boolean("verified").default(false).notNull(),
+  performanceId: uuid("performance_id")
+    .notNull()
+    .references(() => PerformanceTable.id),
 });
 
 export const ProductionTable = pgTable("production", {

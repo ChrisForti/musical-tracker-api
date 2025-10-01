@@ -10,15 +10,10 @@ import { validate as validateUuid } from "uuid";
 export const theaterRouter = Router();
 
 // Updated route structure - using URL params for PUT/DELETE
-theaterRouter.get("/", getAllTheatersHandler);
+theaterRouter.get("/", ensureAuthenticated, getAllTheatersHandler);
 theaterRouter.post("/", ensureAuthenticated, createTheaterHandler);
-theaterRouter.get("/:id", getTheaterByIdHandler);
-theaterRouter.put(
-  "/:id",
-  ensureAuthenticated,
-  ensureAdmin,
-  updateTheaterHandler
-);
+theaterRouter.get("/:id", ensureAuthenticated, getTheaterByIdHandler);
+theaterRouter.put("/:id", ensureAuthenticated, updateTheaterHandler);
 theaterRouter.delete(
   "/:id",
   ensureAuthenticated,
@@ -166,6 +161,25 @@ async function updateTheaterHandler(
       res
         .status(400)
         .json({ error: "At least one field (name or city) is required" });
+      return;
+    }
+
+    // Check if theater exists and get verification status
+    const [theater] = await db
+      .select()
+      .from(TheaterTable)
+      .where(eq(TheaterTable.id, id));
+
+    if (!theater) {
+      res.status(404).json({ error: "Theater not found" });
+      return;
+    }
+
+    // Only admin can update verified theaters
+    if (theater.verified && req.user?.role !== "admin") {
+      res
+        .status(403)
+        .json({ error: "Only admins can update verified theaters" });
       return;
     }
 

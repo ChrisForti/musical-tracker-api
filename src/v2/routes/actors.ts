@@ -9,11 +9,16 @@ import { validate as validateUuid } from "uuid";
 
 export const actorRouter = Router();
 
-actorRouter.get("/", getAllActorsHandler);
+actorRouter.get("/", ensureAuthenticated, getAllActorsHandler);
 actorRouter.post("/", ensureAuthenticated, createActorHandler);
-actorRouter.get("/:id", getActorByIdHandler);
-actorRouter.put("/:id", ensureAuthenticated, ensureAdmin, updateActorHandler);
-actorRouter.delete("/:id", ensureAuthenticated, deleteActorHandler);
+actorRouter.get("/:id", ensureAuthenticated, getActorByIdHandler);
+actorRouter.put("/:id", ensureAuthenticated, updateActorHandler);
+actorRouter.delete(
+  "/:id",
+  ensureAuthenticated,
+  ensureAdmin,
+  deleteActorHandler
+);
 actorRouter.post(
   "/:id/verify",
   ensureAuthenticated,
@@ -147,6 +152,23 @@ async function updateActorHandler(
 
     if (Object.keys(updateData).length === 0) {
       res.status(400).json({ error: "At least one field (name) is required" });
+      return;
+    }
+
+    // Check if actor exists and get verification status
+    const [actor] = await db
+      .select()
+      .from(ActorTable)
+      .where(eq(ActorTable.id, id));
+
+    if (!actor) {
+      res.status(404).json({ error: "Actor not found" });
+      return;
+    }
+
+    // Only admin can update verified actors
+    if (actor.verified && req.user?.role !== "admin") {
+      res.status(403).json({ error: "Only admins can update verified actors" });
       return;
     }
 
