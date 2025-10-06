@@ -51,7 +51,7 @@ export function Sidebar({ closeAdmin }: AdminProps) {
     <>
       {/* Sidebar */}
       <div
-        className={`fixed left-0  h-screen flex flex-col p-6 top-3 bg-white border-r border-gray-200 text-black dark:bg-gray-900 dark:border-gray-800 dark:text-white ...`}
+        className={`fixed left-0 h-screen flex flex-col p-6 top-3 bg-white border-r border-gray-200 text-black dark:bg-gray-900 dark:border-gray-800 dark:text-white ${sidebarWidth} ${sidebarHoverWidth} transition-all duration-300 z-30`}
         onMouseEnter={() => setIsHovered(true)}
         onMouseLeave={() => setIsHovered(false)}
       >
@@ -222,20 +222,51 @@ export function Sidebar({ closeAdmin }: AdminProps) {
             </li>
           </ul>
         </nav>
-
-        {/* Login Panel - Now at the bottom of sidebar */}
-        {isLoginOpen && (
-          <div ref={loginRef} className="my-auto">
-            <LoginPage />
-          </div>
-        )}
       </div>
+
+      {/* Login Panel - Modal overlay */}
+      {isLoginOpen && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 z-50 flex items-center justify-center">
+          <div
+            ref={loginRef}
+            className="bg-white dark:bg-gray-900 rounded-lg shadow-lg max-w-md w-full mx-4"
+          >
+            <div className="flex justify-between items-center p-4 border-b border-gray-200 dark:border-gray-700">
+              <h2 className="text-xl font-semibold text-teal-600">Login</h2>
+              <button
+                onClick={() => setLoginOpen(false)}
+                className="text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200"
+              >
+                <svg
+                  className="w-6 h-6"
+                  fill="none"
+                  stroke="currentColor"
+                  viewBox="0 0 24 24"
+                >
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    strokeWidth="2"
+                    d="M6 18L18 6M6 6l12 12"
+                  ></path>
+                </svg>
+              </button>
+            </div>
+            <LoginPage onLoginSuccess={() => setLoginOpen(false)} />
+          </div>
+        </div>
+      )}
 
       {/* Admin Page */}
       {showAdminPage && (
         <div
-          className="fixed top-16 right-0 h-[calc(100vh-64px)] bg-white dark:bg-gray-900 border-l border-gray-200 dark:border-gray-800 z-40 transition-all duration-300 overflow-auto"
-          style={{ width: `calc(100% - ${isExpanded ? "16rem" : "4rem"})` }}
+          className="fixed bg-white dark:bg-gray-900 border-l border-gray-200 dark:border-gray-800 z-40 transition-all duration-300"
+          style={{
+            left: isExpanded || (isHovered && !isExpanded) ? "16rem" : "4rem",
+            top: "4rem", // Account for header height
+            right: 0,
+            height: "calc(100vh - 4rem)", // Full height minus header
+          }}
         >
           <div className="h-full overflow-auto">
             <AdminPage closeAdmin={() => setShowAdminPage(false)} />

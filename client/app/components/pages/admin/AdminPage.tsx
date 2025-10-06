@@ -16,8 +16,8 @@ export default function AdminPage({ closeAdmin }: { closeAdmin: () => void }) {
   };
 
   return (
-    <div className="bg-white dark:bg-gray-900 border-l border-gray-200 dark:border-gray-800 h-full">
-      <header className="bg-white dark:bg-gray-900 border-b border-gray-200 dark:border-gray-800 p-4 flex justify-between items-center">
+    <div className="flex flex-col h-full bg-white dark:bg-gray-900">
+      <header className="flex-shrink-0 bg-white dark:bg-gray-900 border-b border-gray-200 dark:border-gray-800 p-4 flex justify-between items-center">
         <h1 className="text-2xl font-bold text-teal-600">Admin Dashboard</h1>
         <div className="flex space-x-3">
           {currentSection !== "dashboard" && (
@@ -60,7 +60,7 @@ export default function AdminPage({ closeAdmin }: { closeAdmin: () => void }) {
         </div>
       </header>
 
-      <main className="p-6">
+      <main className="flex-1 overflow-auto p-6">
         {/* Show different content based on current section */}
         {currentSection === "dashboard" ? (
           <>

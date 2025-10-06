@@ -1,6 +1,10 @@
 import { useState } from "react";
 
-export function LoginPage() {
+interface LoginPageProps {
+  onLoginSuccess?: () => void;
+}
+
+export function LoginPage({ onLoginSuccess }: LoginPageProps = {}) {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
 
@@ -35,6 +39,8 @@ export function LoginPage() {
         localStorage.setItem("authToken", data.token);
         // You could also redirect or update state here
         alert("Login successful!");
+        // Close the modal if callback provided
+        onLoginSuccess?.();
       } else {
         console.error("Login failed:", data);
         alert(
@@ -49,8 +55,7 @@ export function LoginPage() {
   }
 
   return (
-    <div className="w-full bg-white text-black dark:bg-gray-900 dark:text-white p-4">
-      <h3 className="text-lg font-semibold text-teal-600 mb-4">Login</h3>
+    <div className="bg-white text-black dark:bg-gray-900 dark:text-white p-6">
       <form onSubmit={handleSubmit}>
         <div className="mb-4">
           <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">
