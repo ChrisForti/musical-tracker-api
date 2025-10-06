@@ -21,56 +21,41 @@ export default function MusicalDetail({ musicalId }: MusicalDetailProps) {
   const navigate = useNavigate();
 
   useEffect(() => {
-    // Sample data for testing
-    const sampleMusicals = [
-      {
-        id: "1",
-        title: "Hamilton",
-        composer: "Lin-Manuel Miranda",
-        lyricist: "Lin-Manuel Miranda",
-        approved: true,
-        synopsis:
-          "A musical about the life of American Founding Father Alexander Hamilton.",
-      },
-      {
-        id: "2",
-        title: "The Phantom of the Opera",
-        composer: "Andrew Lloyd Webber",
-        lyricist: "Charles Hart",
-        approved: true,
-        synopsis:
-          "A musical about a disfigured musical genius who haunts the Paris Opera House.",
-      },
-      {
-        id: "3",
-        title: "Les Misérables",
-        composer: "Claude-Michel Schönberg",
-        lyricist: "Alain Boublil",
-        approved: false,
-        synopsis: "A musical adaptation of Victor Hugo's revolutionary novel.",
-      },
-    ];
+    const fetchMusical = async () => {
+      try {
+        const token = localStorage.getItem("authToken");
+        const response = await fetch(
+          `http://localhost:3000/v2/musical/${musicalId}`,
+          {
+            headers: {
+              Authorization: `Bearer ${token}`,
+            },
+          }
+        );
 
-    // Find the musical by ID
-    const foundMusical = sampleMusicals.find((m) => m.id === musicalId);
+        if (response.ok) {
+          const data = await response.json();
+          // Map API data to component structure
+          const mappedMusical = {
+            id: data.id,
+            title: data.name, // API returns 'name', component expects 'title'
+            composer: data.composer,
+            lyricist: data.lyricist,
+            approved: data.verified, // API returns 'verified', component expects 'approved'
+            synopsis: data.description, // API returns 'description', component expects 'synopsis'
+          };
+          setMusical(mappedMusical);
+        } else {
+          console.error("Failed to fetch musical:", response.statusText);
+        }
+      } catch (err) {
+        console.error("Error fetching musical:", err);
+      } finally {
+        setLoading(false);
+      }
+    };
 
-    if (foundMusical) {
-      setMusical(foundMusical);
-    }
-
-    setLoading(false);
-
-    // In a real app, fetch from API
-    // fetch(`/api/musicals/${musicalId}`)
-    //   .then(res => res.json())
-    //   .then(data => {
-    //     setMusical(data);
-    //     setLoading(false);
-    //   })
-    //   .catch(err => {
-    //     console.error("Error fetching musical:", err);
-    //     setLoading(false);
-    //   });
+    fetchMusical();
   }, [musicalId]);
 
   const handleDelete = async () => {
@@ -78,11 +63,23 @@ export default function MusicalDetail({ musicalId }: MusicalDetailProps) {
 
     if (confirm("Are you sure you want to delete this musical?")) {
       try {
-        // In a real app, make an API call to delete
-        // await fetch(`/api/musicals/${musical.id}`, { method: 'DELETE' });
+        const token = localStorage.getItem("authToken");
+        const response = await fetch(
+          `http://localhost:3000/v2/musical/${musical.id}`,
+          {
+            method: "DELETE",
+            headers: {
+              Authorization: `Bearer ${token}`,
+            },
+          }
+        );
 
-        // Navigate back to the list
-        navigate("/musicals");
+        if (response.ok) {
+          // Navigate back to the list
+          navigate("/musicals");
+        } else {
+          console.error("Failed to delete musical:", response.statusText);
+        }
       } catch (error) {
         console.error("Failed to delete musical:", error);
       }

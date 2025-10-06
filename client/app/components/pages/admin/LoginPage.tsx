@@ -12,10 +12,40 @@ export function LoginPage() {
     setPassword(event.target.value);
   }
 
-  function handleSubmit(event: React.FormEvent) {
+  async function handleSubmit(event: React.FormEvent) {
     event.preventDefault();
-    console.log("Email:", email);
-    console.log("Password:", password);
+
+    try {
+      const response = await fetch("http://localhost:3000/v2/user/login", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          email: email,
+          password: password,
+        }),
+      });
+
+      const data = await response.json();
+
+      if (response.ok) {
+        console.log("Login successful:", data);
+        // Store the token in localStorage for future API calls
+        localStorage.setItem("authToken", data.token);
+        // You could also redirect or update state here
+        alert("Login successful!");
+      } else {
+        console.error("Login failed:", data);
+        alert(
+          "Login failed: " +
+            (data.errors?.message || data.error || "Unknown error")
+        );
+      }
+    } catch (error) {
+      console.error("Login error:", error);
+      alert("Login failed: Network error");
+    }
   }
 
   return (

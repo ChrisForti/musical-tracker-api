@@ -33,57 +33,71 @@ export default function PerformanceForm({
 
   // Load data when editing an existing performance
   useEffect(() => {
+    const token = localStorage.getItem("authToken");
+
     if (mode === "edit" && performanceId) {
-      // In a real app, fetch the performance data from the API
-      // For now, using sample data
-      const samplePerformances = [
-        {
-          id: "1",
-          productionId: "prod1",
-          date: "2025-07-20",
-          theaterId: "theater1",
-        },
-        {
-          id: "2",
-          productionId: "prod2",
-          date: "2025-07-21",
-          theaterId: "theater2",
-        },
-      ];
+      const fetchPerformance = async () => {
+        try {
+          const response = await fetch(
+            `http://localhost:3000/v2/performance/${performanceId}`,
+            {
+              headers: {
+                Authorization: `Bearer ${token}`,
+              },
+            }
+          );
 
-      const performance = samplePerformances.find(
-        (p) => p.id === performanceId
-      );
-      if (performance) {
-        setFormData(performance);
-      }
+          if (response.ok) {
+            const data = await response.json();
+            setFormData(data);
+          } else {
+            console.error("Failed to fetch performance:", response.statusText);
+          }
+        } catch (err) {
+          console.error("Error fetching performance:", err);
+        } finally {
+          setLoading(false);
+        }
+      };
 
-      setLoading(false);
+      fetchPerformance();
     }
 
-    // Load reference data (productions, theaters)
+    // Load reference data (musicals, theaters)
     const loadReferenceData = async () => {
-      // In a real app, fetch from API
-      // For now, using sample data
-      setProductions([
-        { id: "prod1", name: "Broadway Revival", musicalTitle: "Hamilton" },
-        {
-          id: "prod2",
-          name: "National Tour",
-          musicalTitle: "The Phantom of the Opera",
-        },
-        {
-          id: "prod3",
-          name: "West End Production",
-          musicalTitle: "Les Misérables",
-        },
-      ]);
+      try {
+        // Fetch musicals (for productions)
+        const musicalsResponse = await fetch(
+          "http://localhost:3000/v2/musical",
+          {
+            headers: { Authorization: `Bearer ${token}` },
+          }
+        );
+        if (musicalsResponse.ok) {
+          const musicalsData = await musicalsResponse.json();
+          setProductions(
+            musicalsData.map((musical: any) => ({
+              id: musical.id,
+              name: musical.name,
+              musicalTitle: musical.name,
+            }))
+          );
+        }
 
-      setTheaters([
-        { id: "theater1", name: "Gershwin Theatre" },
-        { id: "theater2", name: "Kennedy Center" },
-        { id: "theater3", name: "Queen's Theatre" },
-      ]);
+        // Fetch theaters
+        const theatersResponse = await fetch(
+          "http://localhost:3000/v2/theater",
+          {
+            headers: { Authorization: `Bearer ${token}` },
+          }
+        );
+        if (theatersResponse.ok) {
+          const theatersData = await theatersResponse.json();
+          setTheaters(theatersData);
+        }
+      } catch (error) {
+        console.error("Error loading reference data:", error);
+      }
     };
 
     loadReferenceData();
@@ -103,42 +117,49 @@ export default function PerformanceForm({
     e.preventDefault();
 
     try {
+      const token = localStorage.getItem("authToken");
+
       if (mode === "create") {
-        // Create new performance
-        // const response = await fetch('http://localhost:3000/v1/performances', {
-        //   method: 'POST',
-        //   headers: {
-        //     'Content-Type': 'application/json'
-        //   },
-        //   body: JSON.stringify(formData)
-        // });
+        const response = await fetch("http://localhost:3000/v2/performance", {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+            Authorization: `Bearer ${token}`,
+          },
+          body: JSON.stringify({
+            musicalId: formData.productionId, // API uses musicalId
+            theaterId: formData.theaterId,
+            date: formData.date,
+          }),
+        });
 
-        // if (!response.ok) {
-        //   throw new Error(`Error ${response.status}: ${response.statusText}`);
-        // }
-
-        // const data = await response.json();
-        console.log("Created new performance:", formData);
-
-        navigate("/performances");
+        if (response.ok) {
+          navigate("/performances");
+        } else {
+          console.error("Failed to create performance:", response.statusText);
+        }
       } else {
-        // Update existing performance
-        // const response = await fetch(`http://localhost:3000/v1/performances/${performanceId}`, {
-        //   method: 'PUT',
-        //   headers: {
-        //     'Content-Type': 'application/json'
-        //   },
-        //   body: JSON.stringify(formData)
-        // });
+        const response = await fetch(
+          `http://localhost:3000/v2/performance/${performanceId}`,
+          {
+            method: "PUT",
+            headers: {
+              "Content-Type": "application/json",
+              Authorization: `Bearer ${token}`,
+            },
+            body: JSON.stringify({
+              musicalId: formData.productionId,
+              theaterId: formData.theaterId,
+              date: formData.date,
+            }),
+          }
+        );
 
-        // if (!response.ok) {
-        //   throw new Error(`Error ${response.status}: ${response.statusText}`);
-        // }
-
-        // const data = await response.json();
-        console.log("Updated performance:", formData);
-
-        navigate(`/performances/view/${performanceId}`);
+        if (response.ok) {
+          navigate(`/performances/view/${performanceId}`);
+        } else {
+          console.error("Failed to update performance:", response.statusText);
+        }
       }
     } catch (error) {
       console.error("Error saving performance:", error);

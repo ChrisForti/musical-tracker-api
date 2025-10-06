@@ -30,48 +30,29 @@ export default function ActorForm({ mode, actorId }: ActorFormProps) {
 
   useEffect(() => {
     if (mode === "edit" && id) {
-      // Sample data for testing
-      const sampleActors = [
-        {
-          id: "1",
-          name: "John Doe",
-          approved: true,
-          bio: "John is a versatile actor with experience in both Broadway and off-Broadway productions.",
-        },
-        {
-          id: "2",
-          name: "Jane Smith",
-          approved: true,
-          bio: "Jane has performed in numerous Tony Award-winning musicals over the past decade.",
-        },
-        {
-          id: "3",
-          name: "Michael Johnson",
-          approved: false,
-          bio: "Michael is a rising star in the musical theater scene with a powerful tenor voice.",
-        },
-      ];
+      const fetchActor = async () => {
+        try {
+          const token = localStorage.getItem("authToken");
+          const response = await fetch(`http://localhost:3000/v2/actor/${id}`, {
+            headers: {
+              Authorization: `Bearer ${token}`,
+            },
+          });
 
-      // Find the actor to edit
-      const actorToEdit = sampleActors.find((a) => a.id === id);
+          if (response.ok) {
+            const data = await response.json();
+            setFormData(data);
+          } else {
+            console.error("Failed to fetch actor:", response.statusText);
+          }
+        } catch (err) {
+          console.error("Error fetching actor:", err);
+        } finally {
+          setLoading(false);
+        }
+      };
 
-      if (actorToEdit) {
-        setFormData(actorToEdit);
-      }
-
-      setLoading(false);
-
-      // In a real app, fetch from API
-      // fetch(`/api/actors/${id}`)
-      //   .then(res => res.json())
-      //   .then(data => {
-      //     setFormData(data);
-      //     setLoading(false);
-      //   })
-      //   .catch(err => {
-      //     console.error("Error fetching actor:", err);
-      //     setLoading(false);
-      //   });
+      fetchActor();
     }
   }, [mode, id]);
 
@@ -91,28 +72,38 @@ export default function ActorForm({ mode, actorId }: ActorFormProps) {
     e.preventDefault();
 
     try {
+      const token = localStorage.getItem("authToken");
+
       if (mode === "create") {
-        // In a real app, make an API call to create
-        // const response = await fetch("/api/actors", {
-        //   method: "POST",
-        //   headers: { "Content-Type": "application/json" },
-        //   body: JSON.stringify(formData),
-        // });
-        // const newActor = await response.json();
+        const response = await fetch("http://localhost:3000/v2/actor", {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+            Authorization: `Bearer ${token}`,
+          },
+          body: JSON.stringify(formData),
+        });
 
-        console.log("Creating new actor:", formData);
-        navigate("/actors");
+        if (response.ok) {
+          navigate("/actors");
+        } else {
+          console.error("Failed to create actor:", response.statusText);
+        }
       } else {
-        // In a real app, make an API call to update
-        // const response = await fetch(`/api/actors/${id}`, {
-        //   method: "PUT",
-        //   headers: { "Content-Type": "application/json" },
-        //   body: JSON.stringify(formData),
-        // });
-        // const updatedActor = await response.json();
+        const response = await fetch(`http://localhost:3000/v2/actor/${id}`, {
+          method: "PUT",
+          headers: {
+            "Content-Type": "application/json",
+            Authorization: `Bearer ${token}`,
+          },
+          body: JSON.stringify(formData),
+        });
 
-        console.log("Updating actor:", formData);
-        navigate(`/actors/view/${id}`);
+        if (response.ok) {
+          navigate(`/actors/view/${id}`);
+        } else {
+          console.error("Failed to update actor:", response.statusText);
+        }
       }
     } catch (error) {
       console.error("Failed to save actor:", error);

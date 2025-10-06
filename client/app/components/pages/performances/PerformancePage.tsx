@@ -32,53 +32,19 @@ export default function PerformancePage() {
       setError(null);
 
       try {
-        // Attempt to fetch from API
-        // In a real app, this would be a JOIN query to get related data
-        // const response = await fetch("http://localhost:3000/v1/performances");
-        // if (!response.ok) {
-        //   throw new Error(`Error ${response.status}: ${response.statusText}`);
-        // }
-        // const data = await response.json();
-        // setPerformances(data);
+        const token = localStorage.getItem("authToken");
+        const response = await fetch("http://localhost:3000/v2/performance", {
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        });
 
-        // Using sample data for now
-        const samplePerformances = [
-          {
-            id: "1",
-            productionId: "prod1",
-            date: "2025-07-20",
-            theaterId: "theater1",
-            // Joined data
-            productionName: "Broadway Revival",
-            musicalTitle: "Hamilton",
-            theaterName: "Gershwin Theatre",
-            approved: true,
-          },
-          {
-            id: "2",
-            productionId: "prod2",
-            date: "2025-07-21",
-            theaterId: "theater2",
-            // Joined data
-            productionName: "National Tour",
-            musicalTitle: "The Phantom of the Opera",
-            theaterName: "Kennedy Center",
-            approved: true,
-          },
-          {
-            id: "3",
-            productionId: "prod3",
-            date: "2025-07-22",
-            theaterId: "theater3",
-            // Joined data
-            productionName: "West End Production",
-            musicalTitle: "Les Misérables",
-            theaterName: "Queen's Theatre",
-            approved: false,
-          },
-        ];
-
-        setPerformances(samplePerformances);
+        if (response.ok) {
+          const data = await response.json();
+          setPerformances(data);
+        } else {
+          throw new Error(`Error ${response.status}: ${response.statusText}`);
+        }
       } catch (err) {
         console.error("Error fetching performances:", err);
         setError("Failed to load performances. Please try again later.");

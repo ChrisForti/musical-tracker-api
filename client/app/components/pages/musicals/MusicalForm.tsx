@@ -30,44 +30,32 @@ export default function MusicalForm({ mode, musicalId }: MusicalFormProps) {
 
   useEffect(() => {
     if (mode === "edit" && musicalId) {
-      // Sample data for testing
-      const sampleMusicals = [
-        {
-          id: "1",
-          title: "Hamilton",
-          composer: "Lin-Manuel Miranda",
-          lyricist: "Lin-Manuel Miranda",
-          approved: true,
-          synopsis:
-            "A musical about the life of American Founding Father Alexander Hamilton.",
-        },
-        {
-          id: "2",
-          title: "The Phantom of the Opera",
-          composer: "Andrew Lloyd Webber",
-          lyricist: "Charles Hart",
-          approved: true,
-          synopsis:
-            "A musical about a disfigured musical genius who haunts the Paris Opera House.",
-        },
-      ];
+      const fetchMusical = async () => {
+        try {
+          const token = localStorage.getItem("authToken");
+          const response = await fetch(
+            `http://localhost:3000/v2/musical/${musicalId}`,
+            {
+              headers: {
+                Authorization: `Bearer ${token}`,
+              },
+            }
+          );
 
-      // Find the musical to edit
-      const musicalToEdit = sampleMusicals.find((m) => m.id === musicalId);
+          if (response.ok) {
+            const data = await response.json();
+            setFormData(data);
+          } else {
+            console.error("Failed to fetch musical:", response.statusText);
+          }
+        } catch (err) {
+          console.error("Error fetching musical:", err);
+        } finally {
+          setLoading(false);
+        }
+      };
 
-      if (musicalToEdit) {
-        setFormData(musicalToEdit);
-      }
-
-      setLoading(false);
-
-      // In a real app, fetch from API
-      // fetch(`/api/musicals/${musicalId}`)
-      //   .then(res => res.json())
-      //   .then(data => {
-      //     setFormData(data);
-      //     setLoading(false);
-      //   })
+      fetchMusical();
       //   .catch(err => {
       //     console.error("Error fetching musical:", err);
       //     setLoading(false);
@@ -91,28 +79,51 @@ export default function MusicalForm({ mode, musicalId }: MusicalFormProps) {
     e.preventDefault();
 
     try {
+      const token = localStorage.getItem("authToken");
+
       if (mode === "create") {
-        // In a real app, make an API call to create
-        // const response = await fetch("/api/musicals", {
-        //   method: "POST",
-        //   headers: { "Content-Type": "application/json" },
-        //   body: JSON.stringify(formData),
-        // });
-        // const newMusical = await response.json();
+        const response = await fetch("http://localhost:3000/v2/musical", {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+            Authorization: `Bearer ${token}`,
+          },
+          body: JSON.stringify({
+            name: formData.title, // API uses 'name' not 'title'
+            composer: formData.composer,
+            lyricist: formData.lyricist,
+            description: formData.synopsis, // API uses 'description' not 'synopsis'
+          }),
+        });
 
-        console.log("Creating new musical:", formData);
-        navigate("/musicals");
+        if (response.ok) {
+          navigate("/musicals");
+        } else {
+          console.error("Failed to create musical:", response.statusText);
+        }
       } else {
-        // In a real app, make an API call to update
-        // const response = await fetch(`/api/musicals/${musicalId}`, {
-        //   method: "PUT",
-        //   headers: { "Content-Type": "application/json" },
-        //   body: JSON.stringify(formData),
-        // });
-        // const updatedMusical = await response.json();
+        const response = await fetch(
+          `http://localhost:3000/v2/musical/${musicalId}`,
+          {
+            method: "PUT",
+            headers: {
+              "Content-Type": "application/json",
+              Authorization: `Bearer ${token}`,
+            },
+            body: JSON.stringify({
+              name: formData.title,
+              composer: formData.composer,
+              lyricist: formData.lyricist,
+              description: formData.synopsis,
+            }),
+          }
+        );
 
-        console.log("Updating musical:", formData);
-        navigate(`/musicals/view/${musicalId}`);
+        if (response.ok) {
+          navigate(`/musicals/view/${musicalId}`);
+        } else {
+          console.error("Failed to update musical:", response.statusText);
+        }
       }
     } catch (error) {
       console.error("Failed to save musical:", error);

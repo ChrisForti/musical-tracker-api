@@ -15,52 +15,48 @@ export default function ActorPage() {
   const navigate = useNavigate();
 
   useEffect(() => {
-    // Sample data for testing
-    const sampleActors = [
-      {
-        id: "1",
-        name: "John Doe",
-        approved: true,
-        bio: "John is a versatile actor with experience in both Broadway and off-Broadway productions.",
-      },
-      {
-        id: "2",
-        name: "Jane Smith",
-        approved: true,
-        bio: "Jane has performed in numerous Tony Award-winning musicals over the past decade.",
-      },
-      {
-        id: "3",
-        name: "Michael Johnson",
-        approved: false,
-        bio: "Michael is a rising star in the musical theater scene with a powerful tenor voice.",
-      },
-    ];
+    const fetchActors = async () => {
+      try {
+        const token = localStorage.getItem("authToken");
+        const response = await fetch("http://localhost:3000/v2/actor", {
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        });
 
-    setActors(sampleActors);
-    setLoading(false);
+        if (response.ok) {
+          const data = await response.json();
+          setActors(data);
+        } else {
+          console.error("Failed to fetch actors:", response.statusText);
+        }
+      } catch (err) {
+        console.error("Error fetching actors:", err);
+      } finally {
+        setLoading(false);
+      }
+    };
 
-    // API call code would go here in a real implementation
-    // fetch("/api/actors")
-    //   .then(res => res.json())
-    //   .then(data => {
-    //     setActors(data);
-    //     setLoading(false);
-    //   })
-    //   .catch(err => {
-    //     console.error("Error fetching actors:", err);
-    //     setLoading(false);
-    //   });
+    fetchActors();
   }, []);
 
   const handleDelete = async (id: string) => {
     if (confirm("Are you sure you want to delete this actor?")) {
       try {
-        // In a real app, make an API call to delete
-        // await fetch(`/api/actors/${id}`, { method: 'DELETE' });
+        const token = localStorage.getItem("authToken");
+        const response = await fetch(`http://localhost:3000/v2/actor/${id}`, {
+          method: "DELETE",
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        });
 
-        // Update local state
-        setActors(actors.filter((actor) => actor.id !== id));
+        if (response.ok) {
+          // Update local state
+          setActors(actors.filter((actor) => actor.id !== id));
+        } else {
+          console.error("Failed to delete actor:", response.statusText);
+        }
       } catch (error) {
         console.error("Failed to delete actor:", error);
       }
