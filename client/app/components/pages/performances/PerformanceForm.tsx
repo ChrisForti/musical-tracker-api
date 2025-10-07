@@ -28,7 +28,7 @@ export default function PerformanceForm({
   const [productions, setProductions] = useState<
     { id: string; name: string; musicalTitle: string }[]
   >([]);
-  const [theaters, setTheaters] = useState<{ id: string; name: string }[]>([]);
+  const [theaters, setTheaters] = useState<{ id: string; name: string; city: string }[]>([]);
   const navigate = useNavigate();
 
   // Load data when editing an existing performance
@@ -84,7 +84,7 @@ export default function PerformanceForm({
           );
         }
 
-        // Fetch theaters
+        // Fetch theaters (only verified ones for performance creation)
         const theatersResponse = await fetch(
           "http://localhost:3000/v2/theater",
           {
@@ -93,7 +93,13 @@ export default function PerformanceForm({
         );
         if (theatersResponse.ok) {
           const theatersData = await theatersResponse.json();
-          setTheaters(theatersData);
+          // Filter to only show verified theaters for performance creation
+          const verifiedTheaters = theatersData.filter((theater: any) => theater.verified);
+          setTheaters(verifiedTheaters.map((theater: any) => ({
+            id: theater.id,
+            name: `${theater.name} - ${theater.city}`,
+            city: theater.city
+          })));
         }
       } catch (error) {
         console.error("Error loading reference data:", error);

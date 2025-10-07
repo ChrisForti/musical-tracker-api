@@ -63,6 +63,34 @@ export default function TheaterPage() {
     }
   };
 
+  const handleVerify = async (id: string) => {
+    if (confirm("Are you sure you want to verify this theater?")) {
+      try {
+        const token = localStorage.getItem("authToken");
+        const response = await fetch(`http://localhost:3000/v2/theater/${id}/verify`, {
+          method: "POST",
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        });
+
+        if (response.ok) {
+          // Update local state to reflect verification
+          setTheaters(theaters.map(theater => 
+            theater.id === id ? { ...theater, verified: true } : theater
+          ));
+          alert("Theater verified successfully!");
+        } else {
+          console.error("Failed to verify theater:", response.statusText);
+          alert("Failed to verify theater. You may need admin permissions.");
+        }
+      } catch (error) {
+        console.error("Failed to verify theater:", error);
+        alert("Failed to verify theater. Please try again.");
+      }
+    }
+  };
+
   return (
     <PageTemplate
       title="Theaters"
@@ -124,6 +152,14 @@ export default function TheaterPage() {
                       >
                         View
                       </button>
+                      {!theater.verified && (
+                        <button
+                          onClick={() => handleVerify(theater.id)}
+                          className="text-green-600 hover:text-green-900 dark:text-green-400 dark:hover:text-green-300"
+                        >
+                          Verify
+                        </button>
+                      )}
                       <button
                         onClick={() => navigate(`/theaters/edit/${theater.id}`)}
                         className="text-amber-600 hover:text-amber-900 dark:text-amber-400 dark:hover:text-amber-300"

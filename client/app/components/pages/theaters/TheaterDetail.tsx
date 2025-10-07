@@ -69,6 +69,34 @@ export default function TheaterDetail({ theaterId }: TheaterDetailProps) {
     }
   };
 
+  const handleVerify = async () => {
+    if (!theater) return;
+
+    if (confirm("Are you sure you want to verify this theater?")) {
+      try {
+        const token = localStorage.getItem("authToken");
+        const response = await fetch(`http://localhost:3000/v2/theater/${theater.id}/verify`, {
+          method: "POST",
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        });
+
+        if (response.ok) {
+          // Update local state to reflect verification
+          setTheater({ ...theater, verified: true });
+          alert("Theater verified successfully!");
+        } else {
+          console.error("Failed to verify theater:", response.statusText);
+          alert("Failed to verify theater. You may need admin permissions.");
+        }
+      } catch (error) {
+        console.error("Failed to verify theater:", error);
+        alert("Failed to verify theater. Please try again.");
+      }
+    }
+  };
+
   if (loading) {
     return (
       <PageTemplate title="Theater Details">
@@ -161,6 +189,14 @@ export default function TheaterDetail({ theaterId }: TheaterDetailProps) {
           </div>
 
           <div className="mt-8 flex space-x-3">
+            {!theater.verified && (
+              <button
+                className="px-4 py-2 bg-green-600 hover:bg-green-700 text-white rounded-md"
+                onClick={handleVerify}
+              >
+                Verify Theater
+              </button>
+            )}
             <button
               className="px-4 py-2 bg-amber-600 hover:bg-amber-700 text-white rounded-md"
               onClick={() => navigate(`/theaters/edit/${theater.id}`)}

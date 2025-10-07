@@ -13,5 +13,8 @@ export default [
   // Performance routes (using catch-all)
   route("performances/*", "routes/PerformanceRoute.tsx"),
 
+  // Theater routes (using catch-all)
+  route("theaters/*", "routes/TheaterRoute.tsx"),
+
   // Other routes...
 ] satisfies RouteConfig;
