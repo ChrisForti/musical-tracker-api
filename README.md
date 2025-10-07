@@ -82,3 +82,16 @@ The server will start on `http://localhost:3000`.
 - See API documentation in `DOCS/v2-api-endpoints.md`
 - All upload endpoints require authentication
 - Images return signed URLs valid for 24 hours
+
+## License
+
+**⚠️ NON-COMMERCIAL USE ONLY**
+
+This project is licensed under a custom license that **prohibits commercial use** without explicit permission. 
+
+- ✅ **Allowed**: Personal use, education, research, open source contributions
+- ❌ **Prohibited**: Commercial use, selling, monetization, proprietary applications
+
+For commercial licensing inquiries, please contact the repository owner.
+
+See the [LICENSE](LICENSE) file for full details.
