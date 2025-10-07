@@ -16,5 +16,8 @@ export default [
   // Theater routes (using catch-all)
   route("theaters/*", "routes/TheaterRoute.tsx"),
 
+  // Role routes (using catch-all)
+  route("roles/*", "routes/RoleRoute.tsx"),
+
   // Other routes...
 ] satisfies RouteConfig;
