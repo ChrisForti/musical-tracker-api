@@ -1,5 +1,6 @@
 import { useState, useRef, useEffect } from "react";
 import LoginPage from "../../components/pages/admin/LoginPage";
+import RegistrationPage from "../../components/pages/admin/RegistrationPage";
 import AdminPage from "../../components/pages/admin/AdminPage";
 
 type AdminProps = {
@@ -15,9 +16,11 @@ export function Sidebar({ closeAdmin }: AdminProps) {
 
   // Original state
   const [isLoginOpen, setLoginOpen] = useState(false);
+  const [isRegisterOpen, setRegisterOpen] = useState(false);
   const [showAdminPage, setShowAdminPage] = useState(false);
   const dropdownRef = useRef<HTMLDivElement>(null);
   const loginRef = useRef<HTMLDivElement>(null);
+  const registerRef = useRef<HTMLDivElement>(null);
 
   // Check for mobile view
   useEffect(() => {
@@ -220,6 +223,32 @@ export function Sidebar({ closeAdmin }: AdminProps) {
                 {(isExpanded || isHovered) && <span>Login</span>}
               </button>
             </li>
+
+            {/* Register */}
+            <li>
+              <button
+                onClick={() => setRegisterOpen((prev) => !prev)}
+                className={`flex items-center w-full px-4 py-3 hover:bg-teal-600 ${
+                  isRegisterOpen ? "bg-teal-700" : ""
+                }`}
+              >
+                <svg
+                  className="w-6 h-6 mr-2"
+                  viewBox="0 0 24 24"
+                  fill="none"
+                  xmlns="http://www.w3.org/2000/svg"
+                >
+                  <path
+                    d="M16 21v-2a4 4 0 00-4-4H5a4 4 0 00-4 4v2M12.5 11a4 4 0 100-8 4 4 0 000 8zM16 11l2 2 4-4"
+                    stroke="currentColor"
+                    strokeWidth="2"
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                  />
+                </svg>
+                {(isExpanded || isHovered) && <span>Register</span>}
+              </button>
+            </li>
           </ul>
         </nav>
       </div>
@@ -253,6 +282,39 @@ export function Sidebar({ closeAdmin }: AdminProps) {
               </button>
             </div>
             <LoginPage onLoginSuccess={() => setLoginOpen(false)} />
+          </div>
+        </div>
+      )}
+
+      {/* Registration Panel - Modal overlay */}
+      {isRegisterOpen && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 z-50 flex items-center justify-center">
+          <div
+            ref={registerRef}
+            className="bg-white dark:bg-gray-900 rounded-lg shadow-lg max-w-lg w-full mx-4"
+          >
+            <div className="flex justify-between items-center p-4 border-b border-gray-200 dark:border-gray-700">
+              <h2 className="text-xl font-semibold text-teal-600">Create Account</h2>
+              <button
+                onClick={() => setRegisterOpen(false)}
+                className="text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200"
+              >
+                <svg
+                  className="w-6 h-6"
+                  fill="none"
+                  stroke="currentColor"
+                  viewBox="0 0 24 24"
+                >
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    strokeWidth="2"
+                    d="M6 18L18 6M6 6l12 12"
+                  ></path>
+                </svg>
+              </button>
+            </div>
+            <RegistrationPage onRegistrationSuccess={() => setRegisterOpen(false)} />
           </div>
         </div>
       )}

@@ -2,6 +2,7 @@ import { useState } from "react";
 import ActorPage from "../actors/ActorPage";
 import MusicalPage from "../musicals/MusicalPage";
 import PerformancePage from "../performances/PerformancePage";
+import TheaterPage from "../theaters/TheaterPage";
 
 export default function AdminPage({ closeAdmin }: { closeAdmin: () => void }) {
   const [currentSection, setCurrentSection] = useState<string>("dashboard");
@@ -65,7 +66,7 @@ export default function AdminPage({ closeAdmin }: { closeAdmin: () => void }) {
         {currentSection === "dashboard" ? (
           <>
             {/* Dashboard Grid */}
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mt-6">
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mt-6">
               {/* Actor Management Card */}
               <section>
                 <div className="bg-white dark:bg-gray-800 rounded-lg shadow p-6 border border-gray-200 dark:border-gray-700">
@@ -130,6 +131,27 @@ export default function AdminPage({ closeAdmin }: { closeAdmin: () => void }) {
                   </button>
                 </div>
               </section>
+              <section>
+                <div className="bg-white dark:bg-gray-800 rounded-lg shadow p-6 border border-gray-200 dark:border-gray-700">
+                  <h2 className="text-xl font-semibold mb-4 text-gray-800 dark:text-white">
+                    Theaters
+                  </h2>
+                  <div className="space-y-2">
+                    <p className="text-gray-700 dark:text-gray-300">
+                      Total theaters: 6 {/* Replace with actual count */}
+                    </p>
+                    <p className="text-gray-700 dark:text-gray-300">
+                      Pending approval: 2
+                    </p>
+                  </div>
+                  <button
+                    onClick={() => showSection("theaters")}
+                    className="mt-4 px-4 py-2 bg-green-600 hover:bg-green-700 text-white rounded-md"
+                  >
+                    Manage Theaters
+                  </button>
+                </div>
+              </section>
             </div>
           </>
         ) : currentSection === "actors" ? (
@@ -138,6 +160,8 @@ export default function AdminPage({ closeAdmin }: { closeAdmin: () => void }) {
           <MusicalPage />
         ) : currentSection === "performances" ? (
           <PerformancePage />
+        ) : currentSection === "theaters" ? (
+          <TheaterPage />
         ) : null}
       </main>
     </div>
