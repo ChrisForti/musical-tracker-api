@@ -19,5 +19,8 @@ export default [
   // Role routes (using catch-all)
   route("roles/*", "routes/RoleRoute.tsx"),
 
+  // Casting routes (using catch-all)
+  route("castings/*", "routes/CastingRoute.tsx"),
+
   // Other routes...
 ] satisfies RouteConfig;

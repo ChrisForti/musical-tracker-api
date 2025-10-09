@@ -4,6 +4,7 @@ import MusicalPage from "../musicals/MusicalPage";
 import PerformancePage from "../performances/PerformancePage";
 import TheaterPage from "../theaters/TheaterPage";
 import { RolePage } from "../roles/RolePage";
+import { CastingPage } from "../castings/CastingPage";
 
 export default function AdminPage({ closeAdmin }: { closeAdmin: () => void }) {
   const [currentSection, setCurrentSection] = useState<string>("dashboard");
@@ -67,7 +68,7 @@ export default function AdminPage({ closeAdmin }: { closeAdmin: () => void }) {
         {currentSection === "dashboard" ? (
           <>
             {/* Dashboard Grid */}
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-6 mt-6">
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-6 gap-6 mt-6">
               {/* Actor Management Card */}
               <section>
                 <div className="bg-white dark:bg-gray-800 rounded-lg shadow p-6 border border-gray-200 dark:border-gray-700">
@@ -174,6 +175,27 @@ export default function AdminPage({ closeAdmin }: { closeAdmin: () => void }) {
                   </button>
                 </div>
               </section>
+              <section>
+                <div className="bg-white dark:bg-gray-800 rounded-lg shadow p-6 border border-gray-200 dark:border-gray-700">
+                  <h2 className="text-xl font-semibold mb-4 text-gray-800 dark:text-white">
+                    Castings
+                  </h2>
+                  <div className="space-y-2">
+                    <p className="text-gray-700 dark:text-gray-300">
+                      Total castings: 25 {/* Replace with actual count */}
+                    </p>
+                    <p className="text-gray-700 dark:text-gray-300">
+                      Active assignments: 18
+                    </p>
+                  </div>
+                  <button
+                    onClick={() => showSection("castings")}
+                    className="mt-4 px-4 py-2 bg-orange-600 hover:bg-orange-700 text-white rounded-md"
+                  >
+                    Manage Castings
+                  </button>
+                </div>
+              </section>
             </div>
           </>
         ) : currentSection === "actors" ? (
@@ -186,6 +208,8 @@ export default function AdminPage({ closeAdmin }: { closeAdmin: () => void }) {
           <TheaterPage />
         ) : currentSection === "roles" ? (
           <RolePage />
+        ) : currentSection === "castings" ? (
+          <CastingPage />
         ) : null}
       </main>
     </div>

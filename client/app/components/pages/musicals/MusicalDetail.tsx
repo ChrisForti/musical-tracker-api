@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from "react";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, Link } from "react-router-dom";
 import { PageTemplate } from "~/components/common/PageTemplate";
 
 interface Musical {
@@ -11,13 +11,22 @@ interface Musical {
   synopsis?: string;
 }
 
+interface Role {
+  id: string;
+  name: string;
+  musicalId: string;
+  verified: boolean;
+}
+
 interface MusicalDetailProps {
   musicalId: string;
 }
 
 export default function MusicalDetail({ musicalId }: MusicalDetailProps) {
   const [musical, setMusical] = useState<Musical | null>(null);
+  const [roles, setRoles] = useState<Role[]>([]);
   const [loading, setLoading] = useState(true);
+  const [rolesLoading, setRolesLoading] = useState(true);
   const navigate = useNavigate();
 
   useEffect(() => {
@@ -56,6 +65,35 @@ export default function MusicalDetail({ musicalId }: MusicalDetailProps) {
     };
 
     fetchMusical();
+  }, [musicalId]);
+
+  useEffect(() => {
+    const fetchRoles = async () => {
+      try {
+        const token = localStorage.getItem("authToken");
+        const response = await fetch(
+          `http://localhost:3000/v2/role?musicalId=${musicalId}`,
+          {
+            headers: {
+              Authorization: `Bearer ${token}`,
+            },
+          }
+        );
+
+        if (response.ok) {
+          const data = await response.json();
+          setRoles(data);
+        } else {
+          console.error("Failed to fetch roles:", response.statusText);
+        }
+      } catch (err) {
+        console.error("Error fetching roles:", err);
+      } finally {
+        setRolesLoading(false);
+      }
+    };
+
+    fetchRoles();
   }, [musicalId]);
 
   const handleDelete = async () => {
@@ -143,6 +181,74 @@ export default function MusicalDetail({ musicalId }: MusicalDetailProps) {
                   {musical.synopsis || "No synopsis available."}
                 </p>
               </div>
+            </div>
+
+            {/* Roles Section */}
+            <div className="mt-8 border-t border-gray-200 dark:border-gray-700 pt-6">
+              <div className="flex items-center justify-between mb-4">
+                <h2 className="text-xl font-semibold text-gray-800 dark:text-white">
+                  Roles ({roles.length})
+                </h2>
+                <div className="flex space-x-2">
+                  <Link
+                    to={`/roles/new?musicalId=${musical.id}`}
+                    className="px-3 py-1 bg-blue-600 hover:bg-blue-700 text-white text-sm rounded-md"
+                  >
+                    Add Role
+                  </Link>
+                  <Link
+                    to={`/roles?musicalId=${musical.id}`}
+                    className="px-3 py-1 bg-gray-600 hover:bg-gray-700 text-white text-sm rounded-md"
+                  >
+                    View All Roles
+                  </Link>
+                </div>
+              </div>
+              
+              {rolesLoading ? (
+                <div className="text-center py-4 text-gray-500">Loading roles...</div>
+              ) : roles.length > 0 ? (
+                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                  {roles.slice(0, 6).map((role) => (
+                    <Link
+                      key={role.id}
+                      to={`/roles/${role.id}`}
+                      className="block p-4 bg-gray-50 dark:bg-gray-700 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-600 transition-colors"
+                    >
+                      <div className="flex items-center justify-between">
+                        <h3 className="font-medium text-gray-900 dark:text-white">
+                          {role.name}
+                        </h3>
+                        {!role.verified && (
+                          <span className="px-2 py-1 text-xs bg-yellow-100 text-yellow-800 rounded-full">
+                            Pending
+                          </span>
+                        )}
+                      </div>
+                    </Link>
+                  ))}
+                  {roles.length > 6 && (
+                    <div className="p-4 bg-gray-50 dark:bg-gray-700 rounded-lg text-center">
+                      <Link
+                        to={`/roles?musicalId=${musical.id}`}
+                        className="text-blue-600 hover:text-blue-700 dark:text-blue-400 dark:hover:text-blue-300"
+                      >
+                        +{roles.length - 6} more roles
+                      </Link>
+                    </div>
+                  )}
+                </div>
+              ) : (
+                <div className="text-center py-8 text-gray-500">
+                  <p>No roles created yet for this musical.</p>
+                  <Link
+                    to={`/roles/new?musicalId=${musical.id}`}
+                    className="mt-2 inline-block px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-md"
+                  >
+                    Create First Role
+                  </Link>
+                </div>
+              )}
             </div>
 
             <div className="mt-8 border-t border-gray-200 dark:border-gray-700 pt-6 flex justify-end space-x-4">

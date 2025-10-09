@@ -197,6 +197,32 @@ export default function PerformanceDetail({
                 </div>
               </div>
 
+              {/* Cast Information Section */}
+              <div className="mt-6">
+                <div className="flex justify-between items-center mb-4">
+                  <h2 className="text-xl font-semibold text-gray-800 dark:text-white">
+                    Cast
+                  </h2>
+                  <a
+                    href={`/castings/new?performanceId=${performanceId}`}
+                    className="text-blue-600 hover:text-blue-900 dark:text-blue-400 dark:hover:text-blue-300 text-sm"
+                  >
+                    + Add Cast Member
+                  </a>
+                </div>
+                <div className="space-y-2">
+                  <p className="text-gray-600 dark:text-gray-400 text-sm">
+                    Cast assignments for this performance will be displayed here once the casting management system is fully integrated.
+                  </p>
+                  <a
+                    href={`/castings?performanceId=${performanceId}`}
+                    className="inline-block text-blue-600 hover:text-blue-900 dark:text-blue-400 dark:hover:text-blue-300 text-sm"
+                  >
+                    View All Castings for This Performance →
+                  </a>
+                </div>
+              </div>
+
               <div>
                 <h2 className="text-xl font-semibold mb-2 text-gray-800 dark:text-white">
                   Related Information
