@@ -1,8 +1,8 @@
-import React from 'react';
-import { Routes, Route } from 'react-router-dom';
-import { CastingPage } from './CastingPage';
-import { CastingForm } from './CastingForm';
-import { CastingDetail } from './CastingDetail';
+import React from "react";
+import { Routes, Route } from "react-router-dom";
+import { CastingPage } from "./CastingPage";
+import { CastingForm } from "./CastingForm";
+import { CastingDetail } from "./CastingDetail";
 
 export function CastingRoute() {
   return (

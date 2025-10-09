@@ -212,7 +212,8 @@ export default function PerformanceDetail({
                 </div>
                 <div className="space-y-2">
                   <p className="text-gray-600 dark:text-gray-400 text-sm">
-                    Cast assignments for this performance will be displayed here once the casting management system is fully integrated.
+                    Cast assignments for this performance will be displayed here
+                    once the casting management system is fully integrated.
                   </p>
                   <a
                     href={`/castings?performanceId=${performanceId}`}

@@ -204,9 +204,11 @@ export default function MusicalDetail({ musicalId }: MusicalDetailProps) {
                   </Link>
                 </div>
               </div>
-              
+
               {rolesLoading ? (
-                <div className="text-center py-4 text-gray-500">Loading roles...</div>
+                <div className="text-center py-4 text-gray-500">
+                  Loading roles...
+                </div>
               ) : roles.length > 0 ? (
                 <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
                   {roles.slice(0, 6).map((role) => (

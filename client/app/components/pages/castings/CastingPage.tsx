@@ -1,6 +1,6 @@
-import React, { useState, useEffect } from 'react';
-import { Link } from 'react-router-dom';
-import { PageTemplate } from '../../common/PageTemplate';
+import React, { useState, useEffect } from "react";
+import { Link } from "react-router-dom";
+import { PageTemplate } from "../../common/PageTemplate";
 
 interface Casting {
   id: string;
@@ -39,30 +39,31 @@ export function CastingPage() {
   const [roles, setRoles] = useState<Role[]>([]);
   const [performances, setPerformances] = useState<Performance[]>([]);
   const [musicals, setMusicals] = useState<Musical[]>([]);
-  const [selectedPerformanceId, setSelectedPerformanceId] = useState<string>('');
+  const [selectedPerformanceId, setSelectedPerformanceId] =
+    useState<string>("");
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
   const fetchCastings = async () => {
     try {
       setLoading(true);
-      const token = localStorage.getItem('authToken');
-      
-      const response = await fetch('http://localhost:3000/v2/casting', {
+      const token = localStorage.getItem("authToken");
+
+      const response = await fetch("http://localhost:3000/v2/casting", {
         headers: {
-          'Authorization': `Bearer ${token}`,
-          'Content-Type': 'application/json',
+          Authorization: `Bearer ${token}`,
+          "Content-Type": "application/json",
         },
       });
 
       if (!response.ok) {
-        throw new Error('Failed to fetch castings');
+        throw new Error("Failed to fetch castings");
       }
 
       const data = await response.json();
       setCastings(data);
     } catch (err) {
-      setError(err instanceof Error ? err.message : 'An error occurred');
+      setError(err instanceof Error ? err.message : "An error occurred");
     } finally {
       setLoading(false);
     }
@@ -70,75 +71,90 @@ export function CastingPage() {
 
   const fetchRelatedData = async () => {
     try {
-      const token = localStorage.getItem('authToken');
-      
+      const token = localStorage.getItem("authToken");
+
       // Fetch all related data in parallel
-      const [actorsRes, rolesRes, performancesRes, musicalsRes] = await Promise.all([
-        fetch('http://localhost:3000/v2/actor', {
-          headers: { 'Authorization': `Bearer ${token}`, 'Content-Type': 'application/json' },
-        }),
-        fetch('http://localhost:3000/v2/role', {
-          headers: { 'Authorization': `Bearer ${token}`, 'Content-Type': 'application/json' },
-        }),
-        fetch('http://localhost:3000/v2/performance', {
-          headers: { 'Authorization': `Bearer ${token}`, 'Content-Type': 'application/json' },
-        }),
-        fetch('http://localhost:3000/v2/musical', {
-          headers: { 'Authorization': `Bearer ${token}`, 'Content-Type': 'application/json' },
-        }),
-      ]);
+      const [actorsRes, rolesRes, performancesRes, musicalsRes] =
+        await Promise.all([
+          fetch("http://localhost:3000/v2/actor", {
+            headers: {
+              Authorization: `Bearer ${token}`,
+              "Content-Type": "application/json",
+            },
+          }),
+          fetch("http://localhost:3000/v2/role", {
+            headers: {
+              Authorization: `Bearer ${token}`,
+              "Content-Type": "application/json",
+            },
+          }),
+          fetch("http://localhost:3000/v2/performance", {
+            headers: {
+              Authorization: `Bearer ${token}`,
+              "Content-Type": "application/json",
+            },
+          }),
+          fetch("http://localhost:3000/v2/musical", {
+            headers: {
+              Authorization: `Bearer ${token}`,
+              "Content-Type": "application/json",
+            },
+          }),
+        ]);
 
       if (actorsRes.ok) setActors(await actorsRes.json());
       if (rolesRes.ok) setRoles(await rolesRes.json());
       if (performancesRes.ok) setPerformances(await performancesRes.json());
       if (musicalsRes.ok) setMusicals(await musicalsRes.json());
     } catch (err) {
-      console.error('Error fetching related data:', err);
+      console.error("Error fetching related data:", err);
     }
   };
 
   const handleDelete = async (id: string) => {
-    if (!confirm('Are you sure you want to delete this casting?')) {
+    if (!confirm("Are you sure you want to delete this casting?")) {
       return;
     }
 
     try {
-      const token = localStorage.getItem('authToken');
+      const token = localStorage.getItem("authToken");
       const response = await fetch(`http://localhost:3000/v2/casting/${id}`, {
-        method: 'DELETE',
+        method: "DELETE",
         headers: {
-          'Authorization': `Bearer ${token}`,
-          'Content-Type': 'application/json',
+          Authorization: `Bearer ${token}`,
+          "Content-Type": "application/json",
         },
       });
 
       if (!response.ok) {
-        throw new Error('Failed to delete casting');
+        throw new Error("Failed to delete casting");
       }
 
       // Refresh the castings list
       await fetchCastings();
     } catch (err) {
-      alert(err instanceof Error ? err.message : 'Failed to delete casting');
+      alert(err instanceof Error ? err.message : "Failed to delete casting");
     }
   };
 
   const getActorName = (actorId: string) => {
-    const actor = actors.find(a => a.id === actorId);
-    return actor ? `${actor.firstName} ${actor.lastName}` : 'Unknown Actor';
+    const actor = actors.find((a) => a.id === actorId);
+    return actor ? `${actor.firstName} ${actor.lastName}` : "Unknown Actor";
   };
 
   const getRoleName = (roleId: string) => {
-    const role = roles.find(r => r.id === roleId);
-    return role?.name || 'Unknown Role';
+    const role = roles.find((r) => r.id === roleId);
+    return role?.name || "Unknown Role";
   };
 
   const getPerformanceInfo = (performanceId: string) => {
-    const performance = performances.find(p => p.id === performanceId);
-    const musical = performance ? musicals.find(m => m.id === performance.musicalId) : null;
-    
+    const performance = performances.find((p) => p.id === performanceId);
+    const musical = performance
+      ? musicals.find((m) => m.id === performance.musicalId)
+      : null;
+
     if (!performance || !musical) {
-      return 'Unknown Performance';
+      return "Unknown Performance";
     }
 
     const date = new Date(performance.date).toLocaleDateString();
@@ -146,17 +162,21 @@ export function CastingPage() {
   };
 
   const getMusicalName = (performanceId: string) => {
-    const performance = performances.find(p => p.id === performanceId);
-    const musical = performance ? musicals.find(m => m.id === performance.musicalId) : null;
-    return musical?.name || 'Unknown Musical';
+    const performance = performances.find((p) => p.id === performanceId);
+    const musical = performance
+      ? musicals.find((m) => m.id === performance.musicalId)
+      : null;
+    return musical?.name || "Unknown Musical";
   };
 
   const handlePerformanceFilter = (e: React.ChangeEvent<HTMLSelectElement>) => {
     setSelectedPerformanceId(e.target.value);
   };
 
-  const filteredCastings = selectedPerformanceId 
-    ? castings.filter(casting => casting.performanceId === selectedPerformanceId)
+  const filteredCastings = selectedPerformanceId
+    ? castings.filter(
+        (casting) => casting.performanceId === selectedPerformanceId
+      )
     : castings;
 
   useEffect(() => {
@@ -191,7 +211,7 @@ export function CastingPage() {
             <h1 className="text-2xl font-bold text-gray-900 dark:text-white">
               Cast Assignments
             </h1>
-            
+
             {/* Performance Filter */}
             <select
               value={selectedPerformanceId}
@@ -200,7 +220,9 @@ export function CastingPage() {
             >
               <option value="">All Performances</option>
               {performances.map((performance) => {
-                const musical = musicals.find(m => m.id === performance.musicalId);
+                const musical = musicals.find(
+                  (m) => m.id === performance.musicalId
+                );
                 const date = new Date(performance.date).toLocaleDateString();
                 return (
                   <option key={performance.id} value={performance.id}>
@@ -210,7 +232,7 @@ export function CastingPage() {
               })}
             </select>
           </div>
-          
+
           <Link
             to="/castings/new"
             className="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md shadow-sm text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 transition-colors duration-200"
@@ -221,7 +243,8 @@ export function CastingPage() {
 
         {/* Casting Count */}
         <div className="text-sm text-gray-600 dark:text-gray-400">
-          {filteredCastings.length} casting{filteredCastings.length !== 1 ? 's' : ''} found
+          {filteredCastings.length} casting
+          {filteredCastings.length !== 1 ? "s" : ""} found
           {selectedPerformanceId && (
             <span> for "{getPerformanceInfo(selectedPerformanceId)}"</span>
           )}
@@ -231,7 +254,9 @@ export function CastingPage() {
         {filteredCastings.length === 0 ? (
           <div className="text-center py-12">
             <div className="text-gray-500 dark:text-gray-400 text-lg mb-4">
-              {selectedPerformanceId ? 'No castings found for this performance' : 'No castings found'}
+              {selectedPerformanceId
+                ? "No castings found for this performance"
+                : "No castings found"}
             </div>
             <Link
               to="/castings/new"
@@ -265,7 +290,10 @@ export function CastingPage() {
                 </thead>
                 <tbody className="bg-white dark:bg-gray-800 divide-y divide-gray-200 dark:divide-gray-700">
                   {filteredCastings.map((casting) => (
-                    <tr key={casting.id} className="hover:bg-gray-50 dark:hover:bg-gray-700">
+                    <tr
+                      key={casting.id}
+                      className="hover:bg-gray-50 dark:hover:bg-gray-700"
+                    >
                       <td className="px-6 py-4 whitespace-nowrap">
                         <div className="text-sm font-medium text-gray-900 dark:text-white">
                           {getActorName(casting.actorId)}
