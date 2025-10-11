@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { PageTemplate } from "~/components/common/PageTemplate";
+import { ImageDisplay } from "~/components/common/ImageDisplay";
 
 interface Musical {
   id: string;
@@ -9,6 +10,8 @@ interface Musical {
   lyricist: string;
   approved: boolean;
   synopsis?: string;
+  posterId?: string;
+  posterUrl?: string;
 }
 
 export default function MusicalPage() {
@@ -26,6 +29,7 @@ export default function MusicalPage() {
     const fetchMusicals = async () => {
       try {
         const token = localStorage.getItem("authToken");
+        
         const response = await fetch("http://localhost:3000/v2/musical", {
           headers: {
             Authorization: `Bearer ${token}`,
@@ -35,13 +39,17 @@ export default function MusicalPage() {
         if (response.ok) {
           const data = await response.json();
           // Map API data to component structure
-          const mappedMusicals = data.map((musical: any) => ({
-            id: musical.id,
-            title: musical.name, // API returns 'name', component expects 'title'
-            composer: musical.composer,
-            lyricist: musical.lyricist,
-            approved: musical.verified, // API returns 'verified', component expects 'approved'
-          }));
+          const mappedMusicals = data.map((musical: any) => {
+            return {
+              id: musical.id,
+              title: musical.name, // API returns 'name', component expects 'title'
+              composer: musical.composer,
+              lyricist: musical.lyricist,
+              approved: musical.verified, // API returns 'verified', component expects 'approved'
+              posterId: musical.posterId,
+              posterUrl: musical.posterUrl,
+            };
+          });
           setMusicals(mappedMusicals);
         } else {
           console.error("Failed to fetch musicals:", response.statusText);
@@ -187,6 +195,9 @@ export default function MusicalPage() {
             <thead className="bg-gray-50 dark:bg-gray-700">
               <tr>
                 <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">
+                  Poster {/* Should be visible now */}
+                </th>
+                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">
                   Title
                 </th>
                 <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">
@@ -206,6 +217,15 @@ export default function MusicalPage() {
             <tbody className="bg-white dark:bg-gray-800 divide-y divide-gray-200 dark:divide-gray-700">
               {musicals.map((musical) => (
                 <tr key={musical.id}>
+                  <td className="px-6 py-4 whitespace-nowrap">
+                    <ImageDisplay
+                      imageUrl={musical.posterUrl}
+                      altText={`${musical.title} poster`}
+                      size="thumbnail"
+                      fallbackIcon="🎭"
+                      showFullSizeOnClick={true}
+                    />
+                  </td>
                   <td className="px-6 py-4 whitespace-nowrap">
                     <div className="text-sm font-medium text-gray-900 dark:text-white">
                       {musical.title}

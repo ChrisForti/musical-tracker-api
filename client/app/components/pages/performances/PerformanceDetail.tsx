@@ -1,12 +1,15 @@
 import React, { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { PageTemplate } from "~/components/common/PageTemplate";
+import { ImageDisplay } from "~/components/common/ImageDisplay";
 
 interface Performance {
   id: string;
   productionId: string;
   date: string;
   theaterId: string;
+  posterId?: string;
+  posterUrl?: string;
 
   // Joined data
   productionName?: string;

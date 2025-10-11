@@ -158,7 +158,7 @@ async function getMusicalByIdHandler(
       .where(eq(MusicalTable.id, id))
       .limit(1);
 
-    if (!musical.length) {
+    if (musical.length === 0) {
       res.status(404).json({ error: "Musical not found" });
       return;
     }

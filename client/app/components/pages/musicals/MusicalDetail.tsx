@@ -1,6 +1,8 @@
 import React, { useState, useEffect } from "react";
 import { useNavigate, Link } from "react-router-dom";
 import { PageTemplate } from "~/components/common/PageTemplate";
+import { ImageDisplay } from "~/components/common/ImageDisplay";
+import { ImageUpload } from "~/components/common/ImageUpload";
 
 interface Musical {
   id: string;
@@ -9,6 +11,8 @@ interface Musical {
   lyricist: string;
   approved: boolean;
   synopsis?: string;
+  posterId?: string;
+  posterUrl?: string;
 }
 
 interface Role {
@@ -27,6 +31,8 @@ export default function MusicalDetail({ musicalId }: MusicalDetailProps) {
   const [roles, setRoles] = useState<Role[]>([]);
   const [loading, setLoading] = useState(true);
   const [rolesLoading, setRolesLoading] = useState(true);
+  const [showImageUpload, setShowImageUpload] = useState(false);
+  const [imageError, setImageError] = useState<string | null>(null);
   const navigate = useNavigate();
 
   useEffect(() => {
@@ -44,6 +50,7 @@ export default function MusicalDetail({ musicalId }: MusicalDetailProps) {
 
         if (response.ok) {
           const data = await response.json();
+          console.log('MusicalDetail API Response:', data); // Debug log
           // Map API data to component structure
           const mappedMusical = {
             id: data.id,
@@ -52,7 +59,10 @@ export default function MusicalDetail({ musicalId }: MusicalDetailProps) {
             lyricist: data.lyricist,
             approved: data.verified, // API returns 'verified', component expects 'approved'
             synopsis: data.description, // API returns 'description', component expects 'synopsis'
+            posterId: data.posterId,
+            posterUrl: data.posterUrl,
           };
+          console.log('Mapped Musical:', mappedMusical); // Debug log
           setMusical(mappedMusical);
         } else {
           console.error("Failed to fetch musical:", response.statusText);
@@ -124,6 +134,101 @@ export default function MusicalDetail({ musicalId }: MusicalDetailProps) {
     }
   };
 
+  // Handle image upload success
+  const handleImageUpload = async (imageData: {
+    imageId: string;
+    url: string;
+    width: number;
+    height: number;
+    fileSize: number;
+  }) => {
+    try {
+      // Update the musical with the new poster
+      const token = localStorage.getItem("authToken");
+      const response = await fetch(`http://localhost:3000/v2/musical/${musicalId}`, {
+        method: "PUT",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${token}`,
+        },
+        body: JSON.stringify({
+          name: musical?.title,
+          composer: musical?.composer,
+          lyricist: musical?.lyricist,
+          description: musical?.synopsis,
+          posterId: imageData.imageId,
+        }),
+      });
+
+      if (response.ok) {
+        // Update local state
+        setMusical(prev => prev ? {
+          ...prev,
+          posterId: imageData.imageId,
+          posterUrl: imageData.url,
+        } : null);
+        setShowImageUpload(false);
+        setImageError(null);
+      } else {
+        setImageError('Failed to update musical with new image');
+      }
+    } catch (error) {
+      console.error('Error updating musical:', error);
+      setImageError('Failed to update musical with new image');
+    }
+  };
+
+  // Handle image upload error
+  const handleImageError = (error: string) => {
+    setImageError(error);
+  };
+
+  // Handle image deletion
+  const handleImageDelete = async () => {
+    if (!musical?.posterId) return;
+
+    try {
+      const token = localStorage.getItem("authToken");
+      
+      // Delete the image from S3
+      const deleteResponse = await fetch(`http://localhost:3000/v2/media/${musical.posterId}`, {
+        method: 'DELETE',
+        headers: {
+          'Authorization': `Bearer ${token}`,
+        },
+      });
+
+      if (deleteResponse.ok) {
+        // Update the musical to remove poster reference
+        const updateResponse = await fetch(`http://localhost:3000/v2/musical/${musicalId}`, {
+          method: "PUT",
+          headers: {
+            "Content-Type": "application/json",
+            Authorization: `Bearer ${token}`,
+          },
+          body: JSON.stringify({
+            name: musical.title,
+            composer: musical.composer,
+            lyricist: musical.lyricist,
+            description: musical.synopsis,
+            posterId: null,
+          }),
+        });
+
+        if (updateResponse.ok) {
+          // Update local state
+          setMusical(prev => prev ? {
+            ...prev,
+            posterId: undefined,
+            posterUrl: undefined,
+          } : null);
+        }
+      }
+    } catch (error) {
+      console.error('Error deleting image:', error);
+    }
+  };
+
   return (
     <PageTemplate
       title={musical?.title || "Musical Details"}
@@ -154,6 +259,79 @@ export default function MusicalDetail({ musicalId }: MusicalDetailProps) {
               >
                 {musical.approved ? "Approved" : "Pending Approval"}
               </span>
+            </div>
+
+            {/* Poster Section */}
+            <div className="mb-8">
+              <div className="flex items-center justify-between mb-4">
+                <h2 className="text-xl font-semibold text-gray-800 dark:text-white">
+                  Poster
+                </h2>
+                <div className="flex space-x-2">
+                  {musical.posterUrl && (
+                    <button
+                      onClick={handleImageDelete}
+                      className="px-3 py-1 bg-red-600 hover:bg-red-700 text-white text-sm rounded-md"
+                    >
+                      Delete Poster
+                    </button>
+                  )}
+                  <button
+                    onClick={() => setShowImageUpload(!showImageUpload)}
+                    className="px-3 py-1 bg-blue-600 hover:bg-blue-700 text-white text-sm rounded-md"
+                  >
+                    {musical.posterUrl ? 'Replace Poster' : 'Add Poster'}
+                  </button>
+                </div>
+              </div>
+
+              {musical.posterUrl && !showImageUpload && (
+                <div className="mb-4">
+                  <ImageDisplay
+                    imageUrl={musical.posterUrl}
+                    altText={`${musical.title} poster`}
+                    size="large"
+                    showFullSizeOnClick={true}
+                  />
+                </div>
+              )}
+
+              {showImageUpload && (
+                <div className="mb-4">
+                  <ImageUpload
+                    imageType="poster"
+                    currentImageUrl={musical.posterUrl}
+                    onUploadSuccess={handleImageUpload}
+                    onUploadError={handleImageError}
+                    onDeleteImage={handleImageDelete}
+                    className="max-w-md"
+                  />
+                  {imageError && (
+                    <p className="mt-2 text-sm text-red-600 dark:text-red-400">
+                      {imageError}
+                    </p>
+                  )}
+                  <button
+                    onClick={() => setShowImageUpload(false)}
+                    className="mt-2 px-3 py-1 bg-gray-600 hover:bg-gray-700 text-white text-sm rounded-md"
+                  >
+                    Cancel
+                  </button>
+                </div>
+              )}
+
+              {!musical.posterUrl && !showImageUpload && (
+                <div className="text-center py-8 text-gray-500 border-2 border-dashed border-gray-300 dark:border-gray-600 rounded-lg">
+                  <div className="text-4xl mb-2">🎭</div>
+                  <p>No poster uploaded</p>
+                  <button
+                    onClick={() => setShowImageUpload(true)}
+                    className="mt-2 px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-md"
+                  >
+                    Add Poster
+                  </button>
+                </div>
+              )}
             </div>
 
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">

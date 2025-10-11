@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { PageTemplate } from "~/components/common/PageTemplate";
+import { ImageUpload } from "~/components/common/ImageUpload";
 
 interface Musical {
   id: string;
@@ -9,6 +10,8 @@ interface Musical {
   lyricist: string;
   approved: boolean;
   synopsis?: string;
+  posterId?: string;
+  posterUrl?: string;
 }
 
 interface MusicalFormProps {
@@ -23,9 +26,12 @@ export default function MusicalForm({ mode, musicalId }: MusicalFormProps) {
     lyricist: "",
     approved: false,
     synopsis: "",
+    posterId: undefined,
+    posterUrl: undefined,
   });
 
   const [loading, setLoading] = useState(mode === "edit");
+  const [imageError, setImageError] = useState<string | null>(null);
   const navigate = useNavigate();
 
   useEffect(() => {
@@ -75,6 +81,56 @@ export default function MusicalForm({ mode, musicalId }: MusicalFormProps) {
     }));
   };
 
+  // Handle image upload success
+  const handleImageUpload = (imageData: {
+    imageId: string;
+    url: string;
+    width: number;
+    height: number;
+    fileSize: number;
+  }) => {
+    setFormData(prev => ({
+      ...prev,
+      posterId: imageData.imageId,
+      posterUrl: imageData.url,
+    }));
+    setImageError(null);
+  };
+
+  // Handle image upload error
+  const handleImageError = (error: string) => {
+    setImageError(error);
+  };
+
+  // Handle image deletion
+  const handleImageDelete = async (imageId?: string) => {
+    if (!imageId && !formData.posterId) return;
+
+    try {
+      const token = localStorage.getItem("authToken");
+      const deleteId = imageId || formData.posterId;
+      
+      const response = await fetch(`http://localhost:3000/v2/media/${deleteId}`, {
+        method: 'DELETE',
+        headers: {
+          'Authorization': `Bearer ${token}`,
+        },
+      });
+
+      if (response.ok) {
+        setFormData(prev => ({
+          ...prev,
+          posterId: undefined,
+          posterUrl: undefined,
+        }));
+      } else {
+        console.error('Failed to delete image:', response.statusText);
+      }
+    } catch (error) {
+      console.error('Error deleting image:', error);
+    }
+  };
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
 
@@ -93,6 +149,7 @@ export default function MusicalForm({ mode, musicalId }: MusicalFormProps) {
             composer: formData.composer,
             lyricist: formData.lyricist,
             description: formData.synopsis, // API uses 'description' not 'synopsis'
+            posterId: formData.posterId,
           }),
         });
 
@@ -115,6 +172,7 @@ export default function MusicalForm({ mode, musicalId }: MusicalFormProps) {
               composer: formData.composer,
               lyricist: formData.lyricist,
               description: formData.synopsis,
+              posterId: formData.posterId,
             }),
           }
         );
@@ -199,6 +257,26 @@ export default function MusicalForm({ mode, musicalId }: MusicalFormProps) {
                 rows={4}
                 className="mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-teal-500 focus:border-teal-500"
               />
+            </div>
+
+            {/* Poster Image Upload */}
+            <div>
+              <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                Poster Image
+              </label>
+              <ImageUpload
+                imageType="poster"
+                currentImageUrl={formData.posterUrl}
+                onUploadSuccess={handleImageUpload}
+                onUploadError={handleImageError}
+                onDeleteImage={handleImageDelete}
+                className="max-w-md"
+              />
+              {imageError && (
+                <p className="mt-2 text-sm text-red-600 dark:text-red-400">
+                  {imageError}
+                </p>
+              )}
             </div>
 
             <div className="flex items-center">

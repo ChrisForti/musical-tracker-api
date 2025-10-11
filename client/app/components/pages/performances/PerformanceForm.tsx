@@ -1,12 +1,15 @@
 import React, { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { PageTemplate } from "~/components/common/PageTemplate";
+import { ImageUpload } from "~/components/common/ImageUpload";
 
 interface Performance {
   id: string;
   productionId: string;
   date: string;
   theaterId: string;
+  posterId?: string;
+  posterUrl?: string;
 }
 
 interface PerformanceFormProps {
@@ -22,9 +25,12 @@ export default function PerformanceForm({
     date: "",
     productionId: "",
     theaterId: "",
+    posterId: undefined,
+    posterUrl: undefined,
   });
 
   const [loading, setLoading] = useState(mode === "edit");
+  const [imageError, setImageError] = useState<string | null>(null);
   const [productions, setProductions] = useState<
     { id: string; name: string; musicalTitle: string }[]
   >([]);
