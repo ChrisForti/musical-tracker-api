@@ -38,8 +38,10 @@ export default function MusicalPage() {
 
         if (response.ok) {
           const data = await response.json();
+          console.log('🎼 Musical API Response:', data); // Debug log
           // Map API data to component structure
           const mappedMusicals = data.map((musical: any) => {
+            console.log('🎼 Processing musical:', musical.name, 'posterUrl:', musical.posterUrl); // Debug log
             return {
               id: musical.id,
               title: musical.name, // API returns 'name', component expects 'title'
@@ -50,6 +52,7 @@ export default function MusicalPage() {
               posterUrl: musical.posterUrl,
             };
           });
+          console.log('🎼 Mapped musicals:', mappedMusicals); // Debug log
           setMusicals(mappedMusicals);
         } else {
           console.error("Failed to fetch musicals:", response.statusText);

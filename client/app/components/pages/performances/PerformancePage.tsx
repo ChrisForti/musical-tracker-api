@@ -2,18 +2,14 @@ import React, { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { PageTemplate } from "~/components/common/PageTemplate";
 
-// Updated interface to match your schema
+// Interface to match API response
 interface Performance {
   id: string;
-  productionId: string; // References ProductionTable
-  date: string; // Date field
-  theaterId: string; // References TheaterTable
-
-  // Joined data that would come from related tables
-  productionName?: string;
-  musicalTitle?: string;
-  theaterName?: string;
-  approved?: boolean; // From Production
+  posterUrl: string;
+  date: string;
+  theaterName: string;
+  theaterId: string;
+  musicalName: string;
 }
 
 export default function PerformancePage() {
@@ -41,6 +37,10 @@ export default function PerformancePage() {
 
         if (response.ok) {
           const data = await response.json();
+          console.log('🎭 Performance API Response:', data); // Debug log
+          if (data.length > 0) {
+            console.log('🎭 First performance object:', data[0]); // Debug log
+          }
           setPerformances(data);
         } else {
           throw new Error(`Error ${response.status}: ${response.statusText}`);
@@ -113,7 +113,7 @@ export default function PerformancePage() {
   if (viewMode === "detail" && selectedPerformance) {
     return (
       <PageTemplate
-        title={`${selectedPerformance.musicalTitle} - ${formatDate(selectedPerformance.date)}`}
+        title={`${selectedPerformance.musicalName} - ${formatDate(selectedPerformance.date)}`}
         backButton={{
           label: "Back to Performances",
           onClick: handleBackToList,
@@ -121,19 +121,10 @@ export default function PerformancePage() {
       >
         <div className="bg-white dark:bg-gray-800 shadow-sm rounded-lg overflow-hidden">
           <div className="p-6">
-            <div className="flex items-center justify-between mb-6">
+            <div className="mb-6">
               <h1 className="text-3xl font-bold text-gray-900 dark:text-white">
-                {selectedPerformance.musicalTitle}
+                {selectedPerformance.musicalName}
               </h1>
-              <span
-                className={`px-3 py-1 text-sm rounded-full ${
-                  selectedPerformance.approved
-                    ? "bg-green-100 text-green-800"
-                    : "bg-yellow-100 text-yellow-800"
-                }`}
-              >
-                {selectedPerformance.approved ? "Approved" : "Pending Approval"}
-              </span>
             </div>
 
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
@@ -151,8 +142,8 @@ export default function PerformancePage() {
                     {selectedPerformance.theaterName}
                   </div>
                   <div>
-                    <span className="font-medium">Production:</span>{" "}
-                    {selectedPerformance.productionName}
+                    <span className="font-medium">Musical:</span>{" "}
+                    {selectedPerformance.musicalName}
                   </div>
                 </div>
               </div>
@@ -162,21 +153,12 @@ export default function PerformancePage() {
                   Additional Information
                 </h2>
                 <p className="text-gray-600 dark:text-gray-300">
-                  This is a performance of {selectedPerformance.musicalTitle} by
-                  the {selectedPerformance.productionName} at{" "}
+                  This is a performance of {selectedPerformance.musicalName} at{" "}
                   {selectedPerformance.theaterName}.
                 </p>
 
                 {/* You could add links to related entities */}
-                <div className="mt-4 space-y-2">
-                  <div>
-                    <a
-                      href={`/productions/view/${selectedPerformance.productionId}`}
-                      className="text-blue-600 hover:text-blue-900"
-                    >
-                      View Production Details
-                    </a>
-                  </div>
+                <div className="mt-4">
                   <div>
                     <a
                       href={`/theaters/view/${selectedPerformance.theaterId}`}
@@ -234,16 +216,13 @@ export default function PerformancePage() {
             <thead className="bg-gray-50 dark:bg-gray-700">
               <tr>
                 <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">
-                  Musical & Production
+                  Musical
                 </th>
                 <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">
                   Date
                 </th>
                 <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">
                   Theater
-                </th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">
-                  Status
                 </th>
                 <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">
                   Actions
@@ -255,10 +234,10 @@ export default function PerformancePage() {
                 <tr key={performance.id}>
                   <td className="px-6 py-4 whitespace-nowrap">
                     <div className="text-sm font-medium text-gray-900 dark:text-white">
-                      {performance.musicalTitle}
+                      {performance.musicalName}
                     </div>
                     <div className="text-sm text-gray-500 dark:text-gray-400">
-                      {performance.productionName}
+                      {performance.theaterName}
                     </div>
                   </td>
                   <td className="px-6 py-4 whitespace-nowrap">
@@ -269,19 +248,6 @@ export default function PerformancePage() {
                   <td className="px-6 py-4 whitespace-nowrap">
                     <div className="text-sm text-gray-500 dark:text-gray-400">
                       {performance.theaterName}
-                    </div>
-                  </td>
-                  <td className="px-6 py-4 whitespace-nowrap">
-                    <div className="flex flex-col space-y-1">
-                      {performance.approved ? (
-                        <span className="px-2 inline-flex text-xs leading-5 font-semibold rounded-full bg-green-100 text-green-800">
-                          Approved
-                        </span>
-                      ) : (
-                        <span className="px-2 inline-flex text-xs leading-5 font-semibold rounded-full bg-yellow-100 text-yellow-800">
-                          Pending
-                        </span>
-                      )}
                     </div>
                   </td>
                   <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">

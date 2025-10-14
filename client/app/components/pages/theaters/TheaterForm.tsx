@@ -121,11 +121,8 @@ export default function TheaterForm({ mode, theaterId }: TheaterFormProps) {
     <PageTemplate
       title={mode === "create" ? "Add New Theater" : "Edit Theater"}
       backButton={{
-        label: "Back",
-        onClick: () =>
-          mode === "edit" && id
-            ? navigate(`/theaters/view/${id}`)
-            : navigate("/theaters"),
+        label: "Back to Dashboard",
+        onClick: () => navigate("/"),
       }}
     >
       {loading ? (

@@ -103,17 +103,28 @@ async function uploadMediaHandler(
       fileExtension
     );
 
-    // Upload to S3 and get direct URL
-    const s3Url = await s3Service.uploadFileWithDirectUrl(
-      processedImage.buffer,
-      s3Key,
-      imageProcessor.getMimeType(processedImage.format),
-      {
-        originalName: req.file.originalname,
-        uploadedBy: userId,
-        imageType: imageType,
-      }
-    );
+    // Upload to S3 - use public URLs for posters, signed URLs for profiles
+    const s3Url = imageType === 'poster' 
+      ? await s3Service.uploadFileWithDirectUrl(
+          processedImage.buffer,
+          s3Key,
+          imageProcessor.getMimeType(processedImage.format),
+          {
+            originalName: req.file.originalname,
+            uploadedBy: userId,
+            imageType: imageType,
+          }
+        )
+      : await s3Service.uploadFile(
+          processedImage.buffer,
+          s3Key,
+          imageProcessor.getMimeType(processedImage.format),
+          {
+            originalName: req.file.originalname,
+            uploadedBy: userId,
+            imageType: imageType,
+          }
+        );
 
     // Save to database
     const imageRecord = await imageDb.createImage({

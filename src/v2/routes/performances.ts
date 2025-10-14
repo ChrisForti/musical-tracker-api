@@ -56,6 +56,7 @@ async function getAllPerformancesHandler(req: Request, res: Response) {
 
     // Simplify response format
     const performanceList = performances.map((perf) => ({
+      id: perf.performanceId,
       posterUrl: perf.posterUrl || "",
       date: perf.date?.toISOString().split("T")[0] || "",
       theaterName: perf.theaterName || "",

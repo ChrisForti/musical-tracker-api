@@ -114,11 +114,8 @@ export default function ActorForm({ mode, actorId }: ActorFormProps) {
     <PageTemplate
       title={mode === "create" ? "Add New Actor" : "Edit Actor"}
       backButton={{
-        label: "Back",
-        onClick: () =>
-          mode === "edit" && id
-            ? navigate(`/actors/view/${id}`)
-            : navigate("/actors"),
+        label: "Back to Dashboard",
+        onClick: () => navigate("/"),
       }}
     >
       {loading ? (

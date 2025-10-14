@@ -192,11 +192,8 @@ export default function MusicalForm({ mode, musicalId }: MusicalFormProps) {
     <PageTemplate
       title={mode === "create" ? "Add New Musical" : "Edit Musical"}
       backButton={{
-        label: "Back",
-        onClick: () =>
-          mode === "edit" && musicalId
-            ? navigate(`/musicals/view/${musicalId}`)
-            : navigate("/musicals"),
+        label: "Back to Dashboard",
+        onClick: () => navigate("/"),
       }}
     >
       {loading ? (

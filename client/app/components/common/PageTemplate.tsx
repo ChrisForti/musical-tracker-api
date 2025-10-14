@@ -27,7 +27,7 @@ export function PageTemplate({
           {backButton && (
             <button
               onClick={backButton.onClick}
-              className="mr-4 px-4 py-2 bg-gray-200 hover:bg-gray-300 text-gray-800 rounded-md flex items-center"
+              className="mr-4 px-4 py-2 bg-blue-500 hover:bg-blue-600 text-white rounded-md flex items-center shadow-md border-2 border-blue-600"
             >
               <span className="mr-1">←</span> {backButton.label}
             </button>

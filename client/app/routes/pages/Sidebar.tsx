@@ -1,4 +1,5 @@
 import { useState, useRef, useEffect } from "react";
+import { useNavigate } from "react-router-dom";
 import LoginPage from "../../components/pages/admin/LoginPage";
 import AdminPage from "../../components/pages/admin/AdminPage";
 type AdminProps = {
@@ -6,6 +7,9 @@ type AdminProps = {
 };
 
 export function Sidebar({ closeAdmin }: AdminProps) {
+  // Navigation
+  const navigate = useNavigate();
+
   // State for sidebar behavior
   const [isExpanded, setIsExpanded] = useState(true);
   const [isHovered, setIsHovered] = useState(false);
@@ -238,7 +242,10 @@ export function Sidebar({ closeAdmin }: AdminProps) {
           style={{ width: `calc(100% - ${isExpanded ? "16rem" : "4rem"})` }}
         >
           <div className="h-full overflow-auto">
-            <AdminPage closeAdmin={() => setShowAdminPage(false)} />
+            <AdminPage closeAdmin={() => {
+              setShowAdminPage(false);
+              navigate("/");
+            }} />
           </div>
         </div>
       )}
