@@ -34,7 +34,9 @@ export default function PerformanceForm({
   const [productions, setProductions] = useState<
     { id: string; name: string; musicalTitle: string }[]
   >([]);
-  const [theaters, setTheaters] = useState<{ id: string; name: string; city: string }[]>([]);
+  const [theaters, setTheaters] = useState<
+    { id: string; name: string; city: string }[]
+  >([]);
   const navigate = useNavigate();
 
   // Load data when editing an existing performance
@@ -99,17 +101,25 @@ export default function PerformanceForm({
         );
         if (theatersResponse.ok) {
           const theatersData = await theatersResponse.json();
-          console.log('🎭 Theater API Response:', theatersData); // Debug log
+          console.log("🎭 Theater API Response:", theatersData); // Debug log
           // Filter to only show verified theaters for performance creation
-          const verifiedTheaters = theatersData.filter((theater: any) => theater.verified);
-          console.log('🎭 Verified theaters:', verifiedTheaters); // Debug log
-          setTheaters(verifiedTheaters.map((theater: any) => ({
-            id: theater.id,
-            name: `${theater.name} - ${theater.city}`,
-            city: theater.city
-          })));
+          const verifiedTheaters = theatersData.filter(
+            (theater: any) => theater.verified
+          );
+          console.log("🎭 Verified theaters:", verifiedTheaters); // Debug log
+          setTheaters(
+            verifiedTheaters.map((theater: any) => ({
+              id: theater.id,
+              name: `${theater.name} - ${theater.city}`,
+              city: theater.city,
+            }))
+          );
         } else {
-          console.error('🎭 Theater API failed:', theatersResponse.status, theatersResponse.statusText); // Debug log
+          console.error(
+            "🎭 Theater API failed:",
+            theatersResponse.status,
+            theatersResponse.statusText
+          ); // Debug log
         }
       } catch (error) {
         console.error("Error loading reference data:", error);

@@ -58,17 +58,20 @@ export function LoginPage({ onLoginSuccess }: LoginPageProps = {}) {
 
   async function handleForgotPassword(event: React.FormEvent) {
     event.preventDefault();
-    
+
     try {
-      const response = await fetch("http://localhost:3000/v2/user/forgot-password", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({
-          email: forgotEmail,
-        }),
-      });
+      const response = await fetch(
+        "http://localhost:3000/v2/user/forgot-password",
+        {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({
+            email: forgotEmail,
+          }),
+        }
+      );
 
       const data = await response.json();
 
@@ -77,7 +80,10 @@ export function LoginPage({ onLoginSuccess }: LoginPageProps = {}) {
         setShowForgotPassword(false);
         setForgotEmail("");
       } else {
-        alert("Error: " + (data.errors?.message || data.error || "Failed to send reset email"));
+        alert(
+          "Error: " +
+            (data.errors?.message || data.error || "Failed to send reset email")
+        );
       }
     } catch (error) {
       alert("Network error: Could not send reset email");
@@ -90,7 +96,8 @@ export function LoginPage({ onLoginSuccess }: LoginPageProps = {}) {
         <div className="mb-4">
           <h2 className="text-xl font-semibold mb-2">Reset Password</h2>
           <p className="text-gray-600 dark:text-gray-400 text-sm mb-4">
-            Enter your email address and we'll send you instructions to reset your password.
+            Enter your email address and we'll send you instructions to reset
+            your password.
           </p>
         </div>
         <form onSubmit={handleForgotPassword}>

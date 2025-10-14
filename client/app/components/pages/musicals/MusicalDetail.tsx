@@ -50,7 +50,7 @@ export default function MusicalDetail({ musicalId }: MusicalDetailProps) {
 
         if (response.ok) {
           const data = await response.json();
-          console.log('MusicalDetail API Response:', data); // Debug log
+          console.log("MusicalDetail API Response:", data); // Debug log
           // Map API data to component structure
           const mappedMusical = {
             id: data.id,
@@ -62,7 +62,7 @@ export default function MusicalDetail({ musicalId }: MusicalDetailProps) {
             posterId: data.posterId,
             posterUrl: data.posterUrl,
           };
-          console.log('Mapped Musical:', mappedMusical); // Debug log
+          console.log("Mapped Musical:", mappedMusical); // Debug log
           setMusical(mappedMusical);
         } else {
           console.error("Failed to fetch musical:", response.statusText);
@@ -145,36 +145,43 @@ export default function MusicalDetail({ musicalId }: MusicalDetailProps) {
     try {
       // Update the musical with the new poster
       const token = localStorage.getItem("authToken");
-      const response = await fetch(`http://localhost:3000/v2/musical/${musicalId}`, {
-        method: "PUT",
-        headers: {
-          "Content-Type": "application/json",
-          Authorization: `Bearer ${token}`,
-        },
-        body: JSON.stringify({
-          name: musical?.title,
-          composer: musical?.composer,
-          lyricist: musical?.lyricist,
-          description: musical?.synopsis,
-          posterId: imageData.imageId,
-        }),
-      });
+      const response = await fetch(
+        `http://localhost:3000/v2/musical/${musicalId}`,
+        {
+          method: "PUT",
+          headers: {
+            "Content-Type": "application/json",
+            Authorization: `Bearer ${token}`,
+          },
+          body: JSON.stringify({
+            name: musical?.title,
+            composer: musical?.composer,
+            lyricist: musical?.lyricist,
+            description: musical?.synopsis,
+            posterId: imageData.imageId,
+          }),
+        }
+      );
 
       if (response.ok) {
         // Update local state
-        setMusical(prev => prev ? {
-          ...prev,
-          posterId: imageData.imageId,
-          posterUrl: imageData.url,
-        } : null);
+        setMusical((prev) =>
+          prev
+            ? {
+                ...prev,
+                posterId: imageData.imageId,
+                posterUrl: imageData.url,
+              }
+            : null
+        );
         setShowImageUpload(false);
         setImageError(null);
       } else {
-        setImageError('Failed to update musical with new image');
+        setImageError("Failed to update musical with new image");
       }
     } catch (error) {
-      console.error('Error updating musical:', error);
-      setImageError('Failed to update musical with new image');
+      console.error("Error updating musical:", error);
+      setImageError("Failed to update musical with new image");
     }
   };
 
@@ -189,43 +196,53 @@ export default function MusicalDetail({ musicalId }: MusicalDetailProps) {
 
     try {
       const token = localStorage.getItem("authToken");
-      
+
       // Delete the image from S3
-      const deleteResponse = await fetch(`http://localhost:3000/v2/media/${musical.posterId}`, {
-        method: 'DELETE',
-        headers: {
-          'Authorization': `Bearer ${token}`,
-        },
-      });
+      const deleteResponse = await fetch(
+        `http://localhost:3000/v2/media/${musical.posterId}`,
+        {
+          method: "DELETE",
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        }
+      );
 
       if (deleteResponse.ok) {
         // Update the musical to remove poster reference
-        const updateResponse = await fetch(`http://localhost:3000/v2/musical/${musicalId}`, {
-          method: "PUT",
-          headers: {
-            "Content-Type": "application/json",
-            Authorization: `Bearer ${token}`,
-          },
-          body: JSON.stringify({
-            name: musical.title,
-            composer: musical.composer,
-            lyricist: musical.lyricist,
-            description: musical.synopsis,
-            posterId: null,
-          }),
-        });
+        const updateResponse = await fetch(
+          `http://localhost:3000/v2/musical/${musicalId}`,
+          {
+            method: "PUT",
+            headers: {
+              "Content-Type": "application/json",
+              Authorization: `Bearer ${token}`,
+            },
+            body: JSON.stringify({
+              name: musical.title,
+              composer: musical.composer,
+              lyricist: musical.lyricist,
+              description: musical.synopsis,
+              posterId: null,
+            }),
+          }
+        );
 
         if (updateResponse.ok) {
           // Update local state
-          setMusical(prev => prev ? {
-            ...prev,
-            posterId: undefined,
-            posterUrl: undefined,
-          } : null);
+          setMusical((prev) =>
+            prev
+              ? {
+                  ...prev,
+                  posterId: undefined,
+                  posterUrl: undefined,
+                }
+              : null
+          );
         }
       }
     } catch (error) {
-      console.error('Error deleting image:', error);
+      console.error("Error deleting image:", error);
     }
   };
 
@@ -280,7 +297,7 @@ export default function MusicalDetail({ musicalId }: MusicalDetailProps) {
                     onClick={() => setShowImageUpload(!showImageUpload)}
                     className="px-3 py-1 bg-blue-600 hover:bg-blue-700 text-white text-sm rounded-md"
                   >
-                    {musical.posterUrl ? 'Replace Poster' : 'Add Poster'}
+                    {musical.posterUrl ? "Replace Poster" : "Add Poster"}
                   </button>
                 </div>
               </div>

@@ -2,6 +2,8 @@ import { useState, useRef, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import LoginPage from "../../components/pages/admin/LoginPage";
 import AdminPage from "../../components/pages/admin/AdminPage";
+import { ThemeToggle } from "../../components/layout/ui/ThemeToggle";
+import { useGlobalSearch } from "../../components/layout/ui/GlobalSearchProvider";
 type AdminProps = {
   closeAdmin: () => void;
 };
@@ -9,6 +11,9 @@ type AdminProps = {
 export function Sidebar({ closeAdmin }: AdminProps) {
   // Navigation
   const navigate = useNavigate();
+
+  // Global search
+  const { searchQuery, setSearchQuery } = useGlobalSearch();
 
   // State for sidebar behavior
   const [isExpanded, setIsExpanded] = useState(true);
@@ -85,6 +90,66 @@ export function Sidebar({ closeAdmin }: AdminProps) {
               />
             </svg>
           </button>
+        </div>
+
+        {/* Global Search */}
+        <div className="p-4 border-b border-gray-700">
+          {isExpanded || isHovered ? (
+            <div className="relative">
+              <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                <svg
+                  className="h-4 w-4 text-gray-400"
+                  fill="none"
+                  stroke="currentColor"
+                  viewBox="0 0 24 24"
+                >
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    strokeWidth={2}
+                    d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"
+                  />
+                </svg>
+              </div>
+              <input
+                type="text"
+                value={searchQuery}
+                onChange={(e) => setSearchQuery(e.target.value)}
+                placeholder="Search"
+                className="block w-full pl-10 pr-3 py-2 border border-gray-600 rounded-md leading-5 bg-gray-800 text-gray-100 placeholder-gray-400 focus:outline-none focus:placeholder-gray-300 focus:ring-1 focus:ring-teal-500 focus:border-teal-500 text-sm"
+                onKeyDown={(e) => {
+                  if (e.key === "Enter") {
+                    const query = (e.target as HTMLInputElement).value;
+                    if (query.trim()) {
+                      // Navigate to home page which will show search results
+                      navigate("/");
+                    }
+                  }
+                }}
+              />
+            </div>
+          ) : (
+            /* Collapsed search - just an icon */
+            <button
+              onClick={() => setIsExpanded(true)}
+              className="w-full p-2 text-gray-400 hover:text-teal-400 hover:bg-gray-800 rounded-md transition-colors"
+              title="Search"
+            >
+              <svg
+                className="h-5 w-5 mx-auto"
+                fill="none"
+                stroke="currentColor"
+                viewBox="0 0 24 24"
+              >
+                <path
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  strokeWidth={2}
+                  d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"
+                />
+              </svg>
+            </button>
+          )}
         </div>
 
         {/* Navigation Menu */}
@@ -227,6 +292,16 @@ export function Sidebar({ closeAdmin }: AdminProps) {
           </ul>
         </nav>
 
+        {/* Theme Toggle - Bottom of sidebar */}
+        <div className="p-4 border-t border-gray-700">
+          <div className="flex items-center justify-center">
+            <ThemeToggle />
+            {(isExpanded || isHovered) && (
+              <span className="ml-2 text-sm text-gray-400">Theme</span>
+            )}
+          </div>
+        </div>
+
         {/* Login Panel - Now at the bottom of sidebar */}
         {isLoginOpen && (
           <div ref={loginRef} className="my-auto">
@@ -242,10 +317,12 @@ export function Sidebar({ closeAdmin }: AdminProps) {
           style={{ width: `calc(100% - ${isExpanded ? "16rem" : "4rem"})` }}
         >
           <div className="h-full overflow-auto">
-            <AdminPage closeAdmin={() => {
-              setShowAdminPage(false);
-              navigate("/");
-            }} />
+            <AdminPage
+              closeAdmin={() => {
+                setShowAdminPage(false);
+                navigate("/");
+              }}
+            />
           </div>
         </div>
       )}

@@ -1,18 +1,24 @@
 import { useState, useRef, useEffect } from "react";
+import { useNavigate } from "react-router-dom";
 import LoginPage from "../../components/pages/admin/LoginPage";
 import RegistrationPage from "../../components/pages/admin/RegistrationPage";
 import AdminPage from "../../components/pages/admin/AdminPage";
+import { useGlobalSearch } from "../layout/ui/GlobalSearchProvider";
 
 type AdminProps = {
   closeAdmin: () => void;
 };
 
 export function Sidebar({ closeAdmin }: AdminProps) {
+  const navigate = useNavigate();
   const [isExpanded, setIsExpanded] = useState(true);
   const [isHovered, setIsHovered] = useState(false);
   const [isMobile, setIsMobile] = useState(window.innerWidth < 768);
   const [activeItem, setActiveItem] = useState<string | null>(null);
   const [openSubmenu, setOpenSubmenu] = useState<string | null>(null);
+
+  // Global search
+  const { searchQuery, setSearchQuery } = useGlobalSearch();
 
   // Original state
   const [isLoginOpen, setLoginOpen] = useState(false);
@@ -85,6 +91,66 @@ export function Sidebar({ closeAdmin }: AdminProps) {
             </svg>
           </button>
         </div> */}
+
+        {/* Global Search */}
+        <div className="p-4 border-b border-gray-700">
+          {isExpanded || isHovered ? (
+            <div className="relative">
+              <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                <svg
+                  className="h-4 w-4 text-gray-400"
+                  fill="none"
+                  stroke="currentColor"
+                  viewBox="0 0 24 24"
+                >
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    strokeWidth={2}
+                    d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"
+                  />
+                </svg>
+              </div>
+              <input
+                type="text"
+                value={searchQuery}
+                onChange={(e) => setSearchQuery(e.target.value)}
+                placeholder="Search"
+                className="block w-full pl-10 pr-3 py-2 border border-gray-600 rounded-md leading-5 bg-gray-800 text-gray-100 placeholder-gray-400 focus:outline-none focus:placeholder-gray-300 focus:ring-1 focus:ring-teal-500 focus:border-teal-500 text-sm"
+                onKeyDown={(e) => {
+                  if (e.key === "Enter") {
+                    const query = (e.target as HTMLInputElement).value;
+                    if (query.trim()) {
+                      // Navigate to home page which will show search results
+                      navigate("/");
+                    }
+                  }
+                }}
+              />
+            </div>
+          ) : (
+            /* Collapsed search - just an icon */
+            <button
+              onClick={() => setIsExpanded(true)}
+              className="w-full p-2 text-gray-400 hover:text-teal-400 hover:bg-gray-800 rounded-md transition-colors"
+              title="Search"
+            >
+              <svg
+                className="h-5 w-5 mx-auto"
+                fill="none"
+                stroke="currentColor"
+                viewBox="0 0 24 24"
+              >
+                <path
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  strokeWidth={2}
+                  d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"
+                />
+              </svg>
+            </button>
+          )}
+        </div>
 
         {/* Navigation Menu */}
         <nav className="py-4 flex-grow">
@@ -294,7 +360,9 @@ export function Sidebar({ closeAdmin }: AdminProps) {
             className="bg-white dark:bg-gray-900 rounded-lg shadow-lg max-w-lg w-full mx-4"
           >
             <div className="flex justify-between items-center p-4 border-b border-gray-200 dark:border-gray-700">
-              <h2 className="text-xl font-semibold text-teal-600">Create Account</h2>
+              <h2 className="text-xl font-semibold text-teal-600">
+                Create Account
+              </h2>
               <button
                 onClick={() => setRegisterOpen(false)}
                 className="text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200"
@@ -314,7 +382,9 @@ export function Sidebar({ closeAdmin }: AdminProps) {
                 </svg>
               </button>
             </div>
-            <RegistrationPage onRegistrationSuccess={() => setRegisterOpen(false)} />
+            <RegistrationPage
+              onRegistrationSuccess={() => setRegisterOpen(false)}
+            />
           </div>
         </div>
       )}

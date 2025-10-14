@@ -339,7 +339,7 @@ async function forgotPasswordHandler(
       console.log(`Password reset requested for user: ${email}`);
       console.log(`User ID: ${user.id}`);
       console.log("📧 In a production app, send reset email here!");
-      
+
       // For testing, log the admin credentials if this is the admin user
       if (user.isAdmin) {
         console.log("🔑 ADMIN CREDENTIALS FOR TESTING:");
@@ -348,13 +348,15 @@ async function forgotPasswordHandler(
       }
     }
 
-    res.json({ 
-      message: "If an account with that email exists, we've sent password reset instructions." 
+    res.json({
+      message:
+        "If an account with that email exists, we've sent password reset instructions.",
     });
   } catch (error) {
     console.error("Forgot password error:", error);
-    res.json({ 
-      message: "If an account with that email exists, we've sent password reset instructions." 
+    res.json({
+      message:
+        "If an account with that email exists, we've sent password reset instructions.",
     });
   }
 }

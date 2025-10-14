@@ -89,7 +89,7 @@ export default function MusicalForm({ mode, musicalId }: MusicalFormProps) {
     height: number;
     fileSize: number;
   }) => {
-    setFormData(prev => ({
+    setFormData((prev) => ({
       ...prev,
       posterId: imageData.imageId,
       posterUrl: imageData.url,
@@ -109,25 +109,28 @@ export default function MusicalForm({ mode, musicalId }: MusicalFormProps) {
     try {
       const token = localStorage.getItem("authToken");
       const deleteId = imageId || formData.posterId;
-      
-      const response = await fetch(`http://localhost:3000/v2/media/${deleteId}`, {
-        method: 'DELETE',
-        headers: {
-          'Authorization': `Bearer ${token}`,
-        },
-      });
+
+      const response = await fetch(
+        `http://localhost:3000/v2/media/${deleteId}`,
+        {
+          method: "DELETE",
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        }
+      );
 
       if (response.ok) {
-        setFormData(prev => ({
+        setFormData((prev) => ({
           ...prev,
           posterId: undefined,
           posterUrl: undefined,
         }));
       } else {
-        console.error('Failed to delete image:', response.statusText);
+        console.error("Failed to delete image:", response.statusText);
       }
     } catch (error) {
-      console.error('Error deleting image:', error);
+      console.error("Error deleting image:", error);
     }
   };
 

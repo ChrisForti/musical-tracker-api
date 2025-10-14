@@ -1,6 +1,7 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useMemo } from "react";
 import { useNavigate } from "react-router-dom";
 import { PageTemplate } from "~/components/common/PageTemplate";
+import { SearchFilter } from "~/components/layout/ui/SearchFilter";
 
 // Interface to match API response
 interface Performance {
@@ -37,9 +38,9 @@ export default function PerformancePage() {
 
         if (response.ok) {
           const data = await response.json();
-          console.log('🎭 Performance API Response:', data); // Debug log
+          console.log("🎭 Performance API Response:", data); // Debug log
           if (data.length > 0) {
-            console.log('🎭 First performance object:', data[0]); // Debug log
+            console.log("🎭 First performance object:", data[0]); // Debug log
           }
           setPerformances(data);
         } else {

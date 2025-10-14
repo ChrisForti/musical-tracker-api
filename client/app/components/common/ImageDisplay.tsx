@@ -1,9 +1,9 @@
-import React, { useState } from 'react';
+import React, { useState } from "react";
 
 interface ImageDisplayProps {
   imageUrl?: string;
   altText: string;
-  size?: 'thumbnail' | 'small' | 'medium' | 'large' | 'full';
+  size?: "thumbnail" | "small" | "medium" | "large" | "full";
   className?: string;
   fallbackIcon?: string;
   showFullSizeOnClick?: boolean;
@@ -12,9 +12,9 @@ interface ImageDisplayProps {
 export function ImageDisplay({
   imageUrl,
   altText,
-  size = 'medium',
-  className = '',
-  fallbackIcon = '🎭',
+  size = "medium",
+  className = "",
+  fallbackIcon = "🎭",
   showFullSizeOnClick = false,
 }: ImageDisplayProps) {
   const [imageError, setImageError] = useState(false);
@@ -23,11 +23,11 @@ export function ImageDisplay({
 
   // Size configurations
   const sizeClasses = {
-    thumbnail: 'w-12 h-12',
-    small: 'w-16 h-16', 
-    medium: 'w-32 h-32',
-    large: 'w-48 h-48',
-    full: 'w-full h-auto max-w-md',
+    thumbnail: "w-12 h-12",
+    small: "w-16 h-16",
+    medium: "w-32 h-32",
+    large: "w-48 h-48",
+    full: "w-full h-auto max-w-md",
   };
 
   const handleImageLoad = () => {
@@ -53,7 +53,7 @@ export function ImageDisplay({
   // If no image URL or image failed to load, show fallback
   if (!imageUrl || imageError) {
     return (
-      <div 
+      <div
         className={`
           ${sizeClasses[size]} 
           bg-gray-200 dark:bg-gray-700 
@@ -77,7 +77,7 @@ export function ImageDisplay({
             <div className="animate-spin rounded-full h-6 w-6 border-b-2 border-blue-500"></div>
           </div>
         )}
-        
+
         {/* Image */}
         <img
           src={imageUrl}
@@ -85,8 +85,8 @@ export function ImageDisplay({
           className={`
             ${sizeClasses[size]} 
             object-cover rounded-lg
-            ${showFullSizeOnClick ? 'cursor-pointer hover:opacity-90' : ''}
-            ${loading ? 'opacity-0' : 'opacity-100'}
+            ${showFullSizeOnClick ? "cursor-pointer hover:opacity-90" : ""}
+            ${loading ? "opacity-0" : "opacity-100"}
             transition-opacity duration-200
           `}
           onLoad={handleImageLoad}
@@ -97,7 +97,7 @@ export function ImageDisplay({
 
       {/* Full Size Modal */}
       {showModal && (
-        <div 
+        <div
           className="fixed inset-0 bg-black bg-opacity-75 flex items-center justify-center z-50 p-4"
           onClick={closeModal}
         >

@@ -1,7 +1,7 @@
-import React, { useState, useRef, useCallback } from 'react';
+import React, { useState, useRef, useCallback } from "react";
 
 interface ImageUploadProps {
-  imageType: 'poster' | 'profile';
+  imageType: "poster" | "profile";
   currentImageUrl?: string;
   onUploadSuccess: (imageData: {
     imageId: string;
@@ -32,7 +32,7 @@ export function ImageUpload({
   onUploadSuccess,
   onUploadError,
   onDeleteImage,
-  className = '',
+  className = "",
   disabled = false,
 }: ImageUploadProps) {
   const [dragActive, setDragActive] = useState(false);
@@ -42,34 +42,37 @@ export function ImageUpload({
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   // Get size limits based on image type
-  const maxSize = imageType === 'poster' ? 5 : 2; // MB
+  const maxSize = imageType === "poster" ? 5 : 2; // MB
   const maxSizeBytes = maxSize * 1024 * 1024;
-  const acceptedTypes = '.jpg,.jpeg,.png,.webp';
+  const acceptedTypes = ".jpg,.jpeg,.png,.webp";
 
   // Handle drag events
   const handleDrag = useCallback((e: React.DragEvent) => {
     e.preventDefault();
     e.stopPropagation();
-    if (e.type === 'dragenter' || e.type === 'dragover') {
+    if (e.type === "dragenter" || e.type === "dragover") {
       setDragActive(true);
-    } else if (e.type === 'dragleave') {
+    } else if (e.type === "dragleave") {
       setDragActive(false);
     }
   }, []);
 
   // Handle drop events
-  const handleDrop = useCallback((e: React.DragEvent) => {
-    e.preventDefault();
-    e.stopPropagation();
-    setDragActive(false);
+  const handleDrop = useCallback(
+    (e: React.DragEvent) => {
+      e.preventDefault();
+      e.stopPropagation();
+      setDragActive(false);
 
-    if (disabled) return;
+      if (disabled) return;
 
-    const files = e.dataTransfer.files;
-    if (files && files.length > 0) {
-      handleFileUpload(files[0]);
-    }
-  }, [disabled]);
+      const files = e.dataTransfer.files;
+      if (files && files.length > 0) {
+        handleFileUpload(files[0]);
+      }
+    },
+    [disabled]
+  );
 
   // Validate file before upload
   const validateFile = (file: File): string | null => {
@@ -79,9 +82,9 @@ export function ImageUpload({
     }
 
     // Check file type
-    const validTypes = ['image/jpeg', 'image/jpg', 'image/png', 'image/webp'];
+    const validTypes = ["image/jpeg", "image/jpg", "image/png", "image/webp"];
     if (!validTypes.includes(file.type)) {
-      return 'Please upload a valid image file (JPEG, PNG, or WebP)';
+      return "Please upload a valid image file (JPEG, PNG, or WebP)";
     }
 
     return null;
@@ -107,11 +110,11 @@ export function ImageUpload({
 
     try {
       const formData = new FormData();
-      formData.append('file', file);
-      formData.append('imageType', imageType);
+      formData.append("file", file);
+      formData.append("imageType", imageType);
 
-      const token = localStorage.getItem('authToken');
-      
+      const token = localStorage.getItem("authToken");
+
       const xhr = new XMLHttpRequest();
 
       // Track upload progress
@@ -137,10 +140,17 @@ export function ImageUpload({
         } else {
           try {
             const errorResponse = JSON.parse(xhr.responseText);
-            console.error('Upload failed:', errorResponse);
-            onUploadError?.(errorResponse.error || `Upload failed (${xhr.status})`);
+            console.error("Upload failed:", errorResponse);
+            onUploadError?.(
+              errorResponse.error || `Upload failed (${xhr.status})`
+            );
           } catch (e) {
-            console.error('Upload failed with status:', xhr.status, 'Response:', xhr.responseText);
+            console.error(
+              "Upload failed with status:",
+              xhr.status,
+              "Response:",
+              xhr.responseText
+            );
             onUploadError?.(`Upload failed (${xhr.status}): ${xhr.statusText}`);
           }
           setPreviewUrl(null);
@@ -150,19 +160,18 @@ export function ImageUpload({
       };
 
       xhr.onerror = () => {
-        onUploadError?.('Network error during upload');
+        onUploadError?.("Network error during upload");
         setUploading(false);
         setUploadProgress(0);
         setPreviewUrl(null);
       };
 
-      xhr.open('POST', 'http://localhost:3000/v2/media');
-      xhr.setRequestHeader('Authorization', `Bearer ${token}`);
+      xhr.open("POST", "http://localhost:3000/v2/media");
+      xhr.setRequestHeader("Authorization", `Bearer ${token}`);
       xhr.send(formData);
-
     } catch (error) {
-      console.error('Upload error:', error);
-      onUploadError?.('Failed to upload image');
+      console.error("Upload error:", error);
+      onUploadError?.("Failed to upload image");
       setUploading(false);
       setUploadProgress(0);
       setPreviewUrl(null);
@@ -200,17 +209,17 @@ export function ImageUpload({
             src={previewUrl || currentImageUrl}
             alt={`${imageType} preview`}
             className={`max-w-full h-auto rounded-lg shadow-md ${
-              imageType === 'profile' ? 'max-w-[200px]' : 'max-w-[300px]'
+              imageType === "profile" ? "max-w-[200px]" : "max-w-[300px]"
             }`}
           />
-          
+
           {/* Upload progress overlay */}
           {uploading && (
             <div className="absolute inset-0 bg-black bg-opacity-50 flex items-center justify-center rounded-lg">
               <div className="text-white text-center">
                 <div className="text-sm mb-2">Uploading...</div>
                 <div className="w-32 bg-gray-700 rounded-full h-2">
-                  <div 
+                  <div
                     className="bg-blue-500 h-2 rounded-full transition-all duration-300"
                     style={{ width: `${uploadProgress}%` }}
                   ></div>
@@ -219,7 +228,7 @@ export function ImageUpload({
               </div>
             </div>
           )}
-          
+
           {/* Delete button */}
           {currentImageUrl && !uploading && onDeleteImage && (
             <button
@@ -238,11 +247,12 @@ export function ImageUpload({
         <div
           className={`
             border-2 border-dashed rounded-lg p-6 text-center cursor-pointer transition-colors
-            ${dragActive 
-              ? 'border-blue-500 bg-blue-50 dark:bg-blue-900/20' 
-              : 'border-gray-300 dark:border-gray-600 hover:border-gray-400'
+            ${
+              dragActive
+                ? "border-blue-500 bg-blue-50 dark:bg-blue-900/20"
+                : "border-gray-300 dark:border-gray-600 hover:border-gray-400"
             }
-            ${disabled ? 'opacity-50 cursor-not-allowed' : ''}
+            ${disabled ? "opacity-50 cursor-not-allowed" : ""}
           `}
           onDragEnter={handleDrag}
           onDragLeave={handleDrag}
@@ -258,14 +268,17 @@ export function ImageUpload({
             onChange={handleInputChange}
             disabled={disabled}
           />
-          
+
           <div className="text-gray-600 dark:text-gray-400">
             <div className="text-2xl mb-2">📷</div>
             <div className="text-sm">
-              {currentImageUrl ? 'Click or drag to replace image' : 'Click or drag to upload image'}
+              {currentImageUrl
+                ? "Click or drag to replace image"
+                : "Click or drag to upload image"}
             </div>
             <div className="text-xs text-gray-500 mt-1">
-              {imageType === 'poster' ? 'Poster' : 'Profile'} • Max {maxSize}MB • JPEG, PNG, WebP
+              {imageType === "poster" ? "Poster" : "Profile"} • Max {maxSize}MB
+              • JPEG, PNG, WebP
             </div>
           </div>
         </div>

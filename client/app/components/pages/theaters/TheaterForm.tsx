@@ -33,11 +33,14 @@ export default function TheaterForm({ mode, theaterId }: TheaterFormProps) {
       const fetchTheater = async () => {
         try {
           const token = localStorage.getItem("authToken");
-          const response = await fetch(`http://localhost:3000/v2/theater/${id}`, {
-            headers: {
-              Authorization: `Bearer ${token}`,
-            },
-          });
+          const response = await fetch(
+            `http://localhost:3000/v2/theater/${id}`,
+            {
+              headers: {
+                Authorization: `Bearer ${token}`,
+              },
+            }
+          );
 
           if (response.ok) {
             const data = await response.json();
