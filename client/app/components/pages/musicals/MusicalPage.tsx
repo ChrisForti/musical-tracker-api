@@ -3,6 +3,8 @@ import { useNavigate } from "react-router-dom";
 import { PageTemplate } from "~/components/common/PageTemplate";
 import { ImageDisplay } from "~/components/common/ImageDisplay";
 import { useGlobalSearch } from "~/components/layout/ui/GlobalSearchProvider";
+import { StatusBadge } from "~/components/common/StatusBadge";
+import { useAuth } from "~/hooks/useAuth";
 
 interface Musical {
   id: string;
@@ -19,6 +21,7 @@ export default function MusicalPage() {
   const [musicals, setMusicals] = useState<Musical[]>([]);
   const [loading, setLoading] = useState(true);
   const navigate = useNavigate();
+  const { isAdmin } = useAuth();
 
   // Add these new state variables
   const [selectedMusicalId, setSelectedMusicalId] = useState<string | null>(
@@ -163,15 +166,7 @@ export default function MusicalPage() {
               <h1 className="text-3xl font-bold text-gray-900 dark:text-white">
                 {selectedMusical.title}
               </h1>
-              <span
-                className={`px-3 py-1 text-sm rounded-full ${
-                  selectedMusical.approved
-                    ? "bg-green-100 text-green-800"
-                    : "bg-yellow-100 text-yellow-800"
-                }`}
-              >
-                {selectedMusical.approved ? "Approved" : "Pending Approval"}
-              </span>
+              <StatusBadge verified={selectedMusical.approved} />
             </div>
 
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
@@ -229,6 +224,14 @@ export default function MusicalPage() {
         label: "Add Musical",
         onClick: () => navigate("/musicals/new"),
       }}
+      backButton={
+        isAdmin
+          ? {
+              label: "Back to Dashboard",
+              onClick: () => navigate("/"),
+            }
+          : undefined
+      }
     >
       {loading ? (
         <div className="p-4 text-center">Loading musicals...</div>
@@ -362,15 +365,7 @@ export default function MusicalPage() {
                         </div>
                       </td>
                       <td className="px-6 py-4 whitespace-nowrap">
-                        {musical.approved ? (
-                          <span className="px-2 inline-flex text-xs leading-5 font-semibold rounded-full bg-green-100 text-green-800">
-                            Approved
-                          </span>
-                        ) : (
-                          <span className="px-2 inline-flex text-xs leading-5 font-semibold rounded-full bg-yellow-100 text-yellow-800">
-                            Pending
-                          </span>
-                        )}
+                        <StatusBadge verified={musical.approved} size="sm" />
                       </td>
                       <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
                         <button

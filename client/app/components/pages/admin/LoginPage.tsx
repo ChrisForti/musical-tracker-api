@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { useToastHelpers } from "~/components/common/ToastProvider";
 
 interface LoginPageProps {
   onLoginSuccess?: () => void;
@@ -9,6 +10,8 @@ export function LoginPage({ onLoginSuccess }: LoginPageProps = {}) {
   const [password, setPassword] = useState("");
   const [showForgotPassword, setShowForgotPassword] = useState(false);
   const [forgotEmail, setForgotEmail] = useState("");
+  const [isLoading, setIsLoading] = useState(false);
+  const { success, error: showError } = useToastHelpers();
 
   function handleEmailChange(event: React.ChangeEvent<HTMLInputElement>) {
     setEmail(event.target.value);
@@ -20,6 +23,9 @@ export function LoginPage({ onLoginSuccess }: LoginPageProps = {}) {
 
   async function handleSubmit(event: React.FormEvent) {
     event.preventDefault();
+
+    if (isLoading) return;
+    setIsLoading(true);
 
     try {
       const response = await fetch("http://localhost:3000/v2/user/login", {
@@ -39,20 +45,31 @@ export function LoginPage({ onLoginSuccess }: LoginPageProps = {}) {
         console.log("Login successful:", data);
         // Store the token in localStorage for future API calls
         localStorage.setItem("authToken", data.token);
-        // You could also redirect or update state here
-        alert("Login successful!");
+
+        success("Login Successful", "Welcome back! You are now signed in.");
+
         // Close the modal if callback provided
         onLoginSuccess?.();
+
+        // Refresh the page to update auth state
+        window.location.reload();
       } else {
         console.error("Login failed:", data);
-        alert(
-          "Login failed: " +
-            (data.errors?.message || data.error || "Unknown error")
+        showError(
+          "Login Failed",
+          data.errors?.message ||
+            data.error ||
+            "Please check your credentials and try again."
         );
       }
     } catch (error) {
       console.error("Login error:", error);
-      alert("Login failed: Network error");
+      showError(
+        "Login Failed",
+        "Network error. Please check your connection and try again."
+      );
+    } finally {
+      setIsLoading(false);
     }
   }
 
@@ -76,17 +93,23 @@ export function LoginPage({ onLoginSuccess }: LoginPageProps = {}) {
       const data = await response.json();
 
       if (response.ok) {
-        alert("Password reset instructions have been sent to your email!");
+        success(
+          "Reset Email Sent",
+          "Password reset instructions have been sent to your email!"
+        );
         setShowForgotPassword(false);
         setForgotEmail("");
       } else {
-        alert(
-          "Error: " +
-            (data.errors?.message || data.error || "Failed to send reset email")
+        showError(
+          "Reset Failed",
+          data.errors?.message || data.error || "Failed to send reset email"
         );
       }
     } catch (error) {
-      alert("Network error: Could not send reset email");
+      showError(
+        "Network Error",
+        "Could not send reset email. Please try again."
+      );
     }
   }
 
@@ -193,9 +216,33 @@ export function LoginPage({ onLoginSuccess }: LoginPageProps = {}) {
         </div>
         <button
           type="submit"
-          className="w-full flex justify-center py-2 px-4 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-teal-600 hover:bg-teal-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-teal-500"
+          disabled={isLoading}
+          className="w-full flex justify-center py-2 px-4 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-teal-600 hover:bg-teal-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-teal-500 disabled:opacity-50 disabled:cursor-not-allowed"
         >
-          Sign in
+          {isLoading ? (
+            <div className="flex items-center">
+              <div className="animate-spin -ml-1 mr-3 h-5 w-5 text-white">
+                <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24">
+                  <circle
+                    className="opacity-25"
+                    cx="12"
+                    cy="12"
+                    r="10"
+                    stroke="currentColor"
+                    strokeWidth="4"
+                  ></circle>
+                  <path
+                    className="opacity-75"
+                    fill="currentColor"
+                    d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
+                  ></path>
+                </svg>
+              </div>
+              Signing in...
+            </div>
+          ) : (
+            "Sign in"
+          )}
         </button>
       </form>
     </div>

@@ -1,6 +1,8 @@
 import React, { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { PageTemplate } from "~/components/common/PageTemplate";
+import { StatusBadge } from "~/components/common/StatusBadge";
+import { useAuth } from "~/hooks/useAuth";
 
 interface Theater {
   id: string;
@@ -13,6 +15,7 @@ export default function TheaterPage() {
   const [theaters, setTheaters] = useState<Theater[]>([]);
   const [loading, setLoading] = useState(true);
   const navigate = useNavigate();
+  const { isAdmin } = useAuth();
 
   useEffect(() => {
     const fetchTheaters = async () => {
@@ -67,18 +70,23 @@ export default function TheaterPage() {
     if (confirm("Are you sure you want to verify this theater?")) {
       try {
         const token = localStorage.getItem("authToken");
-        const response = await fetch(`http://localhost:3000/v2/theater/${id}/verify`, {
-          method: "POST",
-          headers: {
-            Authorization: `Bearer ${token}`,
-          },
-        });
+        const response = await fetch(
+          `http://localhost:3000/v2/theater/${id}/verify`,
+          {
+            method: "POST",
+            headers: {
+              Authorization: `Bearer ${token}`,
+            },
+          }
+        );
 
         if (response.ok) {
           // Update local state to reflect verification
-          setTheaters(theaters.map(theater => 
-            theater.id === id ? { ...theater, verified: true } : theater
-          ));
+          setTheaters(
+            theaters.map((theater) =>
+              theater.id === id ? { ...theater, verified: true } : theater
+            )
+          );
           alert("Theater verified successfully!");
         } else {
           console.error("Failed to verify theater:", response.statusText);
@@ -98,6 +106,14 @@ export default function TheaterPage() {
         label: "Add Theater",
         onClick: () => navigate("/theaters/new"),
       }}
+      backButton={
+        isAdmin
+          ? {
+              label: "Back to Dashboard",
+              onClick: () => navigate("/"),
+            }
+          : undefined
+      }
     >
       {loading ? (
         <div className="p-4 text-center">Loading theaters...</div>
@@ -134,15 +150,7 @@ export default function TheaterPage() {
                     </div>
                   </td>
                   <td className="px-6 py-4 whitespace-nowrap">
-                    <span
-                      className={`px-2 inline-flex text-xs leading-5 font-semibold rounded-full ${
-                        theater.verified
-                          ? "bg-green-100 text-green-800"
-                          : "bg-yellow-100 text-yellow-800"
-                      }`}
-                    >
-                      {theater.verified ? "Verified" : "Pending"}
-                    </span>
+                    <StatusBadge verified={theater.verified} size="sm" />
                   </td>
                   <td className="px-6 py-4 whitespace-nowrap text-sm font-medium">
                     <div className="flex space-x-2">

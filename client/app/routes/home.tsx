@@ -1,6 +1,6 @@
 import React from "react";
 import Header from "~/components/layout/header/Header";
-import Mainpage from "~/components/layout/Mainpage";
+import HomePage from "~/components/pages/HomePage";
 import { Sidebar } from "~/components/layout/Sidebar";
 
 export default function Home() {
@@ -13,7 +13,7 @@ export default function Home() {
       <aside>
         <Sidebar closeAdmin={closeAdmin} />
       </aside>
-      <Mainpage closeAdmin={closeAdmin} />
+      <HomePage closeAdmin={closeAdmin} />
     </div>
   );
 }

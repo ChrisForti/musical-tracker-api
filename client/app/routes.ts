@@ -22,5 +22,8 @@ export default [
   // Casting routes (using catch-all)
   route("castings/*", "routes/CastingRoute.tsx"),
 
+  // Admin routes (using catch-all)
+  route("admin/*", "routes/AdminRoute.tsx"),
+
   // Other routes...
 ] satisfies RouteConfig;

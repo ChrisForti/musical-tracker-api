@@ -238,6 +238,21 @@ export function Sidebar({ closeAdmin }: AdminProps) {
                 <ul className="bg-gray-800">
                   <li>
                     <a
+                      href="/admin/pending"
+                      className="flex items-center pl-12 py-2 hover:bg-teal-600"
+                      onClick={(e) => {
+                        e.preventDefault();
+                        setActiveItem("pending");
+                        window.location.href = "/admin/pending";
+                      }}
+                    >
+                      {(isExpanded || isHovered) && (
+                        <span>Pending Approvals</span>
+                      )}
+                    </a>
+                  </li>
+                  <li>
+                    <a
                       href="/admin/users"
                       className="flex items-center pl-12 py-2 hover:bg-teal-600"
                       onClick={(e) => {

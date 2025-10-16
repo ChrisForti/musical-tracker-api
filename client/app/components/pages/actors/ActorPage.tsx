@@ -2,6 +2,8 @@ import React, { useState, useEffect, useMemo } from "react";
 import { useNavigate } from "react-router-dom";
 import { PageTemplate } from "~/components/common/PageTemplate";
 import { useGlobalSearch } from "~/components/layout/ui/GlobalSearchProvider";
+import { StatusBadge } from "~/components/common/StatusBadge";
+import { useAuth } from "~/hooks/useAuth";
 
 interface Actor {
   id: string;
@@ -14,6 +16,7 @@ export default function ActorPage() {
   const [actors, setActors] = useState<Actor[]>([]);
   const [loading, setLoading] = useState(true);
   const navigate = useNavigate();
+  const { isAdmin } = useAuth();
 
   // Global search
   const { searchQuery } = useGlobalSearch();
@@ -93,6 +96,14 @@ export default function ActorPage() {
         label: "Add Actor",
         onClick: () => navigate("/actors/new"),
       }}
+      backButton={
+        isAdmin
+          ? {
+              label: "Back to Dashboard",
+              onClick: () => navigate("/"),
+            }
+          : undefined
+      }
     >
       {loading ? (
         <div className="p-4 text-center">Loading actors...</div>
@@ -175,15 +186,7 @@ export default function ActorPage() {
                         </div>
                       </td>
                       <td className="px-6 py-4 whitespace-nowrap">
-                        {actor.approved ? (
-                          <span className="px-2 inline-flex text-xs leading-5 font-semibold rounded-full bg-green-100 text-green-800">
-                            Approved
-                          </span>
-                        ) : (
-                          <span className="px-2 inline-flex text-xs leading-5 font-semibold rounded-full bg-yellow-100 text-yellow-800">
-                            Pending
-                          </span>
-                        )}
+                        <StatusBadge verified={actor.approved} size="sm" />
                       </td>
                       <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
                         <button
