@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { useNavigate } from "react-router-dom";
 
 interface RegistrationPageProps {
   onRegistrationSuccess?: () => void;
@@ -11,6 +12,7 @@ export function RegistrationPage({ onRegistrationSuccess }: RegistrationPageProp
   const [password, setPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
   const [isLoading, setIsLoading] = useState(false);
+  const navigate = useNavigate();
 
   function handleFirstNameChange(event: React.ChangeEvent<HTMLInputElement>) {
     setFirstName(event.target.value);
@@ -66,7 +68,7 @@ export function RegistrationPage({ onRegistrationSuccess }: RegistrationPageProp
 
       if (response.ok) {
         console.log("Registration successful:", data);
-        alert("Registration successful! You can now log in.");
+        alert("Registration successful! Redirecting to login page...");
         // Clear form
         setFirstName("");
         setLastName("");
@@ -75,6 +77,8 @@ export function RegistrationPage({ onRegistrationSuccess }: RegistrationPageProp
         setConfirmPassword("");
         // Call success callback if provided
         onRegistrationSuccess?.();
+        // Redirect to login page
+        navigate("/login");
       } else {
         console.error("Registration failed:", data);
         alert(
@@ -188,6 +192,15 @@ export function RegistrationPage({ onRegistrationSuccess }: RegistrationPageProp
         >
           {isLoading ? "Creating Account..." : "Create Account"}
         </button>
+        
+        <div className="mt-6 text-center">
+          <p className="text-sm text-gray-600 dark:text-gray-400">
+            Already have an account?{" "}
+            <a href="/login" className="font-medium text-teal-600 hover:text-teal-500">
+              Sign in here
+            </a>
+          </p>
+        </div>
       </form>
     </div>
   );

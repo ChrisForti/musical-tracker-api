@@ -228,7 +228,7 @@ export default function MusicalPage() {
         isAdmin
           ? {
               label: "Back to Dashboard",
-              onClick: () => navigate("/"),
+              onClick: () => navigate("/admin"),
             }
           : undefined
       }

@@ -4,6 +4,7 @@ import { PageTemplate } from "~/components/common/PageTemplate";
 import { useGlobalSearch } from "~/components/layout/ui/GlobalSearchProvider";
 import { StatusBadge } from "~/components/common/StatusBadge";
 import { useAuth } from "~/hooks/useAuth";
+import { useToast } from "~/components/common/ToastProvider";
 
 interface Actor {
   id: string;
@@ -17,6 +18,7 @@ export default function ActorPage() {
   const [loading, setLoading] = useState(true);
   const navigate = useNavigate();
   const { isAdmin } = useAuth();
+  const { addToast } = useToast();
 
   // Global search
   const { searchQuery } = useGlobalSearch();
@@ -80,11 +82,22 @@ export default function ActorPage() {
         if (response.ok) {
           // Update local state
           setActors(actors.filter((actor) => actor.id !== id));
+          addToast({ 
+            type: 'success', 
+            title: 'Success', 
+            message: 'Actor deleted successfully!' 
+          });
         } else {
-          console.error("Failed to delete actor:", response.statusText);
+          const errorData = await response.json();
+          throw new Error(errorData.error || "Failed to delete actor");
         }
       } catch (error) {
         console.error("Failed to delete actor:", error);
+        addToast({ 
+          type: 'error', 
+          title: 'Error', 
+          message: error instanceof Error ? error.message : 'Failed to delete actor. Please try again.' 
+        });
       }
     }
   };
@@ -100,7 +113,7 @@ export default function ActorPage() {
         isAdmin
           ? {
               label: "Back to Dashboard",
-              onClick: () => navigate("/"),
+              onClick: () => navigate("/admin"),
             }
           : undefined
       }

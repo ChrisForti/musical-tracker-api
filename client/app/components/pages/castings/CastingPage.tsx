@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from "react";
-import { Link } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 import { PageTemplate } from "../../common/PageTemplate";
+import { useAuth } from "~/hooks/useAuth";
 
 interface Casting {
   id: string;
@@ -43,6 +44,8 @@ export function CastingPage() {
     useState<string>("");
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const navigate = useNavigate();
+  const { isAdmin } = useAuth();
 
   const fetchCastings = async () => {
     try {
@@ -203,7 +206,17 @@ export function CastingPage() {
   }
 
   return (
-    <PageTemplate title="Castings">
+    <PageTemplate 
+      title="Castings"
+      backButton={
+        isAdmin
+          ? {
+              label: "Back to Dashboard",
+              onClick: () => navigate("/admin"),
+            }
+          : undefined
+      }
+    >
       <div className="space-y-6">
         {/* Header with Actions */}
         <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">

@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
-import { Link } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
 import { PageTemplate } from '../../common/PageTemplate';
+import { useAuth } from '~/hooks/useAuth';
 
 interface Role {
   id: string;
@@ -20,6 +21,8 @@ export function RolePage() {
   const [selectedMusicalId, setSelectedMusicalId] = useState<string>('');
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const navigate = useNavigate();
+  const { isAdmin: isUserAdmin } = useAuth();
 
   const fetchRoles = async (musicalId?: string) => {
     try {
@@ -166,7 +169,17 @@ export function RolePage() {
   }
 
   return (
-    <PageTemplate title="Roles">
+    <PageTemplate 
+      title="Roles"
+      backButton={
+        isUserAdmin
+          ? {
+              label: "Back to Dashboard",
+              onClick: () => navigate("/admin"),
+            }
+          : undefined
+      }
+    >
       <div className="space-y-6">
         {/* Header with Actions */}
         <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">

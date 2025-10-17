@@ -25,5 +25,14 @@ export default [
   // Admin routes (using catch-all)
   route("admin/*", "routes/AdminRoute.tsx"),
 
+  // Public routes (using catch-all)
+  route("public/*", "routes/PublicRoute.tsx"),
+
+  // Login route
+  route("login", "routes/LoginRoute.tsx"),
+
+  // Register route
+  route("register", "routes/RegisterRoute.tsx"),
+
   // Other routes...
 ] satisfies RouteConfig;

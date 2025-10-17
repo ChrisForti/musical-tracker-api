@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { useToastHelpers } from "~/components/common/ToastProvider";
+import { AdminGuard } from "~/components/common/AdminGuard";
 
 interface PendingItem {
   id: string;
@@ -331,7 +332,8 @@ export default function PendingApprovalsPage() {
   }
 
   return (
-    <div className="flex-1 ml-16 md:ml-64 min-h-screen bg-gray-50 dark:bg-gray-900 pt-20">
+    <AdminGuard>
+      <div className="flex-1 ml-16 md:ml-64 min-h-screen bg-gray-50 dark:bg-gray-900 pt-20">
       <div className="max-w-7xl mx-auto py-8 px-4 sm:px-6 lg:px-8">
         {/* Header */}
         <div className="mb-8">
@@ -498,6 +500,7 @@ export default function PendingApprovalsPage() {
           </>
         )}
       </div>
-    </div>
+      </div>
+    </AdminGuard>
   );
 }

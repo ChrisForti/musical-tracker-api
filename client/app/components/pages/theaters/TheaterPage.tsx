@@ -110,7 +110,7 @@ export default function TheaterPage() {
         isAdmin
           ? {
               label: "Back to Dashboard",
-              onClick: () => navigate("/"),
+              onClick: () => navigate("/admin"),
             }
           : undefined
       }

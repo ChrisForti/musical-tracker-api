@@ -2,15 +2,14 @@ import { useState, useRef, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import LoginPage from "../../components/pages/admin/LoginPage";
 import RegistrationPage from "../../components/pages/admin/RegistrationPage";
-import AdminPage from "../../components/pages/admin/AdminPage";
 import { useGlobalSearch } from "../layout/ui/GlobalSearchProvider";
+import { useAuth } from "../../hooks/useAuth";
+import { useToast } from "../common/ToastProvider";
 
-type AdminProps = {
-  closeAdmin: () => void;
-};
-
-export function Sidebar({ closeAdmin }: AdminProps) {
+export function Sidebar() {
   const navigate = useNavigate();
+  const { isAdmin, user, logout } = useAuth();
+  const { addToast } = useToast();
   const [isExpanded, setIsExpanded] = useState(true);
   const [isHovered, setIsHovered] = useState(false);
   const [isMobile, setIsMobile] = useState(window.innerWidth < 768);
@@ -23,7 +22,6 @@ export function Sidebar({ closeAdmin }: AdminProps) {
   // Original state
   const [isLoginOpen, setLoginOpen] = useState(false);
   const [isRegisterOpen, setRegisterOpen] = useState(false);
-  const [showAdminPage, setShowAdminPage] = useState(false);
   const dropdownRef = useRef<HTMLDivElement>(null);
   const loginRef = useRef<HTMLDivElement>(null);
   const registerRef = useRef<HTMLDivElement>(null);
@@ -48,8 +46,18 @@ export function Sidebar({ closeAdmin }: AdminProps) {
   };
 
   // Toggle submenu
-  const toggleSubmenu = (item: string) => {
-    setOpenSubmenu((prev) => (prev === item ? null : item));
+  const toggleSubmenu = (menu: string) => {
+    setOpenSubmenu((prev) => (prev === menu ? null : menu));
+  };
+
+  const handleLogout = () => {
+    logout();
+    addToast({ 
+      type: 'success', 
+      title: 'Logged Out', 
+      message: 'You have been successfully logged out.' 
+    });
+    navigate('/');
   };
 
   // Calculate sidebar width based on state
@@ -152,46 +160,93 @@ export function Sidebar({ closeAdmin }: AdminProps) {
           )}
         </div>
 
+        {/* User Info - Show if logged in */}
+        {user && (
+          <div className="px-4 py-3 border-b border-gray-700">
+            {(isExpanded || isHovered) ? (
+              <div className="flex items-center justify-between">
+                <div className="flex items-center space-x-3 flex-1 min-w-0">
+                  <div className="w-8 h-8 bg-teal-600 rounded-full flex items-center justify-center text-white font-medium text-sm">
+                    {user.email?.charAt(0).toUpperCase()}
+                  </div>
+                  <div className="flex-1 min-w-0">
+                    <div className="text-sm font-medium text-gray-900 dark:text-white truncate">
+                      {user.email}
+                    </div>
+                    {isAdmin && (
+                      <div className="text-xs text-teal-600 dark:text-teal-400 font-medium">
+                        Administrator
+                      </div>
+                    )}
+                  </div>
+                </div>
+                <button
+                  onClick={handleLogout}
+                  className="ml-2 p-1 text-gray-400 hover:text-red-400 hover:bg-gray-800 rounded transition-colors"
+                  title="Logout"
+                >
+                  <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1" />
+                  </svg>
+                </button>
+              </div>
+            ) : (
+              <div className="flex justify-center">
+                <button
+                  onClick={handleLogout}
+                  className="w-8 h-8 bg-teal-600 rounded-full flex items-center justify-center text-white font-medium text-sm hover:bg-red-600 transition-colors"
+                  title="Logout"
+                >
+                  {user.email?.charAt(0).toUpperCase()}
+                </button>
+              </div>
+            )}
+          </div>
+        )}
+
         {/* Navigation Menu */}
         <nav className="py-4 flex-grow">
           <ul>
-            {/* Admin Dashboard */}
-            <li>
-              <button
-                onClick={() => {
-                  setActiveItem("admin");
-                  setShowAdminPage(true);
-                }}
-                className={`flex items-center w-full px-4 py-3 hover:bg-teal-600 ${
-                  activeItem === "admin" ? "bg-teal-700" : ""
-                }`}
-              >
-                <svg
-                  className="w-6 h-6 mr-2"
-                  viewBox="0 0 24 24"
-                  fill="none"
-                  xmlns="http://www.w3.org/2000/svg"
+            {/* Admin Dashboard - Only show to admin users */}
+            {isAdmin && (
+              <li>
+                <button
+                  onClick={() => {
+                    setActiveItem("admin");
+                    navigate("/admin");
+                  }}
+                  className={`flex items-center w-full px-4 py-3 hover:bg-teal-600 ${
+                    activeItem === "admin" ? "bg-teal-700" : ""
+                  }`}
                 >
-                  <path
-                    d="M3 12l9-9 9 9M5 12v7a2 2 0 002 2h10a2 2 0 002-2v-7"
-                    stroke="currentColor"
-                    strokeWidth="2"
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                  />
-                </svg>
-                {(isExpanded || isHovered) && <span>Admin Dashboard</span>}
-              </button>
-            </li>
+                  <svg
+                    className="w-6 h-6 mr-2"
+                    viewBox="0 0 24 24"
+                    fill="none"
+                    xmlns="http://www.w3.org/2000/svg"
+                  >
+                    <path
+                      d="M3 12l9-9 9 9M5 12v7a2 2 0 002 2h10a2 2 0 002-2v-7"
+                      stroke="currentColor"
+                      strokeWidth="2"
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                    />
+                  </svg>
+                  {(isExpanded || isHovered) && <span>Admin Dashboard</span>}
+                </button>
+              </li>
+            )}
 
-            {/* Management Submenu */}
-            <li>
-              <button
-                onClick={() => toggleSubmenu("management")}
-                className={`flex items-center justify-between w-full px-4 py-3 hover:bg-teal-600 ${
-                  openSubmenu === "management" ? "bg-teal-700" : ""
-                }`}
-              >
+            {/* Management Submenu - Only show to admin users */}
+            {isAdmin && (
+              <li>
+                <button
+                  onClick={() => toggleSubmenu("management")}
+                  className={`flex items-center justify-between w-full px-4 py-3 hover:bg-teal-600 ${
+                    openSubmenu === "management" ? "bg-teal-700" : ""
+                  }`}
+                >
                 <div className="flex items-center">
                   <svg
                     className="w-6 h-6 mr-2"
@@ -277,42 +332,46 @@ export function Sidebar({ closeAdmin }: AdminProps) {
                   </li>
                 </ul>
               )}
-            </li>
+              </li>
+            )}
 
-            {/* Login */}
-            <li>
-              <button
-                onClick={() => setLoginOpen((prev) => !prev)}
-                className={`flex items-center w-full px-4 py-3 hover:bg-teal-600 ${
-                  isLoginOpen ? "bg-teal-700" : ""
-                }`}
-              >
-                <svg
-                  className="w-6 h-6 mr-2"
-                  viewBox="0 0 24 24"
-                  fill="none"
-                  xmlns="http://www.w3.org/2000/svg"
-                >
-                  <path
-                    d="M15 3h4a2 2 0 012 2v14a2 2 0 01-2 2h-4M10 17l5-5-5-5M15 12H3"
-                    stroke="currentColor"
-                    strokeWidth="2"
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                  />
-                </svg>
-                {(isExpanded || isHovered) && <span>Login</span>}
-              </button>
-            </li>
+            {/* Authentication Section */}
+            {!user ? (
+              <>
+                {/* Login */}
+                <li>
+                  <button
+                    onClick={() => setLoginOpen((prev) => !prev)}
+                    className={`flex items-center w-full px-4 py-3 hover:bg-teal-600 ${
+                      isLoginOpen ? "bg-teal-700" : ""
+                    }`}
+                  >
+                    <svg
+                      className="w-6 h-6 mr-2"
+                      viewBox="0 0 24 24"
+                      fill="none"
+                      xmlns="http://www.w3.org/2000/svg"
+                    >
+                      <path
+                        d="M15 3h4a2 2 0 012 2v14a2 2 0 01-2 2h-4M10 17l5-5-5-5M15 12H3"
+                        stroke="currentColor"
+                        strokeWidth="2"
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                      />
+                    </svg>
+                    {(isExpanded || isHovered) && <span>Login</span>}
+                  </button>
+                </li>
 
-            {/* Register */}
-            <li>
-              <button
-                onClick={() => setRegisterOpen((prev) => !prev)}
-                className={`flex items-center w-full px-4 py-3 hover:bg-teal-600 ${
-                  isRegisterOpen ? "bg-teal-700" : ""
-                }`}
-              >
+                {/* Register */}
+                <li>
+                  <button
+                    onClick={() => setRegisterOpen((prev) => !prev)}
+                    className={`flex items-center w-full px-4 py-3 hover:bg-teal-600 ${
+                      isRegisterOpen ? "bg-teal-700" : ""
+                    }`}
+                  >
                 <svg
                   className="w-6 h-6 mr-2"
                   viewBox="0 0 24 24"
@@ -330,6 +389,31 @@ export function Sidebar({ closeAdmin }: AdminProps) {
                 {(isExpanded || isHovered) && <span>Register</span>}
               </button>
             </li>
+              </>
+            ) : (
+              /* Logout Option - Show when logged in */
+              <li>
+                <button
+                  onClick={handleLogout}
+                  className="flex items-center w-full px-4 py-3 hover:bg-red-600 text-red-400 hover:text-white"
+                >
+                  <svg
+                    className="w-6 h-6 mr-2"
+                    fill="none"
+                    stroke="currentColor"
+                    viewBox="0 0 24 24"
+                  >
+                    <path
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      strokeWidth={2}
+                      d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1"
+                    />
+                  </svg>
+                  {(isExpanded || isHovered) && <span>Logout</span>}
+                </button>
+              </li>
+            )}
           </ul>
         </nav>
       </div>
@@ -404,22 +488,6 @@ export function Sidebar({ closeAdmin }: AdminProps) {
         </div>
       )}
 
-      {/* Admin Page */}
-      {showAdminPage && (
-        <div
-          className="fixed bg-white dark:bg-gray-900 border-l border-gray-200 dark:border-gray-800 z-40 transition-all duration-300"
-          style={{
-            left: isExpanded || (isHovered && !isExpanded) ? "16rem" : "4rem",
-            top: "4rem", // Account for header height
-            right: 0,
-            height: "calc(100vh - 4rem)", // Full height minus header
-          }}
-        >
-          <div className="h-full overflow-auto">
-            <AdminPage closeAdmin={() => setShowAdminPage(false)} />
-          </div>
-        </div>
-      )}
     </>
   );
 }

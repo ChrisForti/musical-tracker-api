@@ -2,6 +2,7 @@ import React, { useState, useEffect, useMemo } from "react";
 import { useNavigate } from "react-router-dom";
 import { PageTemplate } from "~/components/common/PageTemplate";
 import { SearchFilter } from "~/components/layout/ui/SearchFilter";
+import { useAuth } from "~/hooks/useAuth";
 
 // Interface to match API response
 interface Performance {
@@ -22,6 +23,7 @@ export default function PerformancePage() {
   const [viewMode, setViewMode] = useState<"list" | "detail">("list");
   const [error, setError] = useState<string | null>(null);
   const navigate = useNavigate();
+  const { isAdmin } = useAuth();
 
   useEffect(() => {
     const fetchPerformances = async () => {
@@ -202,6 +204,14 @@ export default function PerformancePage() {
         label: "Add Performance",
         onClick: () => navigate("/performances/new"),
       }}
+      backButton={
+        isAdmin
+          ? {
+              label: "Back to Dashboard",
+              onClick: () => navigate("/admin"),
+            }
+          : undefined
+      }
     >
       {error && (
         <div className="bg-red-50 border border-red-200 text-red-700 p-4 rounded-md mb-4">

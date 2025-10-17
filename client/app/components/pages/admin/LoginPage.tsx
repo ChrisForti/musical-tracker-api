@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { useNavigate } from "react-router-dom";
 import { useToastHelpers } from "~/components/common/ToastProvider";
 
 interface LoginPageProps {
@@ -12,6 +13,7 @@ export function LoginPage({ onLoginSuccess }: LoginPageProps = {}) {
   const [forgotEmail, setForgotEmail] = useState("");
   const [isLoading, setIsLoading] = useState(false);
   const { success, error: showError } = useToastHelpers();
+  const navigate = useNavigate();
 
   function handleEmailChange(event: React.ChangeEvent<HTMLInputElement>) {
     setEmail(event.target.value);
@@ -51,8 +53,32 @@ export function LoginPage({ onLoginSuccess }: LoginPageProps = {}) {
         // Close the modal if callback provided
         onLoginSuccess?.();
 
-        // Refresh the page to update auth state
-        window.location.reload();
+        // Get user data to determine redirect destination
+        try {
+          const userResponse = await fetch("http://localhost:3000/v2/user", {
+            headers: {
+              "Authorization": `Bearer ${data.token}`,
+            },
+          });
+
+          if (userResponse.ok) {
+            const userData = await userResponse.json();
+            
+            // Redirect based on user role
+            if (userData.isAdmin) {
+              navigate("/admin");
+            } else {
+              navigate("/");
+            }
+          } else {
+            // Fallback to home page if user data fetch fails
+            navigate("/");
+          }
+        } catch (error) {
+          console.error("Failed to fetch user data:", error);
+          // Fallback to home page
+          navigate("/");
+        }
       } else {
         console.error("Login failed:", data);
         showError(
@@ -244,6 +270,15 @@ export function LoginPage({ onLoginSuccess }: LoginPageProps = {}) {
             "Sign in"
           )}
         </button>
+        
+        <div className="mt-6 text-center">
+          <p className="text-sm text-gray-600 dark:text-gray-400">
+            Don't have an account?{" "}
+            <a href="/register" className="font-medium text-teal-600 hover:text-teal-500">
+              Sign up here
+            </a>
+          </p>
+        </div>
       </form>
     </div>
   );

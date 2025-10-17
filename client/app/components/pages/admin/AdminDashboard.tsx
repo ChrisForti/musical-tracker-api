@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
+import { AdminGuard } from "~/components/common/AdminGuard";
 
 interface DashboardStats {
   actors: {
@@ -225,7 +226,8 @@ export function AdminDashboard() {
   ];
 
   return (
-    <div className="max-w-7xl mx-auto py-8 px-4 sm:px-6 lg:px-8">
+    <AdminGuard>
+      <div className="max-w-7xl mx-auto py-8 px-4 sm:px-6 lg:px-8">
       <div className="mb-8">
         <h1 className="text-3xl font-bold text-gray-900 dark:text-white">
           Admin Dashboard
@@ -385,6 +387,7 @@ export function AdminDashboard() {
           </div>
         </div>
       )}
-    </div>
+      </div>
+    </AdminGuard>
   );
 }
