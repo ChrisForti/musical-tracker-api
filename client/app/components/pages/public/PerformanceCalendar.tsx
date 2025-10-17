@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect } from "react";
 
 interface Performance {
   id: number;
@@ -33,13 +33,13 @@ export const PerformanceCalendar: React.FC = () => {
 
   const fetchPerformances = async () => {
     try {
-      const response = await fetch('/v2/performances');
+      const response = await fetch("/v2/performances");
       if (response.ok) {
         const data = await response.json();
         setPerformances(data);
       }
     } catch (error) {
-      console.error('Error fetching performances:', error);
+      console.error("Error fetching performances:", error);
     } finally {
       setLoading(false);
     }
@@ -48,45 +48,45 @@ export const PerformanceCalendar: React.FC = () => {
   const getCalendarDays = (): CalendarDay[] => {
     const year = currentDate.getFullYear();
     const month = currentDate.getMonth();
-    
+
     // First day of the month
     const firstDay = new Date(year, month, 1);
     // Last day of the month
     const lastDay = new Date(year, month + 1, 0);
-    
+
     // Start from the Sunday of the week containing the first day
     const startDate = new Date(firstDay);
     startDate.setDate(firstDay.getDate() - firstDay.getDay());
-    
+
     // End at the Saturday of the week containing the last day
     const endDate = new Date(lastDay);
     endDate.setDate(lastDay.getDate() + (6 - lastDay.getDay()));
-    
+
     const days: CalendarDay[] = [];
     const current = new Date(startDate);
-    
+
     while (current <= endDate) {
-      const dayPerformances = performances.filter(perf => {
+      const dayPerformances = performances.filter((perf) => {
         const perfDate = new Date(perf.date);
         return perfDate.toDateString() === current.toDateString();
       });
-      
+
       days.push({
         date: new Date(current),
         isCurrentMonth: current.getMonth() === month,
-        performances: dayPerformances
+        performances: dayPerformances,
       });
-      
+
       current.setDate(current.getDate() + 1);
     }
-    
+
     return days;
   };
 
-  const navigateMonth = (direction: 'prev' | 'next') => {
-    setCurrentDate(prev => {
+  const navigateMonth = (direction: "prev" | "next") => {
+    setCurrentDate((prev) => {
       const newDate = new Date(prev);
-      if (direction === 'prev') {
+      if (direction === "prev") {
         newDate.setMonth(newDate.getMonth() - 1);
       } else {
         newDate.setMonth(newDate.getMonth() + 1);
@@ -102,13 +102,23 @@ export const PerformanceCalendar: React.FC = () => {
 
   const calendarDays = getCalendarDays();
   const monthNames = [
-    'January', 'February', 'March', 'April', 'May', 'June',
-    'July', 'August', 'September', 'October', 'November', 'December'
+    "January",
+    "February",
+    "March",
+    "April",
+    "May",
+    "June",
+    "July",
+    "August",
+    "September",
+    "October",
+    "November",
+    "December",
   ];
-  const dayNames = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
+  const dayNames = ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"];
 
-  const selectedDayPerformances = selectedDay 
-    ? performances.filter(perf => {
+  const selectedDayPerformances = selectedDay
+    ? performances.filter((perf) => {
         const perfDate = new Date(perf.date);
         return perfDate.toDateString() === selectedDay.toDateString();
       })
@@ -119,7 +129,9 @@ export const PerformanceCalendar: React.FC = () => {
       <div className="min-h-screen bg-gray-50 dark:bg-gray-900">
         <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
           <div className="flex items-center justify-center h-64">
-            <div className="text-lg text-gray-600 dark:text-gray-400">Loading calendar...</div>
+            <div className="text-lg text-gray-600 dark:text-gray-400">
+              Loading calendar...
+            </div>
           </div>
         </div>
       </div>
@@ -146,7 +158,8 @@ export const PerformanceCalendar: React.FC = () => {
               {/* Calendar Header */}
               <div className="flex items-center justify-between p-6 border-b border-gray-200 dark:border-gray-700">
                 <h2 className="text-xl font-semibold text-gray-900 dark:text-white">
-                  {monthNames[currentDate.getMonth()]} {currentDate.getFullYear()}
+                  {monthNames[currentDate.getMonth()]}{" "}
+                  {currentDate.getFullYear()}
                 </h2>
                 <div className="flex items-center space-x-2">
                   <button
@@ -156,19 +169,39 @@ export const PerformanceCalendar: React.FC = () => {
                     Today
                   </button>
                   <button
-                    onClick={() => navigateMonth('prev')}
+                    onClick={() => navigateMonth("prev")}
                     className="p-2 hover:bg-gray-100 dark:hover:bg-gray-700 rounded"
                   >
-                    <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
+                    <svg
+                      className="w-5 h-5"
+                      fill="none"
+                      stroke="currentColor"
+                      viewBox="0 0 24 24"
+                    >
+                      <path
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                        strokeWidth={2}
+                        d="M15 19l-7-7 7-7"
+                      />
                     </svg>
                   </button>
                   <button
-                    onClick={() => navigateMonth('next')}
+                    onClick={() => navigateMonth("next")}
                     className="p-2 hover:bg-gray-100 dark:hover:bg-gray-700 rounded"
                   >
-                    <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
+                    <svg
+                      className="w-5 h-5"
+                      fill="none"
+                      stroke="currentColor"
+                      viewBox="0 0 24 24"
+                    >
+                      <path
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                        strokeWidth={2}
+                        d="M9 5l7 7-7 7"
+                      />
                     </svg>
                   </button>
                 </div>
@@ -178,8 +211,11 @@ export const PerformanceCalendar: React.FC = () => {
               <div className="p-6">
                 {/* Day Headers */}
                 <div className="grid grid-cols-7 gap-1 mb-2">
-                  {dayNames.map(day => (
-                    <div key={day} className="p-2 text-center text-sm font-medium text-gray-500 dark:text-gray-400">
+                  {dayNames.map((day) => (
+                    <div
+                      key={day}
+                      className="p-2 text-center text-sm font-medium text-gray-500 dark:text-gray-400"
+                    >
                       {day}
                     </div>
                   ))}
@@ -188,8 +224,11 @@ export const PerformanceCalendar: React.FC = () => {
                 {/* Calendar Days */}
                 <div className="grid grid-cols-7 gap-1">
                   {calendarDays.map((day, index) => {
-                    const isToday = day.date.toDateString() === new Date().toDateString();
-                    const isSelected = selectedDay && day.date.toDateString() === selectedDay.toDateString();
+                    const isToday =
+                      day.date.toDateString() === new Date().toDateString();
+                    const isSelected =
+                      selectedDay &&
+                      day.date.toDateString() === selectedDay.toDateString();
                     const hasPerformances = day.performances.length > 0;
 
                     return (
@@ -198,26 +237,31 @@ export const PerformanceCalendar: React.FC = () => {
                         onClick={() => setSelectedDay(day.date)}
                         className={`
                           p-2 min-h-[80px] text-left border border-gray-200 dark:border-gray-700 hover:bg-gray-50 dark:hover:bg-gray-700
-                          ${!day.isCurrentMonth ? 'text-gray-400 dark:text-gray-600' : 'text-gray-900 dark:text-white'}
-                          ${isToday ? 'bg-blue-50 dark:bg-blue-900 border-blue-200 dark:border-blue-700' : ''}
-                          ${isSelected ? 'bg-blue-100 dark:bg-blue-800 border-blue-300 dark:border-blue-600' : ''}
+                          ${!day.isCurrentMonth ? "text-gray-400 dark:text-gray-600" : "text-gray-900 dark:text-white"}
+                          ${isToday ? "bg-blue-50 dark:bg-blue-900 border-blue-200 dark:border-blue-700" : ""}
+                          ${isSelected ? "bg-blue-100 dark:bg-blue-800 border-blue-300 dark:border-blue-600" : ""}
                         `}
                       >
                         <div className="flex justify-between items-start mb-1">
-                          <span className={`text-sm ${isToday ? 'font-bold' : ''}`}>
+                          <span
+                            className={`text-sm ${isToday ? "font-bold" : ""}`}
+                          >
                             {day.date.getDate()}
                           </span>
                           {hasPerformances && (
                             <span className="w-2 h-2 bg-green-500 rounded-full"></span>
                           )}
                         </div>
-                        
+
                         {day.performances.slice(0, 2).map((perf, perfIndex) => (
-                          <div key={perfIndex} className="text-xs text-blue-600 dark:text-blue-400 truncate mb-1">
+                          <div
+                            key={perfIndex}
+                            className="text-xs text-blue-600 dark:text-blue-400 truncate mb-1"
+                          >
                             {perf.musical.title}
                           </div>
                         ))}
-                        
+
                         {day.performances.length > 2 && (
                           <div className="text-xs text-gray-500 dark:text-gray-400">
                             +{day.performances.length - 2} more
@@ -235,20 +279,22 @@ export const PerformanceCalendar: React.FC = () => {
           <div className="lg:col-span-1">
             <div className="bg-white dark:bg-gray-800 rounded-lg shadow-sm p-6 sticky top-8">
               <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-4">
-                {selectedDay 
-                  ? `Performances on ${selectedDay.toLocaleDateString('en-US', { 
-                      weekday: 'long',
-                      month: 'long', 
-                      day: 'numeric'
+                {selectedDay
+                  ? `Performances on ${selectedDay.toLocaleDateString("en-US", {
+                      weekday: "long",
+                      month: "long",
+                      day: "numeric",
                     })}`
-                  : 'Select a date to view performances'
-                }
+                  : "Select a date to view performances"}
               </h3>
 
               {selectedDayPerformances.length > 0 ? (
                 <div className="space-y-4">
-                  {selectedDayPerformances.map(perf => (
-                    <div key={perf.id} className="border border-gray-200 dark:border-gray-700 rounded-lg p-4">
+                  {selectedDayPerformances.map((perf) => (
+                    <div
+                      key={perf.id}
+                      className="border border-gray-200 dark:border-gray-700 rounded-lg p-4"
+                    >
                       <h4 className="font-medium text-gray-900 dark:text-white mb-1">
                         {perf.musical.title}
                       </h4>
@@ -273,15 +319,21 @@ export const PerformanceCalendar: React.FC = () => {
 
               {/* Legend */}
               <div className="mt-6 pt-4 border-t border-gray-200 dark:border-gray-700">
-                <h4 className="text-sm font-medium text-gray-900 dark:text-white mb-2">Legend</h4>
+                <h4 className="text-sm font-medium text-gray-900 dark:text-white mb-2">
+                  Legend
+                </h4>
                 <div className="space-y-1 text-sm">
                   <div className="flex items-center">
                     <span className="w-3 h-3 bg-green-500 rounded-full mr-2"></span>
-                    <span className="text-gray-600 dark:text-gray-400">Has performances</span>
+                    <span className="text-gray-600 dark:text-gray-400">
+                      Has performances
+                    </span>
                   </div>
                   <div className="flex items-center">
                     <span className="w-3 h-3 bg-blue-100 dark:bg-blue-900 border border-blue-200 dark:border-blue-700 rounded mr-2"></span>
-                    <span className="text-gray-600 dark:text-gray-400">Today</span>
+                    <span className="text-gray-600 dark:text-gray-400">
+                      Today
+                    </span>
                   </div>
                 </div>
               </div>

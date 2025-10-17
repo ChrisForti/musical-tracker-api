@@ -1,7 +1,7 @@
-import React, { useState, useEffect } from 'react';
-import { Link, useNavigate } from 'react-router-dom';
-import { PageTemplate } from '../../common/PageTemplate';
-import { useAuth } from '~/hooks/useAuth';
+import React, { useState, useEffect } from "react";
+import { Link, useNavigate } from "react-router-dom";
+import { PageTemplate } from "../../common/PageTemplate";
+import { useAuth } from "~/hooks/useAuth";
 
 interface Role {
   id: string;
@@ -18,7 +18,7 @@ interface Musical {
 export function RolePage() {
   const [roles, setRoles] = useState<Role[]>([]);
   const [musicals, setMusicals] = useState<Musical[]>([]);
-  const [selectedMusicalId, setSelectedMusicalId] = useState<string>('');
+  const [selectedMusicalId, setSelectedMusicalId] = useState<string>("");
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const navigate = useNavigate();
@@ -27,26 +27,26 @@ export function RolePage() {
   const fetchRoles = async (musicalId?: string) => {
     try {
       setLoading(true);
-      const token = localStorage.getItem('authToken');
-      const url = musicalId 
-        ? `http://localhost:3000/v2/role?musicalId=${musicalId}` 
-        : 'http://localhost:3000/v2/role';
-      
+      const token = localStorage.getItem("authToken");
+      const url = musicalId
+        ? `http://localhost:3000/v2/role?musicalId=${musicalId}`
+        : "http://localhost:3000/v2/role";
+
       const response = await fetch(url, {
         headers: {
-          'Authorization': `Bearer ${token}`,
-          'Content-Type': 'application/json',
+          Authorization: `Bearer ${token}`,
+          "Content-Type": "application/json",
         },
       });
 
       if (!response.ok) {
-        throw new Error('Failed to fetch roles');
+        throw new Error("Failed to fetch roles");
       }
 
       const data = await response.json();
       setRoles(data);
     } catch (err) {
-      setError(err instanceof Error ? err.message : 'An error occurred');
+      setError(err instanceof Error ? err.message : "An error occurred");
     } finally {
       setLoading(false);
     }
@@ -54,22 +54,22 @@ export function RolePage() {
 
   const fetchMusicals = async () => {
     try {
-      const token = localStorage.getItem('authToken');
-      const response = await fetch('http://localhost:3000/v2/musical', {
+      const token = localStorage.getItem("authToken");
+      const response = await fetch("http://localhost:3000/v2/musical", {
         headers: {
-          'Authorization': `Bearer ${token}`,
-          'Content-Type': 'application/json',
+          Authorization: `Bearer ${token}`,
+          "Content-Type": "application/json",
         },
       });
 
       if (!response.ok) {
-        throw new Error('Failed to fetch musicals');
+        throw new Error("Failed to fetch musicals");
       }
 
       const data = await response.json();
       setMusicals(data);
     } catch (err) {
-      console.error('Error fetching musicals:', err);
+      console.error("Error fetching musicals:", err);
     }
   };
 
@@ -79,47 +79,52 @@ export function RolePage() {
     }
 
     try {
-      const token = localStorage.getItem('authToken');
+      const token = localStorage.getItem("authToken");
       const response = await fetch(`http://localhost:3000/v2/role/${id}`, {
-        method: 'DELETE',
+        method: "DELETE",
         headers: {
-          'Authorization': `Bearer ${token}`,
-          'Content-Type': 'application/json',
+          Authorization: `Bearer ${token}`,
+          "Content-Type": "application/json",
         },
       });
 
       if (!response.ok) {
-        throw new Error('Failed to delete role');
+        throw new Error("Failed to delete role");
       }
 
       // Refresh the roles list
       await fetchRoles(selectedMusicalId);
     } catch (err) {
-      alert(err instanceof Error ? err.message : 'Failed to delete role');
+      alert(err instanceof Error ? err.message : "Failed to delete role");
     }
   };
 
   const handleVerify = async (id: string) => {
     try {
-      const token = localStorage.getItem('token');
-      const response = await fetch(`http://localhost:3000/v2/role/${id}/verify`, {
-        method: 'POST',
-        headers: {
-          'Authorization': `Bearer ${token}`,
-          'Content-Type': 'application/json',
-        },
-      });
+      const token = localStorage.getItem("token");
+      const response = await fetch(
+        `http://localhost:3000/v2/role/${id}/verify`,
+        {
+          method: "POST",
+          headers: {
+            Authorization: `Bearer ${token}`,
+            "Content-Type": "application/json",
+          },
+        }
+      );
 
       if (!response.ok) {
-        throw new Error('Failed to verify role');
+        throw new Error("Failed to verify role");
       }
 
       // Update the role in the list
-      setRoles(prev => prev.map(role => 
-        role.id === id ? { ...role, verified: true } : role
-      ));
+      setRoles((prev) =>
+        prev.map((role) =>
+          role.id === id ? { ...role, verified: true } : role
+        )
+      );
     } catch (err) {
-      alert(err instanceof Error ? err.message : 'Failed to verify role');
+      alert(err instanceof Error ? err.message : "Failed to verify role");
     }
   };
 
@@ -130,16 +135,16 @@ export function RolePage() {
   };
 
   const getMusicalName = (musicalId: string) => {
-    const musical = musicals.find(m => m.id === musicalId);
-    return musical?.name || 'Unknown Musical';
+    const musical = musicals.find((m) => m.id === musicalId);
+    return musical?.name || "Unknown Musical";
   };
 
   const isAdmin = () => {
-    const user = localStorage.getItem('user');
+    const user = localStorage.getItem("user");
     if (!user) return false;
     try {
       const userData = JSON.parse(user);
-      return userData.role === 'admin';
+      return userData.role === "admin";
     } catch {
       return false;
     }
@@ -169,7 +174,7 @@ export function RolePage() {
   }
 
   return (
-    <PageTemplate 
+    <PageTemplate
       title="Roles"
       backButton={
         isUserAdmin
@@ -187,7 +192,7 @@ export function RolePage() {
             <h1 className="text-2xl font-bold text-gray-900 dark:text-white">
               Character Roles
             </h1>
-            
+
             {/* Musical Filter */}
             <select
               value={selectedMusicalId}
@@ -202,7 +207,7 @@ export function RolePage() {
               ))}
             </select>
           </div>
-          
+
           <Link
             to="/roles/new"
             className="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md shadow-sm text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 transition-colors duration-200"
@@ -213,7 +218,7 @@ export function RolePage() {
 
         {/* Role Count */}
         <div className="text-sm text-gray-600 dark:text-gray-400">
-          {roles.length} role{roles.length !== 1 ? 's' : ''} found
+          {roles.length} role{roles.length !== 1 ? "s" : ""} found
           {selectedMusicalId && (
             <span> for "{getMusicalName(selectedMusicalId)}"</span>
           )}
@@ -223,7 +228,9 @@ export function RolePage() {
         {roles.length === 0 ? (
           <div className="text-center py-12">
             <div className="text-gray-500 dark:text-gray-400 text-lg mb-4">
-              {selectedMusicalId ? 'No roles found for this musical' : 'No roles found'}
+              {selectedMusicalId
+                ? "No roles found for this musical"
+                : "No roles found"}
             </div>
             <Link
               to="/roles/new"
@@ -254,7 +261,10 @@ export function RolePage() {
                 </thead>
                 <tbody className="bg-white dark:bg-gray-800 divide-y divide-gray-200 dark:divide-gray-700">
                   {roles.map((role) => (
-                    <tr key={role.id} className="hover:bg-gray-50 dark:hover:bg-gray-700">
+                    <tr
+                      key={role.id}
+                      className="hover:bg-gray-50 dark:hover:bg-gray-700"
+                    >
                       <td className="px-6 py-4 whitespace-nowrap">
                         <div className="text-sm font-medium text-gray-900 dark:text-white">
                           {role.name}
@@ -269,11 +279,11 @@ export function RolePage() {
                         <span
                           className={`inline-flex px-2 py-1 text-xs font-semibold rounded-full ${
                             role.verified
-                              ? 'bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-200'
-                              : 'bg-yellow-100 text-yellow-800 dark:bg-yellow-900 dark:text-yellow-200'
+                              ? "bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-200"
+                              : "bg-yellow-100 text-yellow-800 dark:bg-yellow-900 dark:text-yellow-200"
                           }`}
                         >
-                          {role.verified ? 'Verified' : 'Pending'}
+                          {role.verified ? "Verified" : "Pending"}
                         </span>
                       </td>
                       <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium space-x-2">

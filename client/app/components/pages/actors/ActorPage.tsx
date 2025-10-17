@@ -82,10 +82,10 @@ export default function ActorPage() {
         if (response.ok) {
           // Update local state
           setActors(actors.filter((actor) => actor.id !== id));
-          addToast({ 
-            type: 'success', 
-            title: 'Success', 
-            message: 'Actor deleted successfully!' 
+          addToast({
+            type: "success",
+            title: "Success",
+            message: "Actor deleted successfully!",
           });
         } else {
           const errorData = await response.json();
@@ -93,10 +93,13 @@ export default function ActorPage() {
         }
       } catch (error) {
         console.error("Failed to delete actor:", error);
-        addToast({ 
-          type: 'error', 
-          title: 'Error', 
-          message: error instanceof Error ? error.message : 'Failed to delete actor. Please try again.' 
+        addToast({
+          type: "error",
+          title: "Error",
+          message:
+            error instanceof Error
+              ? error.message
+              : "Failed to delete actor. Please try again.",
         });
       }
     }

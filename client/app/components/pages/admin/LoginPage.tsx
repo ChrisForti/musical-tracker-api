@@ -57,13 +57,13 @@ export function LoginPage({ onLoginSuccess }: LoginPageProps = {}) {
         try {
           const userResponse = await fetch("http://localhost:3000/v2/user", {
             headers: {
-              "Authorization": `Bearer ${data.token}`,
+              Authorization: `Bearer ${data.token}`,
             },
           });
 
           if (userResponse.ok) {
             const userData = await userResponse.json();
-            
+
             // Redirect based on user role
             if (userData.isAdmin) {
               navigate("/admin");
@@ -270,11 +270,14 @@ export function LoginPage({ onLoginSuccess }: LoginPageProps = {}) {
             "Sign in"
           )}
         </button>
-        
+
         <div className="mt-6 text-center">
           <p className="text-sm text-gray-600 dark:text-gray-400">
             Don't have an account?{" "}
-            <a href="/register" className="font-medium text-teal-600 hover:text-teal-500">
+            <a
+              href="/register"
+              className="font-medium text-teal-600 hover:text-teal-500"
+            >
               Sign up here
             </a>
           </p>

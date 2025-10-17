@@ -5,7 +5,9 @@ interface RegistrationPageProps {
   onRegistrationSuccess?: () => void;
 }
 
-export function RegistrationPage({ onRegistrationSuccess }: RegistrationPageProps = {}) {
+export function RegistrationPage({
+  onRegistrationSuccess,
+}: RegistrationPageProps = {}) {
   const [firstName, setFirstName] = useState("");
   const [lastName, setLastName] = useState("");
   const [email, setEmail] = useState("");
@@ -30,13 +32,15 @@ export function RegistrationPage({ onRegistrationSuccess }: RegistrationPageProp
     setPassword(event.target.value);
   }
 
-  function handleConfirmPasswordChange(event: React.ChangeEvent<HTMLInputElement>) {
+  function handleConfirmPasswordChange(
+    event: React.ChangeEvent<HTMLInputElement>
+  ) {
     setConfirmPassword(event.target.value);
   }
 
   async function handleSubmit(event: React.FormEvent) {
     event.preventDefault();
-    
+
     // Validation
     if (password !== confirmPassword) {
       alert("Passwords do not match");
@@ -84,11 +88,11 @@ export function RegistrationPage({ onRegistrationSuccess }: RegistrationPageProp
         alert(
           "Registration failed: " +
             (data.errors?.firstName ||
-             data.errors?.lastName ||
-             data.errors?.email ||
-             data.errors?.password ||
-             data.error ||
-             "Unknown error")
+              data.errors?.lastName ||
+              data.errors?.email ||
+              data.errors?.password ||
+              data.error ||
+              "Unknown error")
         );
       }
     } catch (error) {
@@ -134,7 +138,7 @@ export function RegistrationPage({ onRegistrationSuccess }: RegistrationPageProp
             />
           </div>
         </div>
-        
+
         <div className="mb-4">
           <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">
             Email
@@ -149,7 +153,7 @@ export function RegistrationPage({ onRegistrationSuccess }: RegistrationPageProp
             disabled={isLoading}
           />
         </div>
-        
+
         <div className="mb-4">
           <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">
             Password
@@ -168,7 +172,7 @@ export function RegistrationPage({ onRegistrationSuccess }: RegistrationPageProp
             Must be at least 8 characters long
           </p>
         </div>
-        
+
         <div className="mb-6">
           <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">
             Confirm Password
@@ -184,7 +188,7 @@ export function RegistrationPage({ onRegistrationSuccess }: RegistrationPageProp
             disabled={isLoading}
           />
         </div>
-        
+
         <button
           type="submit"
           disabled={isLoading}
@@ -192,11 +196,14 @@ export function RegistrationPage({ onRegistrationSuccess }: RegistrationPageProp
         >
           {isLoading ? "Creating Account..." : "Create Account"}
         </button>
-        
+
         <div className="mt-6 text-center">
           <p className="text-sm text-gray-600 dark:text-gray-400">
             Already have an account?{" "}
-            <a href="/login" className="font-medium text-teal-600 hover:text-teal-500">
+            <a
+              href="/login"
+              className="font-medium text-teal-600 hover:text-teal-500"
+            >
               Sign in here
             </a>
           </p>

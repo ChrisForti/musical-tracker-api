@@ -1,5 +1,5 @@
-import React, { useState, useEffect } from 'react';
-import { Link } from 'react-router-dom';
+import React, { useState, useEffect } from "react";
+import { Link } from "react-router-dom";
 
 interface Musical {
   id: number;
@@ -25,9 +25,11 @@ interface Performance {
 export const PublicMusicalDirectory: React.FC = () => {
   const [musicals, setMusicals] = useState<Musical[]>([]);
   const [loading, setLoading] = useState(true);
-  const [searchTerm, setSearchTerm] = useState('');
-  const [selectedGenre, setSelectedGenre] = useState('');
-  const [performances, setPerformances] = useState<{ [key: number]: Performance[] }>({});
+  const [searchTerm, setSearchTerm] = useState("");
+  const [selectedGenre, setSelectedGenre] = useState("");
+  const [performances, setPerformances] = useState<{
+    [key: number]: Performance[];
+  }>({});
 
   useEffect(() => {
     fetchMusicals();
@@ -36,13 +38,13 @@ export const PublicMusicalDirectory: React.FC = () => {
 
   const fetchMusicals = async () => {
     try {
-      const response = await fetch('/v2/musicals?verified=true');
+      const response = await fetch("/v2/musicals?verified=true");
       if (response.ok) {
         const data = await response.json();
         setMusicals(data);
       }
     } catch (error) {
-      console.error('Error fetching musicals:', error);
+      console.error("Error fetching musicals:", error);
     } finally {
       setLoading(false);
     }
@@ -50,36 +52,42 @@ export const PublicMusicalDirectory: React.FC = () => {
 
   const fetchPerformances = async () => {
     try {
-      const response = await fetch('/v2/performances');
+      const response = await fetch("/v2/performances");
       if (response.ok) {
         const data = await response.json();
-        const performancesByMusical = data.reduce((acc: { [key: number]: Performance[] }, perf: any) => {
-          if (!acc[perf.musicalId]) {
-            acc[perf.musicalId] = [];
-          }
-          acc[perf.musicalId].push(perf);
-          return acc;
-        }, {});
+        const performancesByMusical = data.reduce(
+          (acc: { [key: number]: Performance[] }, perf: any) => {
+            if (!acc[perf.musicalId]) {
+              acc[perf.musicalId] = [];
+            }
+            acc[perf.musicalId].push(perf);
+            return acc;
+          },
+          {}
+        );
         setPerformances(performancesByMusical);
       }
     } catch (error) {
-      console.error('Error fetching performances:', error);
+      console.error("Error fetching performances:", error);
     }
   };
 
-  const filteredMusicals = musicals.filter(musical => {
-    const matchesSearch = musical.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
-                         musical.composer.toLowerCase().includes(searchTerm.toLowerCase()) ||
-                         musical.lyricist.toLowerCase().includes(searchTerm.toLowerCase());
+  const filteredMusicals = musicals.filter((musical) => {
+    const matchesSearch =
+      musical.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      musical.composer.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      musical.lyricist.toLowerCase().includes(searchTerm.toLowerCase());
     const matchesGenre = !selectedGenre || musical.genre === selectedGenre;
     return matchesSearch && matchesGenre;
   });
 
-  const uniqueGenres = [...new Set(musicals.map(m => m.genre))];
+  const uniqueGenres = [...new Set(musicals.map((m) => m.genre))];
 
   const getUpcomingPerformances = (musicalId: number) => {
     const musicalPerformances = performances[musicalId] || [];
-    const upcoming = musicalPerformances.filter(perf => new Date(perf.date) > new Date());
+    const upcoming = musicalPerformances.filter(
+      (perf) => new Date(perf.date) > new Date()
+    );
     return upcoming.slice(0, 3); // Show only next 3 performances
   };
 
@@ -88,7 +96,9 @@ export const PublicMusicalDirectory: React.FC = () => {
       <div className="min-h-screen bg-gray-50 dark:bg-gray-900">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
           <div className="flex items-center justify-center h-64">
-            <div className="text-lg text-gray-600 dark:text-gray-400">Loading musicals...</div>
+            <div className="text-lg text-gray-600 dark:text-gray-400">
+              Loading musicals...
+            </div>
           </div>
         </div>
       </div>
@@ -127,8 +137,10 @@ export const PublicMusicalDirectory: React.FC = () => {
                 className="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent dark:bg-gray-700 dark:text-white"
               >
                 <option value="">All Genres</option>
-                {uniqueGenres.map(genre => (
-                  <option key={genre} value={genre}>{genre}</option>
+                {uniqueGenres.map((genre) => (
+                  <option key={genre} value={genre}>
+                    {genre}
+                  </option>
                 ))}
               </select>
             </div>
@@ -146,7 +158,7 @@ export const PublicMusicalDirectory: React.FC = () => {
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
           {filteredMusicals.map((musical) => {
             const upcomingPerformances = getUpcomingPerformances(musical.id);
-            
+
             return (
               <div
                 key={musical.id}
@@ -179,7 +191,7 @@ export const PublicMusicalDirectory: React.FC = () => {
                       {musical.genre}
                     </span>
                   </div>
-                  
+
                   <div className="text-sm text-gray-600 dark:text-gray-400 mb-3">
                     <div>Music: {musical.composer}</div>
                     <div>Lyrics: {musical.lyricist}</div>
@@ -197,8 +209,12 @@ export const PublicMusicalDirectory: React.FC = () => {
                       </h4>
                       <div className="space-y-1">
                         {upcomingPerformances.map((perf) => (
-                          <div key={perf.id} className="text-xs text-gray-600 dark:text-gray-400">
-                            {new Date(perf.date).toLocaleDateString()} - {perf.theater.name}, {perf.theater.city}
+                          <div
+                            key={perf.id}
+                            className="text-xs text-gray-600 dark:text-gray-400"
+                          >
+                            {new Date(perf.date).toLocaleDateString()} -{" "}
+                            {perf.theater.name}, {perf.theater.city}
                           </div>
                         ))}
                       </div>
@@ -210,8 +226,18 @@ export const PublicMusicalDirectory: React.FC = () => {
                     className="inline-flex items-center text-blue-600 dark:text-blue-400 hover:text-blue-800 dark:hover:text-blue-300 text-sm font-medium"
                   >
                     View Details
-                    <svg className="ml-1 w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
+                    <svg
+                      className="ml-1 w-4 h-4"
+                      fill="none"
+                      stroke="currentColor"
+                      viewBox="0 0 24 24"
+                    >
+                      <path
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                        strokeWidth={2}
+                        d="M9 5l7 7-7 7"
+                      />
                     </svg>
                   </Link>
                 </div>

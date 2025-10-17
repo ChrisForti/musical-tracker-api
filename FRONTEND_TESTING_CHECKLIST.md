@@ -3,7 +3,9 @@
 ## 🔐 Admin Security & Authentication Testing
 
 ### Admin Dashboard Access
+
 - [ ] **Admin User Login**
+
   - Navigate to login page
   - Login with admin credentials (admin@test.com / admin123)
   - Verify admin dashboard is displayed on homepage
@@ -16,7 +18,9 @@
   - Try to access `/admin/*` routes directly - should show "Access Denied"
 
 ### Sidebar Security
+
 - [ ] **Admin Sidebar Features**
+
   - Login as admin - verify "Admin Dashboard" link is visible
   - Check "Management" submenu appears with "Pending Approvals" link
   - Verify user info shows admin status
@@ -28,13 +32,16 @@
 ## 📋 Form Validation & Enhancement Testing
 
 ### Form Validation System
+
 - [ ] **Actor Form Validation**
+
   - Navigate to "Add Actor" (`/actors/new`)
   - Leave name field empty and submit - should show validation error
   - Enter 1 character name - should show "minimum 2 characters" error
   - Enter valid data - should submit successfully with toast notification
 
 - [ ] **Musical Form Validation**
+
   - Go to "Add Musical" (`/musicals/new`)
   - Test required fields (title, composer, lyricist, genre)
   - Test field length limits (synopsis max 2000 characters)
@@ -46,6 +53,7 @@
   - Test time format validation (HH:MM format)
 
 ### Rich Text Editor
+
 - [ ] **Rich Text Features**
   - Find forms with description/bio fields
   - Test formatting toolbar (Bold, Italic, Underline, Lists)
@@ -53,6 +61,7 @@
   - Test placeholder text appears when empty
 
 ### Auto-Save Draft Functionality
+
 - [ ] **Draft Persistence**
   - Start filling out a form (actor, musical, etc.)
   - Navigate away from the page
@@ -60,6 +69,7 @@
   - Complete and submit form - draft should be cleared
 
 ### Loading States & Toast Notifications
+
 - [ ] **Form Submission States**
   - Submit any form - verify loading spinner appears
   - Check buttons are disabled during submission
@@ -69,7 +79,9 @@
 ## 🌐 Public-Facing Features Testing
 
 ### Public Musical Directory
+
 - [ ] **Browse Musicals**
+
   - Navigate to `/public/musicals`
   - Verify musicals are displayed without requiring login
   - Test search functionality (title, composer, lyricist)
@@ -83,6 +95,7 @@
   - Test "Back to Musical Directory" link
 
 ### Performance Calendar
+
 - [ ] **Calendar View**
   - Navigate to `/public/calendar`
   - Verify calendar displays current month
@@ -93,7 +106,9 @@
 ## 🎨 User Interface & Experience Testing
 
 ### Navigation & Back Buttons
+
 - [ ] **Admin Navigation**
+
   - Login as admin and visit individual pages (actors, musicals, theaters)
   - Verify "Back to Dashboard" buttons appear on these pages
   - Test navigation back to admin dashboard
@@ -104,12 +119,14 @@
   - Test public page navigation flows
 
 ### Header Padding & Layout
+
 - [ ] **Layout Issues**
   - Visit all main pages (HomePage, ActorPage, MusicalPage, etc.)
   - Verify content is not cut off under the header
   - Check padding is consistent across pages
 
 ### Toast Notification System
+
 - [ ] **CRUD Operation Notifications**
   - Create, edit, and delete actors/musicals/theaters
   - Verify appropriate success/error toasts appear
@@ -119,6 +136,7 @@
 ## 📊 Admin Dashboard Features Testing
 
 ### Statistics Display
+
 - [ ] **Dashboard Stats**
   - Login as admin and view dashboard
   - Verify all stat cards show correct numbers
@@ -126,6 +144,7 @@
   - Test "Quick Actions" buttons functionality
 
 ### Pending Approvals System
+
 - [ ] **Approval Workflow**
   - Navigate to pending approvals page (`/admin/pending`)
   - Test filtering options (All, Actors, Musicals, etc.)
@@ -136,6 +155,7 @@
 ## 🔍 Search & Filter Testing
 
 ### Global Search
+
 - [ ] **Sidebar Search**
   - Use search box in sidebar
   - Search for actors, musicals, performances
@@ -143,6 +163,7 @@
   - Test search persistence when navigating
 
 ### Page-Specific Filters
+
 - [ ] **Advanced Filtering**
   - Test approval status filters on various pages
   - Check composer/genre filters on musical pages
@@ -151,6 +172,7 @@
 ## 📱 Responsive Design Testing
 
 ### Mobile & Desktop
+
 - [ ] **Responsive Layout**
   - Test all pages on mobile screen sizes
   - Verify sidebar collapses appropriately
@@ -158,6 +180,7 @@
   - Test calendar responsive behavior
 
 ### Dark/Light Theme
+
 - [ ] **Theme Toggle**
   - Test theme switcher in sidebar
   - Verify theme persists across page reloads
@@ -166,12 +189,14 @@
 ## 🚫 Error Handling Testing
 
 ### Authentication Errors
+
 - [ ] **Login Issues**
   - Test invalid credentials
   - Test network connection issues during login
   - Verify appropriate error messages display
 
 ### API Error Handling
+
 - [ ] **Network Issues**
   - Disable network and test form submissions
   - Test API timeout scenarios
@@ -180,6 +205,7 @@
 ## 🎯 End-to-End User Flows
 
 ### Admin Workflow
+
 - [ ] **Complete Admin Session**
   1. Login as admin
   2. View dashboard statistics
@@ -191,6 +217,7 @@
   8. Navigate using back buttons
 
 ### Public User Workflow
+
 - [ ] **Public User Experience**
   1. Browse musical directory without login
   2. Search and filter musicals
@@ -204,17 +231,20 @@
 ## 📝 Testing Notes
 
 ### Test Environment Setup
+
 1. **Start Backend**: Run `npm run dev` in root directory
 2. **Start Frontend**: Run `npm run dev` in client directory
 3. **Database**: Ensure PostgreSQL is running
 4. **Admin User**: Use admin@test.com / admin123 for admin testing
 
 ### Browser Testing
+
 - Test in Chrome, Firefox, Safari
 - Test responsive design at various screen sizes
 - Check developer console for any JavaScript errors
 
 ### Performance Checks
+
 - Verify page load times are reasonable
 - Check for any memory leaks with form auto-save
 - Ensure smooth navigation between pages

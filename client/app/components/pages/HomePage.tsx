@@ -107,7 +107,8 @@ export default function HomePage({
                       📚 Musical Directory
                     </h3>
                     <p className="text-gray-600 dark:text-gray-400">
-                      Explore our collection of musicals with search and filtering capabilities.
+                      Explore our collection of musicals with search and
+                      filtering capabilities.
                     </p>
                   </a>
 

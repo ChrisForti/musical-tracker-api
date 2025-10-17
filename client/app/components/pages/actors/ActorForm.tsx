@@ -28,7 +28,9 @@ export default function ActorForm({ mode, actorId }: ActorFormProps) {
   const [submitting, setSubmitting] = useState(false);
   const navigate = useNavigate();
   const params = useParams();
-  const { errors, validate, validateSingle, clearError } = useValidation(actorValidationSchema);
+  const { errors, validate, validateSingle, clearError } = useValidation(
+    actorValidationSchema
+  );
   const { addToast } = useToast();
 
   // If actorId is not provided directly, try to get it from URL params
@@ -63,11 +65,18 @@ export default function ActorForm({ mode, actorId }: ActorFormProps) {
   }, [mode, id]);
 
   const handleInputChange = (
-    e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement> | { target: { name: string; value: string } }
+    e:
+      | React.ChangeEvent<
+          HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement
+        >
+      | { target: { name: string; value: string } }
   ) => {
     const { name, value } = e.target;
-    const type = 'type' in e.target ? e.target.type : '';
-    const newValue = type === "checkbox" && 'checked' in e.target ? (e.target as HTMLInputElement).checked : value;
+    const type = "type" in e.target ? e.target.type : "";
+    const newValue =
+      type === "checkbox" && "checked" in e.target
+        ? (e.target as HTMLInputElement).checked
+        : value;
 
     setFormData((prev) => ({
       ...prev,
@@ -80,9 +89,19 @@ export default function ActorForm({ mode, actorId }: ActorFormProps) {
     }
   };
 
-  const handleBlur = (e: React.FocusEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement | HTMLDivElement>) => {
-    const target = e.target as HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement;
-    if ('name' in target && 'value' in target) {
+  const handleBlur = (
+    e: React.FocusEvent<
+      | HTMLInputElement
+      | HTMLTextAreaElement
+      | HTMLSelectElement
+      | HTMLDivElement
+    >
+  ) => {
+    const target = e.target as
+      | HTMLInputElement
+      | HTMLTextAreaElement
+      | HTMLSelectElement;
+    if ("name" in target && "value" in target) {
       validateSingle(target.name, target.value);
     }
   };
@@ -92,10 +111,10 @@ export default function ActorForm({ mode, actorId }: ActorFormProps) {
 
     // Validate form before submission
     if (!validate(formData)) {
-      addToast({ 
-        type: 'error', 
-        title: 'Validation Error', 
-        message: 'Please fix the errors in the form before submitting.' 
+      addToast({
+        type: "error",
+        title: "Validation Error",
+        message: "Please fix the errors in the form before submitting.",
       });
       return;
     }
@@ -116,10 +135,10 @@ export default function ActorForm({ mode, actorId }: ActorFormProps) {
         });
 
         if (response.ok) {
-          addToast({ 
-            type: 'success', 
-            title: 'Success', 
-            message: 'Actor created successfully!' 
+          addToast({
+            type: "success",
+            title: "Success",
+            message: "Actor created successfully!",
           });
           navigate("/actors");
         } else {
@@ -137,10 +156,10 @@ export default function ActorForm({ mode, actorId }: ActorFormProps) {
         });
 
         if (response.ok) {
-          addToast({ 
-            type: 'success', 
-            title: 'Success', 
-            message: 'Actor updated successfully!' 
+          addToast({
+            type: "success",
+            title: "Success",
+            message: "Actor updated successfully!",
           });
           navigate(`/actors/view/${id}`);
         } else {
@@ -150,10 +169,13 @@ export default function ActorForm({ mode, actorId }: ActorFormProps) {
       }
     } catch (error) {
       console.error("Failed to save actor:", error);
-      addToast({ 
-        type: 'error', 
-        title: 'Error', 
-        message: error instanceof Error ? error.message : 'An error occurred while saving the actor.' 
+      addToast({
+        type: "error",
+        title: "Error",
+        message:
+          error instanceof Error
+            ? error.message
+            : "An error occurred while saving the actor.",
       });
     } finally {
       setSubmitting(false);
@@ -229,9 +251,24 @@ export default function ActorForm({ mode, actorId }: ActorFormProps) {
                 className="px-4 py-2 bg-teal-600 hover:bg-teal-700 text-white rounded-md disabled:opacity-50 disabled:cursor-not-allowed flex items-center"
               >
                 {submitting && (
-                  <svg className="animate-spin -ml-1 mr-2 h-4 w-4 text-white" fill="none" viewBox="0 0 24 24">
-                    <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
-                    <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                  <svg
+                    className="animate-spin -ml-1 mr-2 h-4 w-4 text-white"
+                    fill="none"
+                    viewBox="0 0 24 24"
+                  >
+                    <circle
+                      className="opacity-25"
+                      cx="12"
+                      cy="12"
+                      r="10"
+                      stroke="currentColor"
+                      strokeWidth="4"
+                    ></circle>
+                    <path
+                      className="opacity-75"
+                      fill="currentColor"
+                      d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
+                    ></path>
                   </svg>
                 )}
                 {mode === "create" ? "Create Actor" : "Update Actor"}

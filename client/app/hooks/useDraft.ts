@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback, useRef } from 'react';
+import { useState, useEffect, useCallback, useRef } from "react";
 
 export interface DraftOptions {
   key: string;
@@ -23,7 +23,7 @@ export const useDraft = <T extends Record<string, any>>(
       try {
         const draftKey = `draft_${key}`;
         const savedDraft = localStorage.getItem(draftKey);
-        
+
         if (savedDraft) {
           const parsedDraft = JSON.parse(savedDraft);
           setData(parsedDraft.data);
@@ -32,7 +32,7 @@ export const useDraft = <T extends Record<string, any>>(
           onLoad?.(parsedDraft.data);
         }
       } catch (error) {
-        console.error('Failed to load draft:', error);
+        console.error("Failed to load draft:", error);
       }
     };
 
@@ -45,15 +45,15 @@ export const useDraft = <T extends Record<string, any>>(
       const draftKey = `draft_${key}`;
       const draftData = {
         data,
-        timestamp: new Date().toISOString()
+        timestamp: new Date().toISOString(),
       };
-      
+
       localStorage.setItem(draftKey, JSON.stringify(draftData));
       setLastSaved(new Date());
       setIsDraftSaved(true);
       onSave?.(data);
     } catch (error) {
-      console.error('Failed to save draft:', error);
+      console.error("Failed to save draft:", error);
     }
   }, [key, data, onSave]);
 
@@ -64,8 +64,9 @@ export const useDraft = <T extends Record<string, any>>(
     }
 
     // Only auto-save if there's meaningful data (not just initial empty state)
-    const hasData = Object.values(data).some(value => 
-      value !== '' && value !== null && value !== undefined && value !== false
+    const hasData = Object.values(data).some(
+      (value) =>
+        value !== "" && value !== null && value !== undefined && value !== false
     );
 
     if (hasData) {
@@ -89,14 +90,15 @@ export const useDraft = <T extends Record<string, any>>(
       setIsDraftSaved(false);
       setLastSaved(null);
     } catch (error) {
-      console.error('Failed to clear draft:', error);
+      console.error("Failed to clear draft:", error);
     }
   }, [key]);
 
   // Update data
   const updateData = useCallback((newData: Partial<T> | ((prev: T) => T)) => {
-    setData(prev => {
-      const updated = typeof newData === 'function' ? newData(prev) : { ...prev, ...newData };
+    setData((prev) => {
+      const updated =
+        typeof newData === "function" ? newData(prev) : { ...prev, ...newData };
       setIsDraftSaved(false);
       return updated;
     });
@@ -117,6 +119,6 @@ export const useDraft = <T extends Record<string, any>>(
     lastSaved,
     saveDraft: forceSave,
     clearDraft,
-    hasDraft: lastSaved !== null
+    hasDraft: lastSaved !== null,
   };
 };

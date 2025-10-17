@@ -1,4 +1,4 @@
-import React, { useState, useRef, useCallback } from 'react';
+import React, { useState, useRef, useCallback } from "react";
 
 interface RichTextEditorProps {
   label: string;
@@ -25,20 +25,23 @@ export const RichTextEditor: React.FC<RichTextEditorProps> = ({
   required = false,
   disabled = false,
   maxLength,
-  className = ''
+  className = "",
 }) => {
   const [isFocused, setIsFocused] = useState(false);
   const editorRef = useRef<HTMLDivElement>(null);
 
-  const handleInput = useCallback((e: React.FormEvent<HTMLDivElement>) => {
-    const content = e.currentTarget.innerHTML;
-    onChange({
-      target: {
-        name,
-        value: content
-      }
-    });
-  }, [name, onChange]);
+  const handleInput = useCallback(
+    (e: React.FormEvent<HTMLDivElement>) => {
+      const content = e.currentTarget.innerHTML;
+      onChange({
+        target: {
+          name,
+          value: content,
+        },
+      });
+    },
+    [name, onChange]
+  );
 
   const handleFocus = () => {
     setIsFocused(true);
@@ -53,7 +56,7 @@ export const RichTextEditor: React.FC<RichTextEditorProps> = ({
 
   const executeCommand = (command: string, value?: string) => {
     if (disabled) return;
-    
+
     document.execCommand(command, false, value);
     if (editorRef.current) {
       editorRef.current.focus();
@@ -62,36 +65,37 @@ export const RichTextEditor: React.FC<RichTextEditorProps> = ({
       onChange({
         target: {
           name,
-          value: content
-        }
+          value: content,
+        },
       });
     }
   };
 
   const formatButtons = [
-    { command: 'bold', icon: 'B', title: 'Bold' },
-    { command: 'italic', icon: 'I', title: 'Italic' },
-    { command: 'underline', icon: 'U', title: 'Underline' },
-    { command: 'insertUnorderedList', icon: '•', title: 'Bullet List' },
-    { command: 'insertOrderedList', icon: '1.', title: 'Numbered List' }
+    { command: "bold", icon: "B", title: "Bold" },
+    { command: "italic", icon: "I", title: "Italic" },
+    { command: "underline", icon: "U", title: "Underline" },
+    { command: "insertUnorderedList", icon: "•", title: "Bullet List" },
+    { command: "insertOrderedList", icon: "1.", title: "Numbered List" },
   ];
 
   const baseClasses = `
     min-h-[120px] px-3 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 
     dark:bg-gray-700 dark:border-gray-600 dark:text-white
-    ${error 
-      ? 'border-red-500 focus:border-red-500 focus:ring-red-500' 
-      : 'border-gray-300 dark:border-gray-600 focus:border-blue-500'
+    ${
+      error
+        ? "border-red-500 focus:border-red-500 focus:ring-red-500"
+        : "border-gray-300 dark:border-gray-600 focus:border-blue-500"
     }
-    ${disabled ? 'opacity-50 cursor-not-allowed' : 'cursor-text'}
+    ${disabled ? "opacity-50 cursor-not-allowed" : "cursor-text"}
   `.trim();
 
   const currentLength = editorRef.current?.textContent?.length || 0;
 
   return (
     <div className={`rich-text-editor ${className}`}>
-      <label 
-        htmlFor={name} 
+      <label
+        htmlFor={name}
         className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1"
       >
         {label}
@@ -123,9 +127,9 @@ export const RichTextEditor: React.FC<RichTextEditorProps> = ({
         onBlur={handleBlur}
         dangerouslySetInnerHTML={{ __html: value }}
         className={`${baseClasses} border-t-0 rounded-t-none`}
-        style={{ 
-          minHeight: '120px',
-          outline: 'none'
+        style={{
+          minHeight: "120px",
+          outline: "none",
         }}
         data-placeholder={placeholder}
         suppressContentEditableWarning={true}
@@ -136,16 +140,26 @@ export const RichTextEditor: React.FC<RichTextEditorProps> = ({
         <div>
           {error && (
             <p className="text-sm text-red-600 dark:text-red-400 flex items-center">
-              <svg className="w-4 h-4 mr-1" fill="currentColor" viewBox="0 0 20 20">
-                <path fillRule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7 4a1 1 0 11-2 0 1 1 0 012 0zm-1-9a1 1 0 00-1 1v4a1 1 0 102 0V6a1 1 0 00-1-1z" clipRule="evenodd" />
+              <svg
+                className="w-4 h-4 mr-1"
+                fill="currentColor"
+                viewBox="0 0 20 20"
+              >
+                <path
+                  fillRule="evenodd"
+                  d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7 4a1 1 0 11-2 0 1 1 0 012 0zm-1-9a1 1 0 00-1 1v4a1 1 0 102 0V6a1 1 0 00-1-1z"
+                  clipRule="evenodd"
+                />
               </svg>
               {error}
             </p>
           )}
         </div>
-        
+
         {maxLength && (
-          <div className={`text-xs ${currentLength > maxLength ? 'text-red-500' : 'text-gray-500 dark:text-gray-400'}`}>
+          <div
+            className={`text-xs ${currentLength > maxLength ? "text-red-500" : "text-gray-500 dark:text-gray-400"}`}
+          >
             {currentLength}/{maxLength}
           </div>
         )}

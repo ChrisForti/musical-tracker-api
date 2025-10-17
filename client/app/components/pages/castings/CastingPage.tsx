@@ -206,7 +206,7 @@ export function CastingPage() {
   }
 
   return (
-    <PageTemplate 
+    <PageTemplate
       title="Castings"
       backButton={
         isAdmin

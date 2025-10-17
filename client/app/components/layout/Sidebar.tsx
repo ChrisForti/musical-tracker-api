@@ -52,12 +52,12 @@ export function Sidebar() {
 
   const handleLogout = () => {
     logout();
-    addToast({ 
-      type: 'success', 
-      title: 'Logged Out', 
-      message: 'You have been successfully logged out.' 
+    addToast({
+      type: "success",
+      title: "Logged Out",
+      message: "You have been successfully logged out.",
     });
-    navigate('/');
+    navigate("/");
   };
 
   // Calculate sidebar width based on state
@@ -163,7 +163,7 @@ export function Sidebar() {
         {/* User Info - Show if logged in */}
         {user && (
           <div className="px-4 py-3 border-b border-gray-700">
-            {(isExpanded || isHovered) ? (
+            {isExpanded || isHovered ? (
               <div className="flex items-center justify-between">
                 <div className="flex items-center space-x-3 flex-1 min-w-0">
                   <div className="w-8 h-8 bg-teal-600 rounded-full flex items-center justify-center text-white font-medium text-sm">
@@ -185,8 +185,18 @@ export function Sidebar() {
                   className="ml-2 p-1 text-gray-400 hover:text-red-400 hover:bg-gray-800 rounded transition-colors"
                   title="Logout"
                 >
-                  <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1" />
+                  <svg
+                    className="w-4 h-4"
+                    fill="none"
+                    stroke="currentColor"
+                    viewBox="0 0 24 24"
+                  >
+                    <path
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      strokeWidth={2}
+                      d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1"
+                    />
                   </svg>
                 </button>
               </div>
@@ -247,91 +257,91 @@ export function Sidebar() {
                     openSubmenu === "management" ? "bg-teal-700" : ""
                   }`}
                 >
-                <div className="flex items-center">
-                  <svg
-                    className="w-6 h-6 mr-2"
-                    viewBox="0 0 24 24"
-                    fill="none"
-                    xmlns="http://www.w3.org/2000/svg"
-                  >
-                    <path
-                      d="M17 20H7C5.9 20 5 19.1 5 18V6C5 4.9 5.9 4 7 4H17C18.1 4 19 4.9 19 6V18C19 19.1 18.1 20 17 20Z"
-                      stroke="currentColor"
-                      strokeWidth="2"
-                      strokeLinecap="round"
-                    />
-                    <path
-                      d="M9 9H15M9 13H15M9 17H13"
-                      stroke="currentColor"
-                      strokeWidth="2"
-                      strokeLinecap="round"
-                    />
-                  </svg>
-                  {(isExpanded || isHovered) && <span>Management</span>}
-                </div>
-                {(isExpanded || isHovered) && (
-                  <svg
-                    className={`w-5 h-5 transform ${
-                      openSubmenu === "management" ? "rotate-180" : ""
-                    }`}
-                    viewBox="0 0 24 24"
-                    fill="none"
-                  >
-                    <path
-                      d="M6 9l6 6 6-6"
-                      stroke="currentColor"
-                      strokeWidth="2"
-                      strokeLinecap="round"
-                      strokeLinejoin="round"
-                    />
-                  </svg>
-                )}
-              </button>
+                  <div className="flex items-center">
+                    <svg
+                      className="w-6 h-6 mr-2"
+                      viewBox="0 0 24 24"
+                      fill="none"
+                      xmlns="http://www.w3.org/2000/svg"
+                    >
+                      <path
+                        d="M17 20H7C5.9 20 5 19.1 5 18V6C5 4.9 5.9 4 7 4H17C18.1 4 19 4.9 19 6V18C19 19.1 18.1 20 17 20Z"
+                        stroke="currentColor"
+                        strokeWidth="2"
+                        strokeLinecap="round"
+                      />
+                      <path
+                        d="M9 9H15M9 13H15M9 17H13"
+                        stroke="currentColor"
+                        strokeWidth="2"
+                        strokeLinecap="round"
+                      />
+                    </svg>
+                    {(isExpanded || isHovered) && <span>Management</span>}
+                  </div>
+                  {(isExpanded || isHovered) && (
+                    <svg
+                      className={`w-5 h-5 transform ${
+                        openSubmenu === "management" ? "rotate-180" : ""
+                      }`}
+                      viewBox="0 0 24 24"
+                      fill="none"
+                    >
+                      <path
+                        d="M6 9l6 6 6-6"
+                        stroke="currentColor"
+                        strokeWidth="2"
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                      />
+                    </svg>
+                  )}
+                </button>
 
-              {/* Submenu Items */}
-              {openSubmenu === "management" && (
-                <ul className="bg-gray-800">
-                  <li>
-                    <a
-                      href="/admin/pending"
-                      className="flex items-center pl-12 py-2 hover:bg-teal-600"
-                      onClick={(e) => {
-                        e.preventDefault();
-                        setActiveItem("pending");
-                        window.location.href = "/admin/pending";
-                      }}
-                    >
-                      {(isExpanded || isHovered) && (
-                        <span>Pending Approvals</span>
-                      )}
-                    </a>
-                  </li>
-                  <li>
-                    <a
-                      href="/admin/users"
-                      className="flex items-center pl-12 py-2 hover:bg-teal-600"
-                      onClick={(e) => {
-                        e.preventDefault();
-                        setActiveItem("users");
-                      }}
-                    >
-                      {(isExpanded || isHovered) && <span>Users</span>}
-                    </a>
-                  </li>
-                  <li>
-                    <a
-                      href="/admin/settings"
-                      className="flex items-center pl-12 py-2 hover:bg-teal-600"
-                      onClick={(e) => {
-                        e.preventDefault();
-                        setActiveItem("settings");
-                      }}
-                    >
-                      {(isExpanded || isHovered) && <span>Settings</span>}
-                    </a>
-                  </li>
-                </ul>
-              )}
+                {/* Submenu Items */}
+                {openSubmenu === "management" && (
+                  <ul className="bg-gray-800">
+                    <li>
+                      <a
+                        href="/admin/pending"
+                        className="flex items-center pl-12 py-2 hover:bg-teal-600"
+                        onClick={(e) => {
+                          e.preventDefault();
+                          setActiveItem("pending");
+                          window.location.href = "/admin/pending";
+                        }}
+                      >
+                        {(isExpanded || isHovered) && (
+                          <span>Pending Approvals</span>
+                        )}
+                      </a>
+                    </li>
+                    <li>
+                      <a
+                        href="/admin/users"
+                        className="flex items-center pl-12 py-2 hover:bg-teal-600"
+                        onClick={(e) => {
+                          e.preventDefault();
+                          setActiveItem("users");
+                        }}
+                      >
+                        {(isExpanded || isHovered) && <span>Users</span>}
+                      </a>
+                    </li>
+                    <li>
+                      <a
+                        href="/admin/settings"
+                        className="flex items-center pl-12 py-2 hover:bg-teal-600"
+                        onClick={(e) => {
+                          e.preventDefault();
+                          setActiveItem("settings");
+                        }}
+                      >
+                        {(isExpanded || isHovered) && <span>Settings</span>}
+                      </a>
+                    </li>
+                  </ul>
+                )}
               </li>
             )}
 
@@ -372,23 +382,23 @@ export function Sidebar() {
                       isRegisterOpen ? "bg-teal-700" : ""
                     }`}
                   >
-                <svg
-                  className="w-6 h-6 mr-2"
-                  viewBox="0 0 24 24"
-                  fill="none"
-                  xmlns="http://www.w3.org/2000/svg"
-                >
-                  <path
-                    d="M16 21v-2a4 4 0 00-4-4H5a4 4 0 00-4 4v2M12.5 11a4 4 0 100-8 4 4 0 000 8zM16 11l2 2 4-4"
-                    stroke="currentColor"
-                    strokeWidth="2"
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                  />
-                </svg>
-                {(isExpanded || isHovered) && <span>Register</span>}
-              </button>
-            </li>
+                    <svg
+                      className="w-6 h-6 mr-2"
+                      viewBox="0 0 24 24"
+                      fill="none"
+                      xmlns="http://www.w3.org/2000/svg"
+                    >
+                      <path
+                        d="M16 21v-2a4 4 0 00-4-4H5a4 4 0 00-4 4v2M12.5 11a4 4 0 100-8 4 4 0 000 8zM16 11l2 2 4-4"
+                        stroke="currentColor"
+                        strokeWidth="2"
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                      />
+                    </svg>
+                    {(isExpanded || isHovered) && <span>Register</span>}
+                  </button>
+                </li>
               </>
             ) : (
               /* Logout Option - Show when logged in */
@@ -487,7 +497,6 @@ export function Sidebar() {
           </div>
         </div>
       )}
-
     </>
   );
 }

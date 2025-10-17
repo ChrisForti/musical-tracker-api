@@ -13,7 +13,7 @@ export default function RegisterRoute() {
             Join the Musical Tracker community
           </p>
         </div>
-        
+
         <div className="bg-white dark:bg-gray-800 rounded-lg shadow-sm border border-gray-200 dark:border-gray-700 p-6">
           <RegistrationPage />
         </div>
