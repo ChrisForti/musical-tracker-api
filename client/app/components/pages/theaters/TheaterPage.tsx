@@ -106,14 +106,6 @@ export default function TheaterPage() {
         label: "Add Theater",
         onClick: () => navigate("/theaters/new"),
       }}
-      backButton={
-        isAdmin
-          ? {
-              label: "Back to Dashboard",
-              onClick: () => navigate("/admin"),
-            }
-          : undefined
-      }
     >
       {loading ? (
         <div className="p-4 text-center">Loading theaters...</div>

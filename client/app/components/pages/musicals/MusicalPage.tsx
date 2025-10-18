@@ -224,14 +224,6 @@ export default function MusicalPage() {
         label: "Add Musical",
         onClick: () => navigate("/musicals/new"),
       }}
-      backButton={
-        isAdmin
-          ? {
-              label: "Back to Dashboard",
-              onClick: () => navigate("/admin"),
-            }
-          : undefined
-      }
     >
       {loading ? (
         <div className="p-4 text-center">Loading musicals...</div>

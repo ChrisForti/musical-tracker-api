@@ -242,8 +242,7 @@ export function AdminDashboard() {
           {statCards.map((card) => (
             <div
               key={card.title}
-              className="bg-white dark:bg-gray-800 rounded-lg shadow-sm border border-gray-200 dark:border-gray-700 p-6 hover:shadow-md transition-shadow cursor-pointer"
-              onClick={() => navigate(card.route)}
+              className="bg-white dark:bg-gray-800 rounded-lg shadow-sm border border-gray-200 dark:border-gray-700 p-6 hover:shadow-md transition-shadow"
             >
               <div className="flex items-center justify-between mb-4">
                 <h3 className="text-lg font-medium text-gray-900 dark:text-white">
@@ -255,7 +254,7 @@ export function AdminDashboard() {
               </div>
 
               {!card.simple && (
-                <div className="space-y-2">
+                <div className="space-y-2 mb-4">
                   <div className="flex justify-between text-sm">
                     <span className="text-green-600 dark:text-green-400">
                       {card.labels?.verified || "Verified"}: {card.verified}
@@ -275,9 +274,15 @@ export function AdminDashboard() {
                 </div>
               )}
 
-              <div className="mt-4 text-sm text-gray-500 dark:text-gray-400">
-                Click to manage →
-              </div>
+              <button
+                onClick={(e) => {
+                  e.stopPropagation();
+                  navigate(card.route);
+                }}
+                className={`w-full mt-4 px-4 py-2 bg-${card.color}-600 hover:bg-${card.color}-700 text-white rounded-md text-sm font-medium transition-colors`}
+              >
+                Manage {card.title}
+              </button>
             </div>
           ))}
         </div>

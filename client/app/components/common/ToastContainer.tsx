@@ -80,17 +80,17 @@ function ToastItem({ toast, onClose }: ToastItemProps) {
 
   return (
     <div
-      className={`max-w-sm w-full shadow-lg rounded-lg pointer-events-auto border ${getColorClasses()}`}
+      className={`max-w-lg w-full shadow-lg rounded-lg pointer-events-auto border ${getColorClasses()}`}
     >
       <div className="p-4">
         <div className="flex items-start">
           <div className="flex-shrink-0">
             <div className={getIconColorClasses()}>{getIcon()}</div>
           </div>
-          <div className="ml-3 w-0 flex-1 pt-0.5">
-            <p className="text-sm font-medium">{toast.title}</p>
+          <div className="ml-3 flex-1 pt-0.5">
+            <p className="text-sm font-semibold leading-5">{toast.title}</p>
             {toast.message && (
-              <p className="mt-1 text-sm opacity-90">{toast.message}</p>
+              <p className="mt-1 text-sm leading-relaxed opacity-95">{toast.message}</p>
             )}
           </div>
           <div className="ml-4 flex-shrink-0 flex">

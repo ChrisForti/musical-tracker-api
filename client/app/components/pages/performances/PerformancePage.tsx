@@ -204,14 +204,6 @@ export default function PerformancePage() {
         label: "Add Performance",
         onClick: () => navigate("/performances/new"),
       }}
-      backButton={
-        isAdmin
-          ? {
-              label: "Back to Dashboard",
-              onClick: () => navigate("/admin"),
-            }
-          : undefined
-      }
     >
       {error && (
         <div className="bg-red-50 border border-red-200 text-red-700 p-4 rounded-md mb-4">
