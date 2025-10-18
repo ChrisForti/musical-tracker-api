@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { AdminGuard } from "~/components/common/AdminGuard";
+import { ActivityFeed } from "~/components/common/ActivityFeed";
 
 interface DashboardStats {
   actors: {
@@ -227,28 +228,29 @@ export function AdminDashboard() {
 
   return (
     <AdminGuard>
-      <div className="max-w-7xl mx-auto py-8 px-4 sm:px-6 lg:px-8">
-        <div className="mb-8">
-          <h1 className="text-3xl font-bold text-gray-900 dark:text-white">
+      <div className="max-w-7xl mx-auto py-4 sm:py-8 px-4 sm:px-6 lg:px-8">
+        <div className="mb-6 sm:mb-8">
+          <h1 className="text-2xl sm:text-3xl font-bold text-gray-900 dark:text-white">
             Admin Dashboard
           </h1>
-          <p className="mt-2 text-gray-600 dark:text-gray-400">
+          <p className="mt-2 text-sm sm:text-base text-gray-600 dark:text-gray-400">
             Overview of all musical theater data and pending approvals
           </p>
         </div>
 
         {/* Statistics Grid */}
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 mb-8">
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6 mb-6 sm:mb-8">
           {statCards.map((card) => (
             <div
               key={card.title}
-              className="bg-white dark:bg-gray-800 rounded-lg shadow-sm border border-gray-200 dark:border-gray-700 p-6 hover:shadow-md transition-shadow"
+              className="bg-white dark:bg-gray-800 rounded-lg shadow-sm border border-gray-200 dark:border-gray-700 p-4 sm:p-6 hover:shadow-md transition-shadow"
             >
               <div className="flex items-center justify-between mb-4">
-                <h3 className="text-lg font-medium text-gray-900 dark:text-white">
-                  {card.icon} {card.title}
+                <h3 className="text-base sm:text-lg font-medium text-gray-900 dark:text-white">
+                  <span className="text-lg sm:text-xl">{card.icon}</span>
+                  <span className="ml-2">{card.title}</span>
                 </h3>
-                <span className="text-2xl font-bold text-gray-900 dark:text-white">
+                <span className="text-xl sm:text-2xl font-bold text-gray-900 dark:text-white">
                   {card.total}
                 </span>
               </div>
@@ -288,40 +290,51 @@ export function AdminDashboard() {
         </div>
 
         {/* Quick Actions */}
-        <div className="bg-white dark:bg-gray-800 rounded-lg shadow-sm border border-gray-200 dark:border-gray-700 p-6">
-          <h2 className="text-xl font-semibold text-gray-900 dark:text-white mb-4">
+        <div className="bg-white dark:bg-gray-800 rounded-lg shadow-sm border border-gray-200 dark:border-gray-700 p-4 sm:p-6">
+          <h2 className="text-lg sm:text-xl font-semibold text-gray-900 dark:text-white mb-4">
             Quick Actions
           </h2>
-          <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+          <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 sm:gap-4">
             <button
               onClick={() => navigate("/musicals/new")}
-              className="flex flex-col items-center p-4 text-center border border-gray-200 dark:border-gray-700 rounded-lg hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors"
+              className="flex flex-col items-center p-3 sm:p-4 text-center border border-gray-200 dark:border-gray-700 rounded-lg hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors"
             >
-              <span className="text-2xl mb-2">➕</span>
-              <span className="text-sm font-medium">Add Musical</span>
+              <span className="text-xl sm:text-2xl mb-1 sm:mb-2">➕</span>
+              <span className="text-xs sm:text-sm font-medium">
+                Add Musical
+              </span>
             </button>
             <button
               onClick={() => navigate("/actors/new")}
-              className="flex flex-col items-center p-4 text-center border border-gray-200 dark:border-gray-700 rounded-lg hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors"
+              className="flex flex-col items-center p-3 sm:p-4 text-center border border-gray-200 dark:border-gray-700 rounded-lg hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors"
             >
-              <span className="text-2xl mb-2">👤</span>
-              <span className="text-sm font-medium">Add Actor</span>
+              <span className="text-xl sm:text-2xl mb-1 sm:mb-2">👤</span>
+              <span className="text-xs sm:text-sm font-medium">Add Actor</span>
             </button>
             <button
               onClick={() => navigate("/performances/new")}
-              className="flex flex-col items-center p-4 text-center border border-gray-200 dark:border-gray-700 rounded-lg hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors"
+              className="flex flex-col items-center p-3 sm:p-4 text-center border border-gray-200 dark:border-gray-700 rounded-lg hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors"
             >
-              <span className="text-2xl mb-2">🎪</span>
-              <span className="text-sm font-medium">Add Performance</span>
+              <span className="text-xl sm:text-2xl mb-1 sm:mb-2">🎪</span>
+              <span className="text-xs sm:text-sm font-medium">
+                Add Performance
+              </span>
             </button>
             <button
               onClick={() => navigate("/theaters/new")}
-              className="flex flex-col items-center p-4 text-center border border-gray-200 dark:border-gray-700 rounded-lg hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors"
+              className="flex flex-col items-center p-3 sm:p-4 text-center border border-gray-200 dark:border-gray-700 rounded-lg hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors"
             >
-              <span className="text-2xl mb-2">🏛️</span>
-              <span className="text-sm font-medium">Add Theater</span>
+              <span className="text-xl sm:text-2xl mb-1 sm:mb-2">🏛️</span>
+              <span className="text-xs sm:text-sm font-medium">
+                Add Theater
+              </span>
             </button>
           </div>
+        </div>
+
+        {/* Recent Activity Feed */}
+        <div className="mt-8">
+          <ActivityFeed limit={5} />
         </div>
 
         {/* Pending Approvals */}

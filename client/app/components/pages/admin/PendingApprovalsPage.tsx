@@ -311,19 +311,24 @@ export default function PendingApprovalsPage() {
 
   if (loading) {
     return (
-      <div className="flex-1 ml-16 md:ml-64 min-h-screen bg-gray-50 dark:bg-gray-900 pt-20">
-        <div className="max-w-7xl mx-auto py-8 px-4 sm:px-6 lg:px-8">
-          <div className="text-center">
-            <div className="animate-pulse">
-              <div className="h-8 bg-gray-300 dark:bg-gray-700 rounded w-64 mx-auto mb-8"></div>
-              <div className="space-y-4">
-                {[...Array(5)].map((_, i) => (
-                  <div
-                    key={i}
-                    className="h-16 bg-gray-300 dark:bg-gray-700 rounded"
-                  ></div>
-                ))}
-              </div>
+      <div className="max-w-7xl mx-auto py-8 px-4 sm:px-6 lg:px-8">
+        <div className="text-center">
+          <div className="animate-pulse">
+            <div className="h-8 bg-gray-300 dark:bg-gray-700 rounded w-64 mx-auto mb-8"></div>
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+              {[...Array(6)].map((_, i) => (
+                <div
+                  key={i}
+                  className="bg-white dark:bg-gray-800 rounded-lg shadow p-6"
+                >
+                  <div className="h-4 bg-gray-300 dark:bg-gray-700 rounded w-3/4 mb-2"></div>
+                  <div className="h-8 bg-gray-300 dark:bg-gray-700 rounded w-1/2 mb-4"></div>
+                  <div className="space-y-2">
+                    <div className="h-3 bg-gray-300 dark:bg-gray-700 rounded"></div>
+                    <div className="h-3 bg-gray-300 dark:bg-gray-700 rounded w-3/4"></div>
+                  </div>
+                </div>
+              ))}
             </div>
           </div>
         </div>
@@ -333,173 +338,171 @@ export default function PendingApprovalsPage() {
 
   return (
     <AdminGuard>
-      <div className="flex-1 ml-16 md:ml-64 min-h-screen bg-gray-50 dark:bg-gray-900 pt-20">
-        <div className="max-w-7xl mx-auto py-8 px-4 sm:px-6 lg:px-8">
-          {/* Header */}
-          <div className="mb-8">
-            <h1 className="text-3xl font-bold text-gray-900 dark:text-white">
-              Pending Approvals
-            </h1>
-            <p className="mt-2 text-gray-600 dark:text-gray-400">
-              Review and approve items submitted by users
-            </p>
+      <div className="max-w-7xl mx-auto py-8 px-4 sm:px-6 lg:px-8">
+        {/* Header */}
+        <div className="mb-8">
+          <h1 className="text-3xl font-bold text-gray-900 dark:text-white">
+            Pending Approvals
+          </h1>
+          <p className="mt-2 text-gray-600 dark:text-gray-400">
+            Review and approve items submitted by users
+          </p>
+        </div>
+
+        {/* Filters and Actions */}
+        <div className="mb-6 flex flex-col sm:flex-row gap-4 justify-between items-start sm:items-center">
+          <div className="flex gap-2">
+            <button
+              onClick={() => setFilter("all")}
+              className={`px-3 py-1 rounded text-sm font-medium ${
+                filter === "all"
+                  ? "bg-blue-600 text-white"
+                  : "bg-gray-200 text-gray-700 dark:bg-gray-700 dark:text-gray-300 hover:bg-gray-300 dark:hover:bg-gray-600"
+              }`}
+            >
+              All ({pendingItems.length})
+            </button>
+            <button
+              onClick={() => setFilter("actor")}
+              className={`px-3 py-1 rounded text-sm font-medium ${
+                filter === "actor"
+                  ? "bg-blue-600 text-white"
+                  : "bg-gray-200 text-gray-700 dark:bg-gray-700 dark:text-gray-300 hover:bg-gray-300 dark:hover:bg-gray-600"
+              }`}
+            >
+              👤 Actors ({pendingItems.filter((i) => i.type === "actor").length}
+              )
+            </button>
+            <button
+              onClick={() => setFilter("musical")}
+              className={`px-3 py-1 rounded text-sm font-medium ${
+                filter === "musical"
+                  ? "bg-blue-600 text-white"
+                  : "bg-gray-200 text-gray-700 dark:bg-gray-700 dark:text-gray-300 hover:bg-gray-300 dark:hover:bg-gray-600"
+              }`}
+            >
+              🎭 Musicals (
+              {pendingItems.filter((i) => i.type === "musical").length})
+            </button>
+            <button
+              onClick={() => setFilter("theater")}
+              className={`px-3 py-1 rounded text-sm font-medium ${
+                filter === "theater"
+                  ? "bg-blue-600 text-white"
+                  : "bg-gray-200 text-gray-700 dark:bg-gray-700 dark:text-gray-300 hover:bg-gray-300 dark:hover:bg-gray-600"
+              }`}
+            >
+              🏛️ Theaters (
+              {pendingItems.filter((i) => i.type === "theater").length})
+            </button>
           </div>
 
-          {/* Filters and Actions */}
-          <div className="mb-6 flex flex-col sm:flex-row gap-4 justify-between items-start sm:items-center">
+          {/* Bulk Actions */}
+          {selectedItems.size > 0 && (
             <div className="flex gap-2">
               <button
-                onClick={() => setFilter("all")}
-                className={`px-3 py-1 rounded text-sm font-medium ${
-                  filter === "all"
-                    ? "bg-blue-600 text-white"
-                    : "bg-gray-200 text-gray-700 dark:bg-gray-700 dark:text-gray-300 hover:bg-gray-300 dark:hover:bg-gray-600"
-                }`}
+                onClick={handleBulkApprove}
+                disabled={isProcessing}
+                className="px-4 py-2 bg-green-600 text-white rounded hover:bg-green-700 disabled:opacity-50 disabled:cursor-not-allowed text-sm font-medium"
               >
-                All ({pendingItems.length})
+                ✓ Approve {selectedItems.size}
               </button>
               <button
-                onClick={() => setFilter("actor")}
-                className={`px-3 py-1 rounded text-sm font-medium ${
-                  filter === "actor"
-                    ? "bg-blue-600 text-white"
-                    : "bg-gray-200 text-gray-700 dark:bg-gray-700 dark:text-gray-300 hover:bg-gray-300 dark:hover:bg-gray-600"
-                }`}
+                onClick={handleBulkReject}
+                disabled={isProcessing}
+                className="px-4 py-2 bg-red-600 text-white rounded hover:bg-red-700 disabled:opacity-50 disabled:cursor-not-allowed text-sm font-medium"
               >
-                👤 Actors (
-                {pendingItems.filter((i) => i.type === "actor").length})
-              </button>
-              <button
-                onClick={() => setFilter("musical")}
-                className={`px-3 py-1 rounded text-sm font-medium ${
-                  filter === "musical"
-                    ? "bg-blue-600 text-white"
-                    : "bg-gray-200 text-gray-700 dark:bg-gray-700 dark:text-gray-300 hover:bg-gray-300 dark:hover:bg-gray-600"
-                }`}
-              >
-                🎭 Musicals (
-                {pendingItems.filter((i) => i.type === "musical").length})
-              </button>
-              <button
-                onClick={() => setFilter("theater")}
-                className={`px-3 py-1 rounded text-sm font-medium ${
-                  filter === "theater"
-                    ? "bg-blue-600 text-white"
-                    : "bg-gray-200 text-gray-700 dark:bg-gray-700 dark:text-gray-300 hover:bg-gray-300 dark:hover:bg-gray-600"
-                }`}
-              >
-                🏛️ Theaters (
-                {pendingItems.filter((i) => i.type === "theater").length})
+                ✕ Delete {selectedItems.size}
               </button>
             </div>
-
-            {/* Bulk Actions */}
-            {selectedItems.size > 0 && (
-              <div className="flex gap-2">
-                <button
-                  onClick={handleBulkApprove}
-                  disabled={isProcessing}
-                  className="px-4 py-2 bg-green-600 text-white rounded hover:bg-green-700 disabled:opacity-50 disabled:cursor-not-allowed text-sm font-medium"
-                >
-                  ✓ Approve {selectedItems.size}
-                </button>
-                <button
-                  onClick={handleBulkReject}
-                  disabled={isProcessing}
-                  className="px-4 py-2 bg-red-600 text-white rounded hover:bg-red-700 disabled:opacity-50 disabled:cursor-not-allowed text-sm font-medium"
-                >
-                  ✕ Delete {selectedItems.size}
-                </button>
-              </div>
-            )}
-          </div>
-
-          {/* Empty State */}
-          {filteredItems.length === 0 ? (
-            <div className="text-center py-12">
-              <div className="text-6xl mb-4">🎉</div>
-              <h3 className="text-lg font-medium text-gray-900 dark:text-white mb-2">
-                No pending approvals
-              </h3>
-              <p className="text-gray-500 dark:text-gray-400">
-                All items have been reviewed and approved.
-              </p>
-            </div>
-          ) : (
-            <>
-              {/* Select All */}
-              <div className="mb-4 flex items-center">
-                <input
-                  type="checkbox"
-                  checked={
-                    selectedItems.size === filteredItems.length &&
-                    filteredItems.length > 0
-                  }
-                  onChange={handleSelectAll}
-                  className="mr-2 h-4 w-4 text-blue-600 rounded border-gray-300 focus:ring-blue-500"
-                />
-                <label className="text-sm text-gray-700 dark:text-gray-300">
-                  Select all {filteredItems.length} items
-                </label>
-              </div>
-
-              {/* Pending Items List */}
-              <div className="bg-white dark:bg-gray-800 shadow-sm rounded-lg border border-gray-200 dark:border-gray-700">
-                {filteredItems.map((item, index) => (
-                  <div
-                    key={item.id}
-                    className={`p-4 ${index !== filteredItems.length - 1 ? "border-b border-gray-200 dark:border-gray-700" : ""} hover:bg-gray-50 dark:hover:bg-gray-700`}
-                  >
-                    <div className="flex items-center justify-between">
-                      <div className="flex items-center space-x-4">
-                        <input
-                          type="checkbox"
-                          checked={selectedItems.has(item.id)}
-                          onChange={() => handleSelectItem(item.id)}
-                          className="h-4 w-4 text-blue-600 rounded border-gray-300 focus:ring-blue-500"
-                        />
-                        <div className="flex-1">
-                          <div className="flex items-center gap-2 mb-1">
-                            <span className="text-xl">
-                              {getTypeIcon(item.type)}
-                            </span>
-                            <h3 className="text-lg font-medium text-gray-900 dark:text-white">
-                              {item.name}
-                            </h3>
-                            <span
-                              className={`px-2 py-1 text-xs font-medium rounded-full ${getTypeBadge(item.type)}`}
-                            >
-                              {item.type}
-                            </span>
-                          </div>
-                          {item.description && (
-                            <p className="text-sm text-gray-600 dark:text-gray-400 mb-2">
-                              {item.description}
-                            </p>
-                          )}
-                          {item.dateCreated && (
-                            <p className="text-xs text-gray-500 dark:text-gray-500">
-                              Submitted{" "}
-                              {new Date(item.dateCreated).toLocaleDateString()}
-                            </p>
-                          )}
-                        </div>
-                      </div>
-                      <div className="flex gap-2">
-                        <button
-                          onClick={() => handleViewItem(item)}
-                          className="px-3 py-1 text-sm text-blue-600 hover:text-blue-800 dark:text-blue-400 dark:hover:text-blue-200"
-                        >
-                          View Details
-                        </button>
-                      </div>
-                    </div>
-                  </div>
-                ))}
-              </div>
-            </>
           )}
         </div>
+
+        {/* Empty State */}
+        {filteredItems.length === 0 ? (
+          <div className="text-center py-12">
+            <div className="text-6xl mb-4">🎉</div>
+            <h3 className="text-lg font-medium text-gray-900 dark:text-white mb-2">
+              No pending approvals
+            </h3>
+            <p className="text-gray-500 dark:text-gray-400">
+              All items have been reviewed and approved.
+            </p>
+          </div>
+        ) : (
+          <>
+            {/* Select All */}
+            <div className="mb-4 flex items-center">
+              <input
+                type="checkbox"
+                checked={
+                  selectedItems.size === filteredItems.length &&
+                  filteredItems.length > 0
+                }
+                onChange={handleSelectAll}
+                className="mr-2 h-4 w-4 text-blue-600 rounded border-gray-300 focus:ring-blue-500"
+              />
+              <label className="text-sm text-gray-700 dark:text-gray-300">
+                Select all {filteredItems.length} items
+              </label>
+            </div>
+
+            {/* Pending Items List */}
+            <div className="bg-white dark:bg-gray-800 shadow-sm rounded-lg border border-gray-200 dark:border-gray-700">
+              {filteredItems.map((item, index) => (
+                <div
+                  key={item.id}
+                  className={`p-4 ${index !== filteredItems.length - 1 ? "border-b border-gray-200 dark:border-gray-700" : ""} hover:bg-gray-50 dark:hover:bg-gray-700`}
+                >
+                  <div className="flex items-center justify-between">
+                    <div className="flex items-center space-x-4">
+                      <input
+                        type="checkbox"
+                        checked={selectedItems.has(item.id)}
+                        onChange={() => handleSelectItem(item.id)}
+                        className="h-4 w-4 text-blue-600 rounded border-gray-300 focus:ring-blue-500"
+                      />
+                      <div className="flex-1">
+                        <div className="flex items-center gap-2 mb-1">
+                          <span className="text-xl">
+                            {getTypeIcon(item.type)}
+                          </span>
+                          <h3 className="text-lg font-medium text-gray-900 dark:text-white">
+                            {item.name}
+                          </h3>
+                          <span
+                            className={`px-2 py-1 text-xs font-medium rounded-full ${getTypeBadge(item.type)}`}
+                          >
+                            {item.type}
+                          </span>
+                        </div>
+                        {item.description && (
+                          <p className="text-sm text-gray-600 dark:text-gray-400 mb-2">
+                            {item.description}
+                          </p>
+                        )}
+                        {item.dateCreated && (
+                          <p className="text-xs text-gray-500 dark:text-gray-500">
+                            Submitted{" "}
+                            {new Date(item.dateCreated).toLocaleDateString()}
+                          </p>
+                        )}
+                      </div>
+                    </div>
+                    <div className="flex gap-2">
+                      <button
+                        onClick={() => handleViewItem(item)}
+                        className="px-3 py-1 text-sm text-blue-600 hover:text-blue-800 dark:text-blue-400 dark:hover:text-blue-200"
+                      >
+                        View Details
+                      </button>
+                    </div>
+                  </div>
+                </div>
+              ))}
+            </div>
+          </>
+        )}
       </div>
     </AdminGuard>
   );

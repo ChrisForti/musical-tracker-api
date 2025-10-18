@@ -1,4 +1,5 @@
 import { Routes, Route, useParams } from "react-router-dom";
+import { AppLayout } from "~/components/layout/AppLayout";
 import ActorPage from "../components/pages/actors/ActorPage";
 import ActorForm from "../components/pages/actors/ActorForm";
 import ActorDetail from "../components/pages/actors/ActorDetail";
@@ -17,12 +18,14 @@ function ActorFormEditWrapper() {
 
 export default function ActorRoute() {
   return (
-    <Routes>
-      <Route index element={<ActorPage />} />
-      <Route path="new" element={<ActorForm mode="create" />} />
-      <Route path="edit/:id" element={<ActorFormEditWrapper />} />
-      <Route path="view/:id" element={<ActorDetailWrapper />} />
-      <Route path="*" element={<ActorPage />} />
-    </Routes>
+    <AppLayout>
+      <Routes>
+        <Route index element={<ActorPage />} />
+        <Route path="new" element={<ActorForm mode="create" />} />
+        <Route path="edit/:id" element={<ActorFormEditWrapper />} />
+        <Route path="view/:id" element={<ActorDetailWrapper />} />
+        <Route path="*" element={<ActorPage />} />
+      </Routes>
+    </AppLayout>
   );
 }

@@ -90,7 +90,9 @@ function ToastItem({ toast, onClose }: ToastItemProps) {
           <div className="ml-3 flex-1 pt-0.5">
             <p className="text-sm font-semibold leading-5">{toast.title}</p>
             {toast.message && (
-              <p className="mt-1 text-sm leading-relaxed opacity-95">{toast.message}</p>
+              <p className="mt-1 text-sm leading-relaxed opacity-95">
+                {toast.message}
+              </p>
             )}
           </div>
           <div className="ml-4 flex-shrink-0 flex">
@@ -122,9 +124,9 @@ export function ToastContainer() {
   return (
     <div
       aria-live="assertive"
-      className="fixed inset-0 flex items-end justify-center px-4 py-6 pointer-events-none sm:p-6 sm:items-start sm:justify-end z-50"
+      className="fixed top-20 right-4 left-4 flex justify-center pointer-events-none sm:left-auto sm:justify-end z-50"
     >
-      <div className="w-full flex flex-col items-center space-y-4 sm:items-end">
+      <div className="w-full max-w-lg flex flex-col items-center space-y-4 sm:items-end">
         {toasts.map((toast) => (
           <div
             key={toast.id}

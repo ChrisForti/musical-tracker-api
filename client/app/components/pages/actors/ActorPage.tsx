@@ -5,6 +5,12 @@ import { useGlobalSearch } from "~/components/layout/ui/GlobalSearchProvider";
 import { StatusBadge } from "~/components/common/StatusBadge";
 import { useAuth } from "~/hooks/useAuth";
 import { useToast } from "~/components/common/ToastProvider";
+import {
+  Pagination,
+  usePagination,
+  type PaginationInfo,
+} from "~/components/common/Pagination";
+import { SortableHeader, useSort } from "~/components/common/SortableHeader";
 
 interface Actor {
   id: string;
@@ -19,6 +25,10 @@ export default function ActorPage() {
   const navigate = useNavigate();
   const { isAdmin } = useAuth();
   const { addToast } = useToast();
+
+  // Pagination
+  const { currentPage, itemsPerPage, setCurrentPage, resetToFirstPage } =
+    usePagination(1, 10);
 
   // Global search
   const { searchQuery } = useGlobalSearch();
@@ -67,6 +77,43 @@ export default function ActorPage() {
       return matchesSearch && matchesApproval;
     });
   }, [actors, searchQuery, filters]);
+
+  // Sorting
+  const {
+    sortedData: sortedActors,
+    sortConfig,
+    handleSort,
+  } = useSort(filteredActors, {
+    key: "name",
+    direction: "asc",
+  });
+
+  // Paginated actors
+  const paginatedActors = useMemo(() => {
+    const startIndex = (currentPage - 1) * itemsPerPage;
+    const endIndex = startIndex + itemsPerPage;
+    return sortedActors.slice(startIndex, endIndex);
+  }, [sortedActors, currentPage, itemsPerPage]);
+
+  // Pagination info
+  const paginationInfo: PaginationInfo = useMemo(() => {
+    const totalItems = sortedActors.length;
+    const totalPages = Math.ceil(totalItems / itemsPerPage);
+
+    return {
+      currentPage,
+      totalPages,
+      totalItems,
+      itemsPerPage,
+      hasNextPage: currentPage < totalPages,
+      hasPreviousPage: currentPage > 1,
+    };
+  }, [sortedActors.length, currentPage, itemsPerPage]);
+
+  // Reset to first page when filters change
+  useEffect(() => {
+    resetToFirstPage();
+  }, [searchQuery, filters, resetToFirstPage]);
 
   const handleDelete = async (id: string) => {
     if (confirm("Are you sure you want to delete this actor?")) {
@@ -167,69 +214,140 @@ export default function ActorPage() {
           </div>
 
           <div className="bg-white dark:bg-gray-800 shadow-sm rounded-lg overflow-hidden">
-            <table className="min-w-full divide-y divide-gray-200 dark:divide-gray-700">
-              <thead className="bg-gray-50 dark:bg-gray-700">
-                <tr>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">
-                    Name
-                  </th>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">
-                    Status
-                  </th>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">
-                    Actions
-                  </th>
-                </tr>
-              </thead>
-              <tbody className="bg-white dark:bg-gray-800 divide-y divide-gray-200 dark:divide-gray-700">
-                {filteredActors.length === 0 ? (
+            <div className="overflow-x-auto">
+              <table className="min-w-full divide-y divide-gray-200 dark:divide-gray-700">
+                <thead className="bg-gray-50 dark:bg-gray-700">
                   <tr>
-                    <td
-                      colSpan={4}
-                      className="px-6 py-4 text-center text-gray-500 dark:text-gray-400"
+                    <SortableHeader
+                      sortKey="name"
+                      currentSort={sortConfig}
+                      onSort={handleSort}
+                      className="hidden sm:table-cell"
                     >
-                      {searchQuery || Object.keys(filters).length > 0
-                        ? "No actors match your search criteria."
-                        : "No actors available."}
-                    </td>
+                      Name
+                    </SortableHeader>
+                    <SortableHeader
+                      sortKey="approved"
+                      currentSort={sortConfig}
+                      onSort={handleSort}
+                      className="hidden md:table-cell"
+                    >
+                      Status
+                    </SortableHeader>
+                    <th className="px-3 sm:px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">
+                      Actions
+                    </th>
                   </tr>
-                ) : (
-                  filteredActors.map((actor) => (
-                    <tr key={actor.id}>
-                      <td className="px-6 py-4 whitespace-nowrap">
-                        <div className="text-sm font-medium text-gray-900 dark:text-white">
-                          {actor.name}
-                        </div>
-                      </td>
-                      <td className="px-6 py-4 whitespace-nowrap">
-                        <StatusBadge verified={actor.approved} size="sm" />
-                      </td>
-                      <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                        <button
-                          onClick={() => navigate(`/actors/view/${actor.id}`)}
-                          className="text-blue-600 hover:text-blue-900 mr-3"
-                        >
-                          View
-                        </button>
-                        <button
-                          onClick={() => navigate(`/actors/edit/${actor.id}`)}
-                          className="text-amber-600 hover:text-amber-900 mr-3"
-                        >
-                          Edit
-                        </button>
-                        <button
-                          onClick={() => handleDelete(actor.id)}
-                          className="text-red-600 hover:text-red-900"
-                        >
-                          Delete
-                        </button>
+                </thead>
+                <tbody className="bg-white dark:bg-gray-800 divide-y divide-gray-200 dark:divide-gray-700">
+                  {paginatedActors.length === 0 ? (
+                    <tr>
+                      <td
+                        colSpan={3}
+                        className="px-6 py-4 text-center text-gray-500 dark:text-gray-400"
+                      >
+                        {searchQuery || Object.keys(filters).length > 0
+                          ? "No actors match your search criteria."
+                          : "No actors available."}
                       </td>
                     </tr>
-                  ))
-                )}
-              </tbody>
-            </table>
+                  ) : (
+                    paginatedActors.map((actor) => (
+                      <tr
+                        key={actor.id}
+                        className="hover:bg-gray-50 dark:hover:bg-gray-700"
+                      >
+                        {/* Mobile Layout */}
+                        <td className="px-3 py-4 sm:hidden">
+                          <div className="flex flex-col space-y-2">
+                            <div className="flex justify-between items-start">
+                              <div className="text-sm font-medium text-gray-900 dark:text-white">
+                                {actor.name}
+                              </div>
+                              <StatusBadge
+                                verified={actor.approved}
+                                size="sm"
+                              />
+                            </div>
+                            <div className="flex space-x-2">
+                              <button
+                                onClick={() =>
+                                  navigate(`/actors/view/${actor.id}`)
+                                }
+                                className="text-xs px-2 py-1 bg-blue-100 dark:bg-blue-900/50 text-blue-600 dark:text-blue-400 rounded hover:bg-blue-200 dark:hover:bg-blue-900"
+                              >
+                                View
+                              </button>
+                              <button
+                                onClick={() =>
+                                  navigate(`/actors/edit/${actor.id}`)
+                                }
+                                className="text-xs px-2 py-1 bg-amber-100 dark:bg-amber-900/50 text-amber-600 dark:text-amber-400 rounded hover:bg-amber-200 dark:hover:bg-amber-900"
+                              >
+                                Edit
+                              </button>
+                              <button
+                                onClick={() => handleDelete(actor.id)}
+                                className="text-xs px-2 py-1 bg-red-100 dark:bg-red-900/50 text-red-600 dark:text-red-400 rounded hover:bg-red-200 dark:hover:bg-red-900"
+                              >
+                                Delete
+                              </button>
+                            </div>
+                          </div>
+                        </td>
+
+                        {/* Desktop Layout */}
+                        <td className="hidden sm:table-cell px-6 py-4 whitespace-nowrap">
+                          <div className="text-sm font-medium text-gray-900 dark:text-white">
+                            {actor.name}
+                          </div>
+                        </td>
+                        <td className="hidden md:table-cell px-6 py-4 whitespace-nowrap">
+                          <StatusBadge verified={actor.approved} size="sm" />
+                        </td>
+                        <td className="hidden sm:table-cell px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                          <div className="flex space-x-2">
+                            <button
+                              onClick={() =>
+                                navigate(`/actors/view/${actor.id}`)
+                              }
+                              className="text-blue-600 hover:text-blue-900 font-medium"
+                            >
+                              View
+                            </button>
+                            <button
+                              onClick={() =>
+                                navigate(`/actors/edit/${actor.id}`)
+                              }
+                              className="text-amber-600 hover:text-amber-900 font-medium"
+                            >
+                              Edit
+                            </button>
+                            <button
+                              onClick={() => handleDelete(actor.id)}
+                              className="text-red-600 hover:text-red-900 font-medium"
+                            >
+                              Delete
+                            </button>
+                          </div>
+                        </td>
+                      </tr>
+                    ))
+                  )}
+                </tbody>
+              </table>
+            </div>
           </div>
+
+          {/* Pagination */}
+          {sortedActors.length > 0 && (
+            <div className="mt-6">
+              <Pagination
+                pagination={paginationInfo}
+                onPageChange={setCurrentPage}
+              />
+            </div>
+          )}
         </>
       )}
     </PageTemplate>
