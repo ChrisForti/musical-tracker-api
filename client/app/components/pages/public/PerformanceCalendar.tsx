@@ -1,19 +1,5 @@
 import React, { useState, useEffect } from "react";
-
-interface Performance {
-  id: number;
-  date: string;
-  time: string;
-  musical: {
-    id: number;
-    title: string;
-  };
-  theater: {
-    id: number;
-    name: string;
-    city: string;
-  };
-}
+import type { Performance } from "~/lib/types";
 
 interface CalendarDay {
   date: Date;

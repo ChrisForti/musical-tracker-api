@@ -1,22 +1,8 @@
 import React, { useState, useEffect } from "react";
 import { useParams, Link } from "react-router-dom";
+import type { Musical, Performance } from "~/lib/types";
 
-interface Musical {
-  id: number;
-  title: string;
-  composer: string;
-  lyricist: string;
-  genre: string;
-  synopsis: string;
-  imageUrl?: string;
-  verified: boolean;
-  createdAt: string;
-}
-
-interface Performance {
-  id: number;
-  date: string;
-  time: string;
+interface ExtendedPerformance extends Performance {
   theater: {
     id: number;
     name: string;
@@ -47,7 +33,7 @@ interface Casting {
 export const PublicMusicalDetail: React.FC = () => {
   const { id } = useParams<{ id: string }>();
   const [musical, setMusical] = useState<Musical | null>(null);
-  const [performances, setPerformances] = useState<Performance[]>([]);
+  const [performances, setPerformances] = useState<ExtendedPerformance[]>([]);
   const [roles, setRoles] = useState<Role[]>([]);
   const [castings, setCastings] = useState<Casting[]>([]);
   const [loading, setLoading] = useState(true);

@@ -3,6 +3,7 @@ import { useNavigate } from "react-router-dom";
 import { PageTemplate } from "../components/common/PageTemplate";
 import { ExportButton } from "../components/common/ExportButton";
 import { useToast } from "../components/common/ToastProvider";
+import { BackToDashboardButton } from "../components/common/BackToDashboardButton";
 
 interface User {
   id: string;
@@ -163,6 +164,9 @@ export function UserPage() {
   return (
     <PageTemplate title="User Management">
       <div className="space-y-6">
+        {/* Back to Dashboard Button */}
+        <BackToDashboardButton />
+
         {/* Search, Filter, and Export Controls */}
         <div className="flex flex-col lg:flex-row gap-4 mb-6">
           <div className="flex-1">

@@ -56,11 +56,11 @@ export function LoginPage({ onLoginSuccess }: LoginPageProps = {}) {
         onLoginSuccess?.();
 
         // Refresh auth state and navigate
-        console.log('About to call refreshAuth...');
+        console.log("About to call refreshAuth...");
         await refreshAuth();
-        console.log('refreshAuth completed');
+        console.log("refreshAuth completed");
         setTimeout(() => {
-          console.log('Navigating to home...');
+          console.log("Navigating to home...");
           navigate("/");
         }, 100);
       } else {

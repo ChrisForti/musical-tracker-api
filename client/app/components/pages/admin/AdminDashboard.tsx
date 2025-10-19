@@ -203,6 +203,43 @@ export function AdminDashboard() {
     );
   }
 
+  // Helper function to get color classes
+  const getColorClasses = (color: string) => {
+    const colorMap = {
+      teal: {
+        bg: "bg-teal-600",
+        hover: "hover:bg-teal-700",
+        progress: "bg-teal-500",
+      },
+      purple: {
+        bg: "bg-purple-600",
+        hover: "hover:bg-purple-700",
+        progress: "bg-purple-500",
+      },
+      blue: {
+        bg: "bg-blue-600",
+        hover: "hover:bg-blue-700",
+        progress: "bg-blue-500",
+      },
+      green: {
+        bg: "bg-green-600",
+        hover: "hover:bg-green-700",
+        progress: "bg-green-500",
+      },
+      amber: {
+        bg: "bg-amber-600",
+        hover: "hover:bg-amber-700",
+        progress: "bg-amber-500",
+      },
+      red: {
+        bg: "bg-red-600",
+        hover: "hover:bg-red-700",
+        progress: "bg-red-500",
+      },
+    };
+    return colorMap[color as keyof typeof colorMap] || colorMap.teal;
+  };
+
   const statCards = [
     {
       title: "Actors",
@@ -307,7 +344,7 @@ export function AdminDashboard() {
                     </div>
                     <div className="w-full bg-gray-200 dark:bg-gray-700 rounded-full h-2">
                       <div
-                        className={`bg-${card.color}-500 h-2 rounded-full`}
+                        className={`${getColorClasses(card.color).progress} h-2 rounded-full`}
                         style={{
                           width: `${card.total > 0 ? (card.verified / card.total) * 100 : 0}%`,
                         }}
@@ -321,7 +358,7 @@ export function AdminDashboard() {
                     e.stopPropagation();
                     setCurrentSection(card.section);
                   }}
-                  className={`w-full mt-4 px-4 py-2 bg-${card.color}-600 hover:bg-${card.color}-700 text-white rounded-md text-sm font-medium transition-colors`}
+                  className={`w-full mt-4 px-4 py-2 ${getColorClasses(card.color).bg} ${getColorClasses(card.color).hover} text-white rounded-md text-sm font-medium transition-colors`}
                 >
                   Manage {card.title}
                 </button>
@@ -437,9 +474,17 @@ export function AdminDashboard() {
       case "theaters":
         return <TheaterManagement />;
       case "roles":
-        return <RoleManagement onBackToAdmin={() => setCurrentSection("dashboard")} />;
+        return (
+          <RoleManagement
+            onBackToAdmin={() => setCurrentSection("dashboard")}
+          />
+        );
       case "castings":
-        return <CastingManagement onBackToAdmin={() => setCurrentSection("dashboard")} />;
+        return (
+          <CastingManagement
+            onBackToAdmin={() => setCurrentSection("dashboard")}
+          />
+        );
       case "users":
         return <UserPage />;
       case "pending":
