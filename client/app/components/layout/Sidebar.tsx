@@ -11,7 +11,12 @@ export function Sidebar() {
   const navigate = useNavigate();
   const { isAdmin, user, logout } = useAuth();
   const { addToast } = useToast();
-  const { activeSection, setActiveSection } = useNavigation();
+  const {
+    activeSection,
+    setActiveSection,
+    isLoginModalOpen,
+    setLoginModalOpen,
+  } = useNavigation();
   const [isExpanded, setIsExpanded] = useState(true);
   const [isHovered, setIsHovered] = useState(false);
   const [isMobile, setIsMobile] = useState(window.innerWidth < 768);
@@ -20,8 +25,7 @@ export function Sidebar() {
   // Global search
   const { searchQuery, setSearchQuery } = useGlobalSearch();
 
-  // Original state
-  const [isLoginOpen, setLoginOpen] = useState(false);
+  // Registration state - kept local as it's sidebar-specific
   const [isRegisterOpen, setRegisterOpen] = useState(false);
   const dropdownRef = useRef<HTMLDivElement>(null);
   const loginRef = useRef<HTMLDivElement>(null);
@@ -461,9 +465,9 @@ export function Sidebar() {
                 {/* Login */}
                 <li>
                   <button
-                    onClick={() => setLoginOpen((prev) => !prev)}
+                    onClick={() => setLoginModalOpen(!isLoginModalOpen)}
                     className={`flex items-center w-full px-4 py-3 hover:bg-teal-600 ${
-                      isLoginOpen ? "bg-teal-700" : ""
+                      isLoginModalOpen ? "bg-teal-700" : ""
                     }`}
                   >
                     <svg
@@ -539,7 +543,7 @@ export function Sidebar() {
       </div>
 
       {/* Login Panel - Modal overlay */}
-      {isLoginOpen && (
+      {isLoginModalOpen && (
         <div className="fixed inset-0 bg-black bg-opacity-50 z-50 flex items-center justify-center">
           <div
             ref={loginRef}
@@ -548,7 +552,7 @@ export function Sidebar() {
             <div className="flex justify-between items-center p-4 border-b border-gray-200 dark:border-gray-700">
               <h2 className="text-xl font-semibold text-teal-600">Login</h2>
               <button
-                onClick={() => setLoginOpen(false)}
+                onClick={() => setLoginModalOpen(false)}
                 className="text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200"
               >
                 <svg
@@ -566,7 +570,7 @@ export function Sidebar() {
                 </svg>
               </button>
             </div>
-            <LoginPage onLoginSuccess={() => setLoginOpen(false)} />
+            <LoginPage onLoginSuccess={() => setLoginModalOpen(false)} />
           </div>
         </div>
       )}

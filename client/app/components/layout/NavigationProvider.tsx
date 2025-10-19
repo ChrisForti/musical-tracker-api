@@ -20,6 +20,8 @@ const NavigationContext = createContext<
   | {
       activeSection: SectionType;
       setActiveSection: (section: SectionType) => void;
+      isLoginModalOpen: boolean;
+      setLoginModalOpen: (open: boolean) => void;
     }
   | undefined
 >(undefined);
@@ -37,9 +39,17 @@ export function NavigationProvider({
   children: React.ReactNode;
 }) {
   const [activeSection, setActiveSection] = useState<SectionType>("home");
+  const [isLoginModalOpen, setLoginModalOpen] = useState(false);
 
   return (
-    <NavigationContext.Provider value={{ activeSection, setActiveSection }}>
+    <NavigationContext.Provider
+      value={{
+        activeSection,
+        setActiveSection,
+        isLoginModalOpen,
+        setLoginModalOpen,
+      }}
+    >
       {children}
     </NavigationContext.Provider>
   );

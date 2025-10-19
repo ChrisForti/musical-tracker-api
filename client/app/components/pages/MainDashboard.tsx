@@ -29,9 +29,20 @@ export const MainDashboard: React.FC = () => {
 
   // Handle auth state changes
   React.useEffect(() => {
-    if (!user) {
-      setActiveSection("home");
-    } else if (isAdmin && activeSection === "home") {
+    if (!user && activeSection !== "browse" && activeSection !== "calendar") {
+      // Only reset to home if not browsing public content
+      if (
+        activeSection === "admin" ||
+        activeSection === "pending" ||
+        activeSection === "analytics" ||
+        activeSection === "scheduling" ||
+        activeSection === "notifications" ||
+        activeSection === "import-export" ||
+        activeSection === "users"
+      ) {
+        setActiveSection("home");
+      }
+    } else if (user && isAdmin && activeSection === "home") {
       setTimeout(() => setActiveSection("admin"), 100);
     }
   }, [user, isAdmin, activeSection, setActiveSection]);
@@ -96,7 +107,7 @@ export const MainDashboard: React.FC = () => {
 
 const HomePage = () => {
   const { user, isAdmin } = useAuth();
-  const { setActiveSection } = useNavigation();
+  const { setActiveSection, setLoginModalOpen } = useNavigation();
 
   const actions = [
     { section: "musicals" as const, label: "Browse Musicals" },
@@ -131,17 +142,17 @@ const HomePage = () => {
             </p>
             <div className="flex gap-4 justify-center">
               <button
-                onClick={() => setActiveSection("home")}
+                onClick={() => setLoginModalOpen(true)}
                 className="px-6 py-2 bg-teal-600 hover:bg-teal-700 text-white rounded-md font-medium transition-colors"
               >
                 Sign In
               </button>
-              <a
-                href="/public/musicals"
+              <button
+                onClick={() => setActiveSection("browse")}
                 className="px-6 py-2 bg-gray-600 hover:bg-gray-700 text-white rounded-md font-medium transition-colors"
               >
                 Browse Public Content
-              </a>
+              </button>
             </div>
           </div>
         )}
