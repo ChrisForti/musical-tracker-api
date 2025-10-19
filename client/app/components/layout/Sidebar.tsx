@@ -5,16 +5,17 @@ import RegistrationPage from "../../components/pages/admin/RegistrationPage";
 import { useGlobalSearch } from "../layout/ui/GlobalSearchProvider";
 import { useAuth } from "../../hooks/useAuth";
 import { useToast } from "../common/ToastProvider";
+import { useNavigation } from "./NavigationProvider";
 
 export function Sidebar() {
   const navigate = useNavigate();
   const { isAdmin, user, logout } = useAuth();
   const { addToast } = useToast();
+  const { activeSection, setActiveSection } = useNavigation();
   const [isExpanded, setIsExpanded] = useState(true);
   const [isHovered, setIsHovered] = useState(false);
   const [isMobile, setIsMobile] = useState(window.innerWidth < 768);
-  const [activeItem, setActiveItem] = useState<string | null>(null);
-  const [openSubmenu, setOpenSubmenu] = useState<string | null>(null);
+  const [openSubmenu, setOpenSubmenu] = useState<string | null>("explore");
 
   // Global search
   const { searchQuery, setSearchQuery } = useGlobalSearch();
@@ -57,7 +58,6 @@ export function Sidebar() {
       title: "Logged Out",
       message: "You have been successfully logged out.",
     });
-    navigate("/");
   };
 
   // Calculate sidebar width based on state
@@ -73,32 +73,20 @@ export function Sidebar() {
         onMouseLeave={() => setIsHovered(false)}
       >
         {/* Sidebar Header */}
-        {/* <div className="flex items-center justify-between p-4 border-b border-gray-700">
-          {(isExpanded || isHovered) && (
-            <h2 className="text-xl font-bold text-teal-400">Musical Tracker</h2>
-          )}
+        <div className="flex items-center justify-center p-4 border-b border-gray-700">
           <button
-            onClick={toggleSidebar}
-            className="text-teal-400 hover:text-teal-600"
-            aria-label="Toggle Sidebar"
+            onClick={() => setActiveSection('home')}
+            className="flex items-center space-x-2 text-teal-400 hover:text-teal-600 transition-colors"
           >
-            <svg
-              width="24"
-              height="24"
-              viewBox="0 0 24 24"
-              fill="none"
-              xmlns="http://www.w3.org/2000/svg"
-            >
-              <path
-                d="M3 12H21M3 6H21M3 18H21"
-                stroke="currentColor"
-                strokeWidth="2"
-                strokeLinecap="round"
-                strokeLinejoin="round"
-              />
-            </svg>
+            {(isExpanded || isHovered) ? (
+              <h2 className="text-xl font-bold">Musical Tracker</h2>
+            ) : (
+              <svg className="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 19V6l12-3v13M9 19c0 1.105-1.343 2-3 2s-3-.895-3-2 1.343-2 3-2 3 .895 3 2zm12-3c0 1.105-1.343 2-3 2s-3-.895-3-2 1.343-2 3-2 3 .895 3 2zM9 10l12-3" />
+              </svg>
+            )}
           </button>
-        </div> */}
+        </div>
 
         {/* Global Search */}
         <div className="p-4 border-b border-gray-700">
@@ -130,7 +118,6 @@ export function Sidebar() {
                     const query = (e.target as HTMLInputElement).value;
                     if (query.trim()) {
                       // Navigate to home page which will show search results
-                      navigate("/");
                     }
                   }
                 }}
@@ -216,134 +203,221 @@ export function Sidebar() {
 
         {/* Navigation Menu */}
         <nav className="py-4 flex-grow">
-          <ul>
-            {/* Admin Dashboard - Only show to admin users */}
-            {isAdmin && (
-              <li>
-                <button
-                  onClick={() => {
-                    setActiveItem("admin");
-                    navigate("/admin");
-                  }}
-                  className={`flex items-center w-full px-4 py-3 hover:bg-teal-600 ${
-                    activeItem === "admin" ? "bg-teal-700" : ""
-                  }`}
-                >
-                  <svg
-                    className="w-6 h-6 mr-2"
-                    viewBox="0 0 24 24"
-                    fill="none"
-                    xmlns="http://www.w3.org/2000/svg"
-                  >
-                    <path
-                      d="M3 12l9-9 9 9M5 12v7a2 2 0 002 2h10a2 2 0 002-2v-7"
-                      stroke="currentColor"
-                      strokeWidth="2"
-                      strokeLinecap="round"
-                      strokeLinejoin="round"
-                    />
+          <ul className="space-y-2">
+            {/* Dashboard */}
+            <li>
+              <button
+                onClick={() => setActiveSection("home")}
+                className={`flex items-center w-full px-4 py-2 hover:bg-teal-600 transition-colors ${
+                  activeSection === "home" ? "bg-teal-700" : ""
+                }`}
+              >
+                <svg className="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6" />
+                </svg>
+                {(isExpanded || isHovered) && <span>Dashboard</span>}
+              </button>
+            </li>
+            
+            {/* Explore Section */}
+            <li>
+              <div className="px-4 py-2">
+                {(isExpanded || isHovered) && (
+                  <h3 className="text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wide">
+                    Explore
+                  </h3>
+                )}
+              </div>
+              <button
+                onClick={() => toggleSubmenu("explore")}
+                className="flex items-center justify-between w-full px-4 py-2 hover:bg-teal-600 transition-colors"
+              >
+                <div className="flex items-center">
+                  <svg className="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
                   </svg>
-                  {(isExpanded || isHovered) && <span>Admin Dashboard</span>}
-                </button>
-              </li>
-            )}
+                  {(isExpanded || isHovered) && <span>Browse</span>}
+                </div>
+                {(isExpanded || isHovered) && (
+                  <svg 
+                    className={`w-4 h-4 transition-transform ${openSubmenu === "explore" ? "rotate-180" : ""}`}
+                    fill="none" 
+                    stroke="currentColor" 
+                    viewBox="0 0 24 24"
+                  >
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+                  </svg>
+                )}
+              </button>
+              
+              {openSubmenu === "explore" && (isExpanded || isHovered) && (
+                <ul className="ml-6 mt-1 space-y-1">
+                  <li>
+                    <button
+                      onClick={() => setActiveSection("browse")}
+                      className={`flex items-center w-full px-3 py-2 text-sm hover:bg-teal-600 rounded ${
+                        activeSection === "browse" ? "bg-teal-700" : ""
+                      }`}
+                    >
+                      Search & Filter
+                    </button>
+                  </li>
+                  <li>
+                    <button
+                      onClick={() => setActiveSection("musicals")}
+                      className={`flex items-center w-full px-3 py-2 text-sm hover:bg-teal-600 rounded ${
+                        activeSection === "musicals" ? "bg-teal-700" : ""
+                      }`}
+                    >
+                      Musicals
+                    </button>
+                  </li>
+                  <li>
+                    <button
+                      onClick={() => setActiveSection("actors")}
+                      className={`flex items-center w-full px-3 py-2 text-sm hover:bg-teal-600 rounded ${
+                        activeSection === "actors" ? "bg-teal-700" : ""
+                      }`}
+                    >
+                      Actors
+                    </button>
+                  </li>
+                  <li>
+                    <button
+                      onClick={() => setActiveSection("theaters")}
+                      className={`flex items-center w-full px-3 py-2 text-sm hover:bg-teal-600 rounded ${
+                        activeSection === "theaters" ? "bg-teal-700" : ""
+                      }`}
+                    >
+                      Theaters
+                    </button>
+                  </li>
+                  <li>
+                    <button
+                      onClick={() => setActiveSection("performances")}
+                      className={`flex items-center w-full px-3 py-2 text-sm hover:bg-teal-600 rounded ${
+                        activeSection === "performances" ? "bg-teal-700" : ""
+                      }`}
+                    >
+                      Performances
+                    </button>
+                  </li>
+                  <li>
+                    <button
+                      onClick={() => setActiveSection("calendar")}
+                      className={`flex items-center w-full px-3 py-2 text-sm hover:bg-teal-600 rounded ${
+                        activeSection === "calendar" ? "bg-teal-700" : ""
+                      }`}
+                    >
+                      Calendar
+                    </button>
+                  </li>
+                </ul>
+              )}
+            </li>
 
-            {/* Management Submenu - Only show to admin users */}
+
+
+            {/* Admin Section */}
             {isAdmin && (
               <li>
+                <div className="px-4 py-2 mt-4">
+                  {(isExpanded || isHovered) && (
+                    <h3 className="text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wide">
+                      Administration
+                    </h3>
+                  )}
+                </div>
                 <button
-                  onClick={() => toggleSubmenu("management")}
-                  className={`flex items-center justify-between w-full px-4 py-3 hover:bg-teal-600 ${
-                    openSubmenu === "management" ? "bg-teal-700" : ""
-                  }`}
+                  onClick={() => toggleSubmenu("admin")}
+                  className="flex items-center justify-between w-full px-4 py-2 hover:bg-teal-600 transition-colors"
                 >
                   <div className="flex items-center">
-                    <svg
-                      className="w-6 h-6 mr-2"
-                      viewBox="0 0 24 24"
-                      fill="none"
-                      xmlns="http://www.w3.org/2000/svg"
-                    >
-                      <path
-                        d="M17 20H7C5.9 20 5 19.1 5 18V6C5 4.9 5.9 4 7 4H17C18.1 4 19 4.9 19 6V18C19 19.1 18.1 20 17 20Z"
-                        stroke="currentColor"
-                        strokeWidth="2"
-                        strokeLinecap="round"
-                      />
-                      <path
-                        d="M9 9H15M9 13H15M9 17H13"
-                        stroke="currentColor"
-                        strokeWidth="2"
-                        strokeLinecap="round"
-                      />
+                    <svg className="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z" />
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
                     </svg>
-                    {(isExpanded || isHovered) && <span>Management</span>}
+                    {(isExpanded || isHovered) && <span>Admin Tools</span>}
                   </div>
                   {(isExpanded || isHovered) && (
-                    <svg
-                      className={`w-5 h-5 transform ${
-                        openSubmenu === "management" ? "rotate-180" : ""
-                      }`}
+                    <svg 
+                      className={`w-4 h-4 transition-transform ${openSubmenu === "admin" ? "rotate-180" : ""}`}
+                      fill="none" 
+                      stroke="currentColor" 
                       viewBox="0 0 24 24"
-                      fill="none"
                     >
-                      <path
-                        d="M6 9l6 6 6-6"
-                        stroke="currentColor"
-                        strokeWidth="2"
-                        strokeLinecap="round"
-                        strokeLinejoin="round"
-                      />
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
                     </svg>
                   )}
                 </button>
-
-                {/* Submenu Items */}
-                {openSubmenu === "management" && (
-                  <ul className="bg-gray-800">
+                
+                {openSubmenu === "admin" && (isExpanded || isHovered) && (
+                  <ul className="ml-6 mt-1 space-y-1">
                     <li>
-                      <a
-                        href="/admin/pending"
-                        className="flex items-center pl-12 py-2 hover:bg-teal-600"
-                        onClick={(e) => {
-                          e.preventDefault();
-                          setActiveItem("pending");
-                          window.location.href = "/admin/pending";
-                        }}
+                      <button
+                        onClick={() => setActiveSection("admin")}
+                        className={`flex items-center w-full px-3 py-2 text-sm hover:bg-teal-600 rounded ${
+                          activeSection === "admin" ? "bg-teal-700" : ""
+                        }`}
                       >
-                        {(isExpanded || isHovered) && (
-                          <span>Pending Approvals</span>
-                        )}
-                      </a>
+                        Dashboard
+                      </button>
                     </li>
                     <li>
-                      <a
-                        href="/admin/users"
-                        className="flex items-center pl-12 py-2 hover:bg-teal-600"
-                        onClick={(e) => {
-                          e.preventDefault();
-                          setActiveItem("users");
-                        }}
+                      <button
+                        onClick={() => setActiveSection("pending")}
+                        className={`flex items-center w-full px-3 py-2 text-sm hover:bg-teal-600 rounded ${
+                          activeSection === "pending" ? "bg-teal-700" : ""
+                        }`}
                       >
-                        {(isExpanded || isHovered) && <span>Users</span>}
-                      </a>
+                        Pending Approvals
+                      </button>
                     </li>
                     <li>
-                      <a
-                        href="/admin/settings"
-                        className="flex items-center pl-12 py-2 hover:bg-teal-600"
-                        onClick={(e) => {
-                          e.preventDefault();
-                          setActiveItem("settings");
-                        }}
+                      <button
+                        onClick={() => setActiveSection("analytics")}
+                        className={`flex items-center w-full px-3 py-2 text-sm hover:bg-teal-600 rounded ${
+                          activeSection === "analytics" ? "bg-teal-700" : ""
+                        }`}
                       >
-                        {(isExpanded || isHovered) && <span>Settings</span>}
-                      </a>
+                        Analytics
+                      </button>
+                    </li>
+                    <li>
+                      <button
+                        onClick={() => setActiveSection("scheduling")}
+                        className={`flex items-center w-full px-3 py-2 text-sm hover:bg-teal-600 rounded ${
+                          activeSection === "scheduling" ? "bg-teal-700" : ""
+                        }`}
+                      >
+                        Scheduling
+                      </button>
+                    </li>
+                    <li>
+                      <button
+                        onClick={() => setActiveSection("notifications")}
+                        className={`flex items-center w-full px-3 py-2 text-sm hover:bg-teal-600 rounded ${
+                          activeSection === "notifications" ? "bg-teal-700" : ""
+                        }`}
+                      >
+                        Notifications
+                      </button>
+                    </li>
+                    <li>
+                      <button
+                        onClick={() => setActiveSection("import-export")}
+                        className={`flex items-center w-full px-3 py-2 text-sm hover:bg-teal-600 rounded ${
+                          activeSection === "import-export" ? "bg-teal-700" : ""
+                        }`}
+                      >
+                        Import/Export
+                      </button>
                     </li>
                   </ul>
                 )}
               </li>
             )}
+
 
             {/* Authentication Section */}
             {!user ? (

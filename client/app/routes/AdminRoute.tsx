@@ -2,7 +2,12 @@ import React from "react";
 import { Routes, Route, useNavigate } from "react-router-dom";
 import { AppLayout } from "~/components/layout/AppLayout";
 import { AdminDashboard } from "../components/pages/admin/AdminDashboard";
+import { AnalyticsDashboard } from "../components/pages/analytics/AnalyticsDashboard";
+import { SchedulingCalendar } from "../components/pages/scheduling/SchedulingCalendar";
+import EmailNotifications from "../components/pages/admin/EmailNotifications";
+import ImportExportSystem from "../components/pages/admin/ImportExportSystem";
 import PendingApprovalsPage from "../components/pages/admin/PendingApprovalsPage";
+import { UserPage } from "./UserPage";
 import { useAuth } from "../hooks/useAuth";
 
 export default function AdminRoute() {
@@ -52,6 +57,10 @@ export default function AdminRoute() {
       <Routes>
         <Route path="/" element={<AdminDashboard />} />
         <Route path="/pending" element={<PendingApprovalsPage />} />
+        <Route path="/analytics" element={<AnalyticsDashboard />} />
+        <Route path="/scheduling" element={<SchedulingCalendar />} />
+        <Route path="/notifications" element={<EmailNotifications />} />
+        <Route path="/import-export" element={<ImportExportSystem />} />
       </Routes>
     </AppLayout>
   );

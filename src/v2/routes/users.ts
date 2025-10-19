@@ -6,7 +6,7 @@ import { eq } from "drizzle-orm";
 import { generateAuthenticationToken } from "../../lib/tokens.js";
 import { Validator } from "../../lib/validator.js";
 import { SERVER_ERROR } from "../../lib/errors.js";
-import { ensureAuthenticated } from "../../lib/auth.js";
+import { ensureAuthenticated, ensureAdmin } from "../../lib/auth.js";
 import { v4 as uuidv4 } from "uuid";
 import { validate as validateUuid } from "uuid";
 
@@ -16,7 +16,14 @@ userRouter.post("/", createUserHandler);
 userRouter.post("/login", loginUserHandler);
 userRouter.post("/forgot-password", forgotPasswordHandler);
 userRouter.get("/", ensureAuthenticated, getUserByIdHandler);
+userRouter.get("/all", ensureAuthenticated, ensureAdmin, getAllUsersHandler);
 userRouter.put("/", ensureAuthenticated, updateUserHandler);
+userRouter.put(
+  "/:id/role",
+  ensureAuthenticated,
+  ensureAdmin,
+  updateUserRoleHandler
+);
 userRouter.delete("/", ensureAuthenticated, deleteUserHandler);
 
 type CreateUserBodyParams = {
@@ -358,5 +365,92 @@ async function forgotPasswordHandler(
       message:
         "If an account with that email exists, we've sent password reset instructions.",
     });
+  }
+}
+
+async function getAllUsersHandler(req: Request, res: Response) {
+  try {
+    const users = await db.query.UserTable.findMany({
+      columns: {
+        id: true,
+        firstName: true,
+        lastName: true,
+        email: true,
+        isAdmin: true,
+        emailVerified: true,
+      },
+    });
+
+    // Transform the data to match frontend expectations
+    const transformedUsers = users.map((user) => ({
+      id: user.id,
+      firstName: user.firstName,
+      lastName: user.lastName,
+      email: user.email,
+      role: user.isAdmin ? "admin" : "user",
+      emailVerified: user.emailVerified,
+    }));
+
+    res.json(transformedUsers);
+  } catch (error) {
+    console.error("Get all users error:", error);
+    res.status(500).json(SERVER_ERROR);
+  }
+}
+
+type UpdateUserRoleBody = {
+  role: "admin" | "user";
+};
+
+async function updateUserRoleHandler(
+  req: Request<{ id: string }, {}, UpdateUserRoleBody>,
+  res: Response
+) {
+  const { id } = req.params;
+  const { role } = req.body;
+  const validator = new Validator();
+
+  validator.check(!!id, "id", "is required");
+  validator.check(validateUuid(id), "id", "must be a valid UUID");
+  validator.check(!!role, "role", "is required");
+  validator.check(
+    ["admin", "user"].includes(role),
+    "role",
+    "must be either 'admin' or 'user'"
+  );
+
+  if (!validator.valid) {
+    res.status(400).json({ errors: validator.errors });
+    return;
+  }
+
+  try {
+    // Check if the user exists
+    const existingUser = await db.query.UserTable.findFirst({
+      where: (users, { eq }) => eq(users.id, id),
+    });
+
+    if (!existingUser) {
+      res.status(404).json({ errors: { message: "User not found" } });
+      return;
+    }
+
+    // Update the user role and isAdmin flag
+    const isAdmin = role === "admin";
+    await db
+      .update(UserTable)
+      .set({
+        role,
+        isAdmin,
+      })
+      .where(eq(UserTable.id, id));
+
+    res.json({
+      message: "User role updated successfully",
+      role,
+    });
+  } catch (error) {
+    console.error("Update user role error:", error);
+    res.status(500).json(SERVER_ERROR);
   }
 }

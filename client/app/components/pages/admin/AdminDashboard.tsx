@@ -1,7 +1,15 @@
 import React, { useState, useEffect } from "react";
-import { useNavigate } from "react-router-dom";
 import { AdminGuard } from "~/components/common/AdminGuard";
 import { ActivityFeed } from "~/components/common/ActivityFeed";
+import { useNavigation } from "~/components/layout/NavigationProvider";
+import { UserPage } from "~/routes/UserPage";
+import { ActorManagement } from "~/components/pages/actors/ActorManagement";
+import { MusicalManagement } from "~/components/pages/musicals/MusicalManagement";
+import { TheaterManagement } from "~/components/pages/theaters/TheaterManagement";
+import PerformanceManagement from "~/components/pages/performances/PerformanceManagement";
+import RoleManagement from "~/components/pages/roles/RoleManagement";
+import { CastingManagement } from "~/components/pages/castings/CastingManagement";
+import PendingApprovalsPage from "~/components/pages/admin/PendingApprovalsPage";
 
 interface DashboardStats {
   actors: {
@@ -31,12 +39,24 @@ interface DashboardStats {
     total: number;
     active: number;
   };
+  users: {
+    total: number;
+    admins: number;
+    verified: number;
+  };
 }
 
 export function AdminDashboard() {
   const [stats, setStats] = useState<DashboardStats | null>(null);
   const [loading, setLoading] = useState(true);
-  const navigate = useNavigate();
+  const [currentSection, setCurrentSection] = useState<string>("dashboard");
+  const { setActiveSection } = useNavigation();
+
+  // Reset to dashboard on component mount
+  useEffect(() => {
+    console.log("AdminDashboard mounted");
+    setCurrentSection("dashboard");
+  }, []);
 
   useEffect(() => {
     const fetchStats = async () => {
@@ -51,6 +71,7 @@ export function AdminDashboard() {
           theatersRes,
           rolesRes,
           castingsRes,
+          usersRes,
         ] = await Promise.all([
           fetch("http://localhost:3000/v2/actor", {
             headers: { Authorization: `Bearer ${token}` },
@@ -70,17 +91,28 @@ export function AdminDashboard() {
           fetch("http://localhost:3000/v2/casting", {
             headers: { Authorization: `Bearer ${token}` },
           }),
+          fetch("http://localhost:3000/v2/user/all", {
+            headers: { Authorization: `Bearer ${token}` },
+          }),
         ]);
 
-        const [actors, musicals, performances, theaters, roles, castings] =
-          await Promise.all([
-            actorsRes.ok ? actorsRes.json() : [],
-            musicalsRes.ok ? musicalsRes.json() : [],
-            performancesRes.ok ? performancesRes.json() : [],
-            theatersRes.ok ? theatersRes.json() : [],
-            rolesRes.ok ? rolesRes.json() : [],
-            castingsRes.ok ? castingsRes.json() : [],
-          ]);
+        const [
+          actors,
+          musicals,
+          performances,
+          theaters,
+          roles,
+          castings,
+          users,
+        ] = await Promise.all([
+          actorsRes.ok ? actorsRes.json() : [],
+          musicalsRes.ok ? musicalsRes.json() : [],
+          performancesRes.ok ? performancesRes.json() : [],
+          theatersRes.ok ? theatersRes.json() : [],
+          rolesRes.ok ? rolesRes.json() : [],
+          castingsRes.ok ? castingsRes.json() : [],
+          usersRes.ok ? usersRes.json() : [],
+        ]);
 
         const currentDate = new Date();
 
@@ -117,6 +149,11 @@ export function AdminDashboard() {
             active: castings.filter(
               (c: any) => c.status === "active" || !c.status
             ).length,
+          },
+          users: {
+            total: users.length,
+            admins: users.filter((u: any) => u.role === "admin").length,
+            verified: users.filter((u: any) => u.emailVerified).length,
           },
         });
       } catch (error) {
@@ -173,7 +210,7 @@ export function AdminDashboard() {
       verified: stats.actors.verified,
       pending: stats.actors.pending,
       color: "teal",
-      route: "/actors",
+      section: "actors",
       icon: "👤",
     },
     {
@@ -182,7 +219,7 @@ export function AdminDashboard() {
       verified: stats.musicals.verified,
       pending: stats.musicals.pending,
       color: "purple",
-      route: "/musicals",
+      section: "musicals",
       icon: "🎭",
     },
     {
@@ -191,7 +228,7 @@ export function AdminDashboard() {
       verified: stats.performances.upcoming,
       pending: stats.performances.past,
       color: "blue",
-      route: "/performances",
+      section: "performances",
       icon: "🎪",
       labels: { verified: "Upcoming", pending: "Past" },
     },
@@ -201,7 +238,7 @@ export function AdminDashboard() {
       verified: stats.theaters.verified,
       pending: stats.theaters.pending,
       color: "green",
-      route: "/theaters",
+      section: "theaters",
       icon: "🏛️",
     },
     {
@@ -210,7 +247,7 @@ export function AdminDashboard() {
       verified: 0,
       pending: 0,
       color: "amber",
-      route: "/roles",
+      section: "roles",
       icon: "🎪",
       simple: true,
     },
@@ -220,191 +257,217 @@ export function AdminDashboard() {
       verified: stats.castings.active,
       pending: stats.castings.total - stats.castings.active,
       color: "red",
-      route: "/castings",
+      section: "castings",
       icon: "🎬",
       labels: { verified: "Active", pending: "Inactive" },
     },
+    {
+      title: "Users",
+      total: stats.users.total,
+      verified: stats.users.admins,
+      pending: stats.users.verified,
+      color: "blue",
+      section: "users",
+      icon: "👥",
+      labels: { verified: "Admins", pending: "Verified" },
+    },
   ];
+
+  // Function to render current section
+  const renderCurrentSection = () => {
+    if (currentSection === "dashboard") {
+      return (
+        <>
+          {/* Statistics Grid */}
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6 mb-6 sm:mb-8">
+            {statCards.map((card) => (
+              <div
+                key={card.title}
+                className="bg-white dark:bg-gray-800 rounded-lg shadow-sm border border-gray-200 dark:border-gray-700 p-4 sm:p-6 hover:shadow-md transition-shadow"
+              >
+                <div className="flex items-center justify-between mb-4">
+                  <h3 className="text-base sm:text-lg font-medium text-gray-900 dark:text-white">
+                    <span className="text-lg sm:text-xl">{card.icon}</span>
+                    <span className="ml-2">{card.title}</span>
+                  </h3>
+                  <span className="text-xl sm:text-2xl font-bold text-gray-900 dark:text-white">
+                    {card.total}
+                  </span>
+                </div>
+
+                {!card.simple && (
+                  <div className="space-y-2 mb-4">
+                    <div className="flex justify-between text-sm">
+                      <span className="text-green-600 dark:text-green-400">
+                        {card.labels?.verified || "Verified"}: {card.verified}
+                      </span>
+                      <span className="text-yellow-600 dark:text-yellow-400">
+                        {card.labels?.pending || "Pending"}: {card.pending}
+                      </span>
+                    </div>
+                    <div className="w-full bg-gray-200 dark:bg-gray-700 rounded-full h-2">
+                      <div
+                        className={`bg-${card.color}-500 h-2 rounded-full`}
+                        style={{
+                          width: `${card.total > 0 ? (card.verified / card.total) * 100 : 0}%`,
+                        }}
+                      ></div>
+                    </div>
+                  </div>
+                )}
+
+                <button
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    setCurrentSection(card.section);
+                  }}
+                  className={`w-full mt-4 px-4 py-2 bg-${card.color}-600 hover:bg-${card.color}-700 text-white rounded-md text-sm font-medium transition-colors`}
+                >
+                  Manage {card.title}
+                </button>
+              </div>
+            ))}
+          </div>
+
+          {/* Quick Actions */}
+          <div className="bg-white dark:bg-gray-800 rounded-lg shadow-sm border border-gray-200 dark:border-gray-700 p-4 sm:p-6">
+            <h2 className="text-lg sm:text-xl font-semibold text-gray-900 dark:text-white mb-4">
+              Quick Actions
+            </h2>
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+              <button
+                onClick={() => setActiveSection("pending")}
+                className="flex items-center justify-center px-4 py-3 bg-yellow-100 dark:bg-yellow-900/50 text-yellow-800 dark:text-yellow-200 rounded-md hover:bg-yellow-200 dark:hover:bg-yellow-900/75 transition-colors"
+              >
+                <span className="text-lg mr-2">⏳</span>
+                Review Pending
+              </button>
+              <button
+                onClick={() => setCurrentSection("actors")}
+                className="flex items-center justify-center px-4 py-3 bg-teal-100 dark:bg-teal-900/50 text-teal-800 dark:text-teal-200 rounded-md hover:bg-teal-200 dark:hover:bg-teal-900/75 transition-colors"
+              >
+                <span className="text-lg mr-2">👤</span>
+                Add Actor
+              </button>
+              <button
+                onClick={() => setCurrentSection("musicals")}
+                className="flex items-center justify-center px-4 py-3 bg-purple-100 dark:bg-purple-900/50 text-purple-800 dark:text-purple-200 rounded-md hover:bg-purple-200 dark:hover:bg-purple-900/75 transition-colors"
+              >
+                <span className="text-lg mr-2">🎭</span>
+                Add Musical
+              </button>
+              <button
+                onClick={() => setCurrentSection("theaters")}
+                className="flex items-center justify-center px-4 py-3 bg-green-100 dark:bg-green-900/50 text-green-800 dark:text-green-200 rounded-md hover:bg-green-200 dark:hover:bg-green-900/75 transition-colors"
+              >
+                <span className="text-lg mr-2">🏛️</span>
+                Add Theater
+              </button>
+            </div>
+          </div>
+
+          {/* Recent Activity */}
+          <div className="mt-6 sm:mt-8">
+            <ActivityFeed />
+          </div>
+
+          {/* Pending Items Alert */}
+          {stats &&
+            (stats.actors.pending > 0 ||
+              stats.musicals.pending > 0 ||
+              stats.theaters.pending > 0) && (
+              <div className="mt-6 sm:mt-8 bg-yellow-50 dark:bg-yellow-900/20 border border-yellow-200 dark:border-yellow-700 rounded-lg p-4 sm:p-6">
+                <div className="flex items-start">
+                  <div className="flex-shrink-0">
+                    <span className="text-2xl">⚠️</span>
+                  </div>
+                  <div className="ml-3 flex-1">
+                    <h3 className="text-lg font-medium text-yellow-800 dark:text-yellow-200 mb-2">
+                      Pending Approvals Required
+                    </h3>
+                    <div className="space-y-1">
+                      {stats.actors.pending > 0 && (
+                        <p className="text-sm text-yellow-700 dark:text-yellow-300">
+                          • {stats.actors.pending} actors awaiting verification
+                        </p>
+                      )}
+                      {stats.musicals.pending > 0 && (
+                        <p className="text-sm text-yellow-700 dark:text-yellow-300">
+                          • {stats.musicals.pending} musicals awaiting approval
+                        </p>
+                      )}
+                      {stats.theaters.pending > 0 && (
+                        <p className="text-sm text-yellow-700 dark:text-yellow-300">
+                          • {stats.theaters.pending} theaters awaiting
+                          verification
+                        </p>
+                      )}
+                    </div>
+                    <button
+                      onClick={() => setActiveSection("pending")}
+                      className="mt-3 inline-flex items-center px-3 py-2 border border-yellow-300 dark:border-yellow-600 shadow-sm text-sm leading-4 font-medium rounded-md text-yellow-700 dark:text-yellow-200 bg-yellow-100 dark:bg-yellow-900/50 hover:bg-yellow-200 dark:hover:bg-yellow-900/75 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-yellow-500"
+                    >
+                      Review All Pending Items
+                    </button>
+                  </div>
+                </div>
+                <div className="mt-4 pt-4 border-t border-yellow-200 dark:border-yellow-700">
+                  <p className="text-sm text-yellow-600 dark:text-yellow-400">
+                    Total:{" "}
+                    {stats.actors.pending +
+                      stats.musicals.pending +
+                      stats.theaters.pending}{" "}
+                    items need your attention
+                  </p>
+                </div>
+              </div>
+            )}
+        </>
+      );
+    }
+
+    // Render different sections
+    switch (currentSection) {
+      case "actors":
+        return <ActorManagement />;
+      case "musicals":
+        return <MusicalManagement />;
+      case "performances":
+        return <PerformanceManagement />;
+      case "theaters":
+        return <TheaterManagement />;
+      case "roles":
+        return <RoleManagement onBackToAdmin={() => setCurrentSection("dashboard")} />;
+      case "castings":
+        return <CastingManagement onBackToAdmin={() => setCurrentSection("dashboard")} />;
+      case "users":
+        return <UserPage />;
+      case "pending":
+        return <PendingApprovalsPage />;
+      default:
+        return null;
+    }
+  };
 
   return (
     <AdminGuard>
       <div className="max-w-7xl mx-auto py-4 sm:py-8 px-4 sm:px-6 lg:px-8">
+        {/* Header */}
         <div className="mb-6 sm:mb-8">
           <h1 className="text-2xl sm:text-3xl font-bold text-gray-900 dark:text-white">
-            Admin Dashboard
+            {currentSection === "dashboard"
+              ? "Admin Dashboard"
+              : `Manage ${currentSection.charAt(0).toUpperCase() + currentSection.slice(1)}`}
           </h1>
           <p className="mt-2 text-sm sm:text-base text-gray-600 dark:text-gray-400">
-            Overview of all musical theater data and pending approvals
+            {currentSection === "dashboard"
+              ? "Overview of all musical theater data and pending approvals"
+              : `Manage ${currentSection} from the admin panel`}
           </p>
         </div>
 
-        {/* Statistics Grid */}
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6 mb-6 sm:mb-8">
-          {statCards.map((card) => (
-            <div
-              key={card.title}
-              className="bg-white dark:bg-gray-800 rounded-lg shadow-sm border border-gray-200 dark:border-gray-700 p-4 sm:p-6 hover:shadow-md transition-shadow"
-            >
-              <div className="flex items-center justify-between mb-4">
-                <h3 className="text-base sm:text-lg font-medium text-gray-900 dark:text-white">
-                  <span className="text-lg sm:text-xl">{card.icon}</span>
-                  <span className="ml-2">{card.title}</span>
-                </h3>
-                <span className="text-xl sm:text-2xl font-bold text-gray-900 dark:text-white">
-                  {card.total}
-                </span>
-              </div>
-
-              {!card.simple && (
-                <div className="space-y-2 mb-4">
-                  <div className="flex justify-between text-sm">
-                    <span className="text-green-600 dark:text-green-400">
-                      {card.labels?.verified || "Verified"}: {card.verified}
-                    </span>
-                    <span className="text-yellow-600 dark:text-yellow-400">
-                      {card.labels?.pending || "Pending"}: {card.pending}
-                    </span>
-                  </div>
-                  <div className="w-full bg-gray-200 dark:bg-gray-700 rounded-full h-2">
-                    <div
-                      className={`bg-${card.color}-500 h-2 rounded-full`}
-                      style={{
-                        width: `${card.total > 0 ? (card.verified / card.total) * 100 : 0}%`,
-                      }}
-                    ></div>
-                  </div>
-                </div>
-              )}
-
-              <button
-                onClick={(e) => {
-                  e.stopPropagation();
-                  navigate(card.route);
-                }}
-                className={`w-full mt-4 px-4 py-2 bg-${card.color}-600 hover:bg-${card.color}-700 text-white rounded-md text-sm font-medium transition-colors`}
-              >
-                Manage {card.title}
-              </button>
-            </div>
-          ))}
-        </div>
-
-        {/* Quick Actions */}
-        <div className="bg-white dark:bg-gray-800 rounded-lg shadow-sm border border-gray-200 dark:border-gray-700 p-4 sm:p-6">
-          <h2 className="text-lg sm:text-xl font-semibold text-gray-900 dark:text-white mb-4">
-            Quick Actions
-          </h2>
-          <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 sm:gap-4">
-            <button
-              onClick={() => navigate("/musicals/new")}
-              className="flex flex-col items-center p-3 sm:p-4 text-center border border-gray-200 dark:border-gray-700 rounded-lg hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors"
-            >
-              <span className="text-xl sm:text-2xl mb-1 sm:mb-2">➕</span>
-              <span className="text-xs sm:text-sm font-medium">
-                Add Musical
-              </span>
-            </button>
-            <button
-              onClick={() => navigate("/actors/new")}
-              className="flex flex-col items-center p-3 sm:p-4 text-center border border-gray-200 dark:border-gray-700 rounded-lg hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors"
-            >
-              <span className="text-xl sm:text-2xl mb-1 sm:mb-2">👤</span>
-              <span className="text-xs sm:text-sm font-medium">Add Actor</span>
-            </button>
-            <button
-              onClick={() => navigate("/performances/new")}
-              className="flex flex-col items-center p-3 sm:p-4 text-center border border-gray-200 dark:border-gray-700 rounded-lg hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors"
-            >
-              <span className="text-xl sm:text-2xl mb-1 sm:mb-2">🎪</span>
-              <span className="text-xs sm:text-sm font-medium">
-                Add Performance
-              </span>
-            </button>
-            <button
-              onClick={() => navigate("/theaters/new")}
-              className="flex flex-col items-center p-3 sm:p-4 text-center border border-gray-200 dark:border-gray-700 rounded-lg hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors"
-            >
-              <span className="text-xl sm:text-2xl mb-1 sm:mb-2">🏛️</span>
-              <span className="text-xs sm:text-sm font-medium">
-                Add Theater
-              </span>
-            </button>
-          </div>
-        </div>
-
-        {/* Recent Activity Feed */}
-        <div className="mt-8">
-          <ActivityFeed limit={5} />
-        </div>
-
-        {/* Pending Approvals */}
-        {(stats.actors.pending > 0 ||
-          stats.musicals.pending > 0 ||
-          stats.theaters.pending > 0) && (
-          <div className="mt-8 bg-yellow-50 dark:bg-yellow-900/20 border border-yellow-200 dark:border-yellow-800 rounded-lg p-6">
-            <div className="flex justify-between items-start mb-4">
-              <h2 className="text-xl font-semibold text-yellow-800 dark:text-yellow-200">
-                ⚠️ Items Pending Approval
-              </h2>
-              <button
-                onClick={() => navigate("/admin/pending")}
-                className="px-4 py-2 bg-yellow-600 text-white rounded-lg hover:bg-yellow-700 transition-colors text-sm font-medium"
-              >
-                Review All
-              </button>
-            </div>
-            <div className="space-y-3">
-              {stats.actors.pending > 0 && (
-                <div className="flex justify-between items-center">
-                  <p className="text-yellow-700 dark:text-yellow-300">
-                    • {stats.actors.pending} actors waiting for verification
-                  </p>
-                  <button
-                    onClick={() => navigate("/admin/pending?filter=actor")}
-                    className="px-3 py-1 text-xs bg-yellow-600 text-white rounded hover:bg-yellow-700 transition-colors"
-                  >
-                    Review Actors
-                  </button>
-                </div>
-              )}
-              {stats.musicals.pending > 0 && (
-                <div className="flex justify-between items-center">
-                  <p className="text-yellow-700 dark:text-yellow-300">
-                    • {stats.musicals.pending} musicals waiting for verification
-                  </p>
-                  <button
-                    onClick={() => navigate("/admin/pending?filter=musical")}
-                    className="px-3 py-1 text-xs bg-yellow-600 text-white rounded hover:bg-yellow-700 transition-colors"
-                  >
-                    Review Musicals
-                  </button>
-                </div>
-              )}
-              {stats.theaters.pending > 0 && (
-                <div className="flex justify-between items-center">
-                  <p className="text-yellow-700 dark:text-yellow-300">
-                    • {stats.theaters.pending} theaters waiting for verification
-                  </p>
-                  <button
-                    onClick={() => navigate("/admin/pending?filter=theater")}
-                    className="px-3 py-1 text-xs bg-yellow-600 text-white rounded hover:bg-yellow-700 transition-colors"
-                  >
-                    Review Theaters
-                  </button>
-                </div>
-              )}
-            </div>
-            <div className="mt-4 pt-4 border-t border-yellow-200 dark:border-yellow-700">
-              <p className="text-sm text-yellow-600 dark:text-yellow-400">
-                Total:{" "}
-                {stats.actors.pending +
-                  stats.musicals.pending +
-                  stats.theaters.pending}{" "}
-                items need your attention
-              </p>
-            </div>
-          </div>
-        )}
+        {/* Render current section */}
+        {renderCurrentSection()}
       </div>
     </AdminGuard>
   );

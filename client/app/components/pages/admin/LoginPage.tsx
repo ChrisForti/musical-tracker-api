@@ -1,6 +1,7 @@
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { useToastHelpers } from "~/components/common/ToastProvider";
+import { useAuth } from "~/hooks/useAuth";
 
 interface LoginPageProps {
   onLoginSuccess?: () => void;
@@ -14,6 +15,7 @@ export function LoginPage({ onLoginSuccess }: LoginPageProps = {}) {
   const [isLoading, setIsLoading] = useState(false);
   const { success, error: showError } = useToastHelpers();
   const navigate = useNavigate();
+  const { refreshAuth } = useAuth();
 
   function handleEmailChange(event: React.ChangeEvent<HTMLInputElement>) {
     setEmail(event.target.value);
@@ -53,32 +55,14 @@ export function LoginPage({ onLoginSuccess }: LoginPageProps = {}) {
         // Close the modal if callback provided
         onLoginSuccess?.();
 
-        // Get user data to determine redirect destination
-        try {
-          const userResponse = await fetch("http://localhost:3000/v2/user", {
-            headers: {
-              Authorization: `Bearer ${data.token}`,
-            },
-          });
-
-          if (userResponse.ok) {
-            const userData = await userResponse.json();
-
-            // Redirect based on user role
-            if (userData.isAdmin) {
-              navigate("/admin");
-            } else {
-              navigate("/");
-            }
-          } else {
-            // Fallback to home page if user data fetch fails
-            navigate("/");
-          }
-        } catch (error) {
-          console.error("Failed to fetch user data:", error);
-          // Fallback to home page
+        // Refresh auth state and navigate
+        console.log('About to call refreshAuth...');
+        await refreshAuth();
+        console.log('refreshAuth completed');
+        setTimeout(() => {
+          console.log('Navigating to home...');
           navigate("/");
-        }
+        }, 100);
       } else {
         console.error("Login failed:", data);
         showError(

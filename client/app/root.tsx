@@ -9,8 +9,10 @@ import {
 
 import type { Route } from "./+types/root";
 import { GlobalSearchProvider } from "./components/layout/ui/GlobalSearchProvider";
+import { NavigationProvider } from "./components/layout/NavigationProvider";
 import { ToastProvider } from "./components/common/ToastProvider";
 import { ToastContainer } from "./components/common/ToastContainer";
+import { AuthProvider } from "./hooks/useAuth";
 import "./app.css";
 
 export const links: Route.LinksFunction = () => [
@@ -46,12 +48,16 @@ export function Layout({ children }: { children: React.ReactNode }) {
 
 export default function App() {
   return (
-    <ToastProvider>
-      <GlobalSearchProvider>
-        <Outlet />
-        <ToastContainer />
-      </GlobalSearchProvider>
-    </ToastProvider>
+    <AuthProvider>
+      <ToastProvider>
+        <NavigationProvider>
+          <GlobalSearchProvider>
+            <Outlet />
+            <ToastContainer />
+          </GlobalSearchProvider>
+        </NavigationProvider>
+      </ToastProvider>
+    </AuthProvider>
   );
 }
 
