@@ -110,10 +110,10 @@ const HomePage = () => {
   const { setActiveSection, setLoginModalOpen } = useNavigation();
 
   const actions = [
-    { section: "musicals" as const, label: "Browse Musicals" },
-    { section: "actors" as const, label: "View Actors" },
-    { section: "theaters" as const, label: "View Theaters" },
-    { section: "performances" as const, label: "View Performances" },
+    { section: "musicals" as const, label: "Manage Musicals" },
+    { section: "actors" as const, label: "Manage Actors" },
+    { section: "theaters" as const, label: "Manage Theaters" },
+    { section: "performances" as const, label: "Manage Performances" },
   ];
 
   const adminActions = [
