@@ -6,7 +6,7 @@ import { navigateBackToDashboard } from "~/lib/navigationUtils";
 
 interface Performance {
   id: string;
-  productionId: string;
+  musicalId: string;
   date: string;
   theaterId: string;
   posterId?: string;
@@ -24,20 +24,14 @@ export default function PerformanceForm({
 }: PerformanceFormProps) {
   const [formData, setFormData] = useState<Partial<Performance>>({
     date: "",
-    productionId: "",
+    musicalId: "",
     theaterId: "",
-    posterId: undefined,
-    posterUrl: undefined,
   });
 
   const [loading, setLoading] = useState(mode === "edit");
   const [imageError, setImageError] = useState<string | null>(null);
-  const [productions, setProductions] = useState<
-    { id: string; name: string; musicalTitle: string }[]
-  >([]);
-  const [theaters, setTheaters] = useState<
-    { id: string; name: string; city: string }[]
-  >([]);
+  const [musicals, setMusicals] = useState<{ id: string; name: string }[]>([]);
+  const [theaters, setTheaters] = useState<{ id: string; name: string; city: string }[]>([]);
   const navigate = useNavigate();
 
   // Load data when editing an existing performance
@@ -154,7 +148,7 @@ export default function PerformanceForm({
             Authorization: `Bearer ${token}`,
           },
           body: JSON.stringify({
-            musicalId: formData.productionId, // API uses musicalId
+            musicalId: formData.musicalId,
             theaterId: formData.theaterId,
             date: formData.date,
           }),
@@ -213,16 +207,16 @@ export default function PerformanceForm({
                   Production
                 </label>
                 <select
-                  name="productionId"
-                  value={formData.productionId || ""}
+                  name="musicalId"
+                  value={formData.musicalId || ""}
                   onChange={handleInputChange}
                   className="mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-teal-500 focus:border-teal-500"
                   required
                 >
                   <option value="">Select a Production</option>
-                  {productions.map((production) => (
-                    <option key={production.id} value={production.id}>
-                      {production.musicalTitle} - {production.name}
+                            .map((musical) => (
+                    <option key={musical.id} value={musical.id}>
+                      {musical.name}
                     </option>
                   ))}
                 </select>

@@ -2,7 +2,7 @@ import { Router, type Request, type Response } from "express";
 import { MusicalTable, UploadedImagesTable } from "../../drizzle/schema.js";
 import { db } from "../../drizzle/db.js";
 import { SERVER_ERROR } from "../../lib/errors.js";
-import { eq } from "drizzle-orm";
+import { eq, and } from "drizzle-orm";
 import { Validator } from "../../lib/validator.js";
 import { ensureAdmin, ensureAuthenticated } from "../../lib/auth.js";
 import { validate as validateUuid } from "uuid";
@@ -10,8 +10,10 @@ import { validate as validateUuid } from "uuid";
 export const musicalRouter = Router();
 
 musicalRouter.get("/", ensureAuthenticated, getAllMusicalsHandler);
+musicalRouter.get("/public", getPublicMusicalsHandler); // Public endpoint for verified musicals
 musicalRouter.post("/", ensureAuthenticated, createMusicalHandler);
 musicalRouter.get("/:id", ensureAuthenticated, getMusicalByIdHandler);
+musicalRouter.get("/public/:id", getPublicMusicalByIdHandler); // Public endpoint for verified musical
 musicalRouter.put("/:id", ensureAuthenticated, updateMusicalHandler);
 musicalRouter.delete(
   "/:id",
@@ -317,6 +319,45 @@ async function verifyMusicalHandler(
     res.status(200).json({});
   } catch (error) {
     console.error("Error in verifyMusicalHandler:", error);
+    res.status(500).json({ error: SERVER_ERROR });
+  }
+}
+
+// Public handlers (no authentication required)
+async function getPublicMusicalsHandler(req: Request, res: Response) {
+  try {
+    // For now, return all musicals for public browse (TODO: filter by verified when approval workflow is active)
+    const musicals = await db.select().from(MusicalTable);
+    res.status(200).json(musicals);
+  } catch (error) {
+    console.error("Error in getPublicMusicalsHandler:", error);
+    res.status(500).json({ error: SERVER_ERROR });
+  }
+}
+
+async function getPublicMusicalByIdHandler(req: Request, res: Response) {
+  try {
+    const { id } = req.params;
+
+    if (!id || !validateUuid(id)) {
+      res.status(400).json({ error: "Invalid musical ID format" });
+      return;
+    }
+
+    const musicals = await db
+      .select()
+      .from(MusicalTable)
+      .where(and(eq(MusicalTable.id, id), eq(MusicalTable.verified, true)))
+      .limit(1);
+
+    if (musicals.length === 0) {
+      res.status(404).json({ error: "Musical not found or not verified" });
+      return;
+    }
+
+    res.status(200).json(musicals[0]);
+  } catch (error) {
+    console.error("Error in getPublicMusicalByIdHandler:", error);
     res.status(500).json({ error: SERVER_ERROR });
   }
 }

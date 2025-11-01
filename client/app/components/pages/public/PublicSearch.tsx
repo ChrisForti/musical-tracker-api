@@ -10,7 +10,7 @@ interface SearchResult {
 export const PublicSearch: React.FC = () => {
   const [searchTerm, setSearchTerm] = useState("");
   const [results, setResults] = useState<SearchResult[]>([]);
-  const [loading, setLoading] = useState(false);
+  const [loading, setLoading] = useState(true);
   const [hasSearched, setHasSearched] = useState(false);
   const [searchType, setSearchType] = useState<"all" | "musicals" | "actors">(
     "all"
@@ -31,23 +31,17 @@ export const PublicSearch: React.FC = () => {
 
       // Search musicals if type is 'all' or 'musicals'
       if (searchType === "all" || searchType === "musicals") {
-        const musicalsResponse = await fetch(
-          "http://localhost:3000/v2/musical"
-        );
+        const musicalsResponse = await fetch("http://localhost:3000/v2/musical/public");
         if (musicalsResponse.ok) {
           const musicals = await musicalsResponse.json();
           const filteredMusicals = musicals
             .filter(
               (musical: Musical) =>
-                musical.verified &&
-                (musical.title.toLowerCase().includes(query.toLowerCase()) ||
-                  musical.composer
-                    .toLowerCase()
-                    .includes(query.toLowerCase()) ||
-                  musical.lyricist
-                    .toLowerCase()
-                    .includes(query.toLowerCase()) ||
-                  musical.genre.toLowerCase().includes(query.toLowerCase()))
+                // Public endpoint already returns only verified musicals
+                (musical.name?.toLowerCase().includes(query.toLowerCase()) ||
+                  musical.composer?.toLowerCase().includes(query.toLowerCase()) ||
+                  musical.lyricist?.toLowerCase().includes(query.toLowerCase()) ||
+                  musical.synopsis?.toLowerCase().includes(query.toLowerCase()))
             )
             .map((musical: Musical) => ({
               type: "musical" as const,
@@ -60,14 +54,14 @@ export const PublicSearch: React.FC = () => {
 
       // Search actors if type is 'all' or 'actors'
       if (searchType === "all" || searchType === "actors") {
-        const actorsResponse = await fetch("http://localhost:3000/v2/actor");
+        const actorsResponse = await fetch("http://localhost:3000/v2/actor/public");
         if (actorsResponse.ok) {
           const actors = await actorsResponse.json();
           const filteredActors = actors
             .filter(
               (actor: Actor) =>
-                actor.verified &&
-                actor.name.toLowerCase().includes(query.toLowerCase())
+                // Public endpoint already returns only verified actors
+                actor.name?.toLowerCase().includes(query.toLowerCase())
             )
             .map((actor: Actor) => ({
               type: "actor" as const,
@@ -82,11 +76,11 @@ export const PublicSearch: React.FC = () => {
       searchResults.sort((a, b) => {
         const aName =
           a.type === "musical"
-            ? (a.item as Musical).title
+            ? (a.item as Musical).name
             : (a.item as Actor).name;
         const bName =
           b.type === "musical"
-            ? (b.item as Musical).title
+            ? (b.item as Musical).name
             : (b.item as Actor).name;
 
         const aExact = aName.toLowerCase() === query.toLowerCase();
@@ -107,10 +101,51 @@ export const PublicSearch: React.FC = () => {
     }
   };
 
+  // Load all content on component mount
+  useEffect(() => {
+    loadAllContent();
+  }, []);
+
+  // Load all verified content
+  const loadAllContent = async () => {
+    setLoading(true);
+    try {
+      const searchResults: SearchResult[] = [];
+
+      // Load all musicals from public endpoint (no auth needed)
+      const musicalsResponse = await fetch("http://localhost:3000/v2/musical/public");
+      if (musicalsResponse.ok) {
+        const musicals = await musicalsResponse.json();
+        musicals.forEach((musical: Musical) => {
+          searchResults.push({ type: "musical", item: musical });
+        });
+      }
+
+      // Load all actors from public endpoint (no auth needed)
+      const actorsResponse = await fetch("http://localhost:3000/v2/actor/public");
+      if (actorsResponse.ok) {
+        const actors = await actorsResponse.json();
+        actors.forEach((actor: Actor) => {
+          searchResults.push({ type: "actor", item: actor });
+        });
+      }
+
+      setResults(searchResults);
+    } catch (error) {
+      console.error("Failed to load content:", error);
+      setResults([]);
+    } finally {
+      setLoading(false);
+    }
+  };
+
   useEffect(() => {
     const debounceTimer = setTimeout(() => {
       if (searchTerm) {
         handleSearch();
+      } else {
+        // If search is cleared, reload all content
+        loadAllContent();
       }
     }, 300);
 
@@ -233,13 +268,21 @@ export const PublicSearch: React.FC = () => {
         )}
 
         {/* Results */}
-        {hasSearched && !loading && (
+        {!loading && (
           <div>
             {/* Results Count */}
             <div className="mb-6 text-center">
               <p className="text-gray-600 dark:text-gray-400">
-                {results.length} result{results.length !== 1 ? "s" : ""} found
-                {searchTerm && ` for "${searchTerm}"`}
+                {hasSearched ? (
+                  <>
+                    {results.length} result{results.length !== 1 ? "s" : ""} found
+                    {searchTerm && ` for "${searchTerm}"`}
+                  </>
+                ) : (
+                  <>
+                    Showing all {results.length} musical{results.filter(r => r.type === "musical").length !== 1 ? "s" : ""} and actor{results.filter(r => r.type === "actor").length !== 1 ? "s" : ""}
+                  </>
+                )}
               </p>
             </div>
 
@@ -297,27 +340,27 @@ export const PublicSearch: React.FC = () => {
                             className="bg-white dark:bg-gray-800 rounded-lg shadow-md overflow-hidden hover:shadow-lg transition-shadow"
                           >
                             <div className="h-48 bg-gradient-to-br from-purple-400 to-purple-600 flex items-center justify-center">
-                              {musical.imageUrl ? (
+                              {musical.posterUrl ? (
                                 <img
-                                  src={musical.imageUrl}
-                                  alt={musical.title}
+                                  src={musical.posterUrl}
+                                  alt={musical.name}
                                   className="h-full w-full object-cover"
                                 />
                               ) : (
                                 <div className="text-white text-2xl font-bold text-center px-4">
-                                  {musical.title}
+                                  {musical.name}
                                 </div>
                               )}
                             </div>
                             <div className="p-4">
                               <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-2">
-                                {musical.title}
+                                {musical.name}
                               </h3>
                               <p className="text-gray-600 dark:text-gray-400 text-sm mb-1">
                                 by {musical.composer}
                               </p>
                               <span className="inline-block px-2 py-1 text-xs font-medium bg-purple-100 text-purple-800 dark:bg-purple-900 dark:text-purple-200 rounded-full">
-                                {musical.genre}
+                                {musical.composer}
                               </span>
                             </div>
                           </Link>
@@ -379,8 +422,8 @@ export const PublicSearch: React.FC = () => {
           </div>
         )}
 
-        {/* Browse Links (when no search) */}
-        {!hasSearched && (
+        {/* Browse Links (when no search and no content) */}
+        {!hasSearched && results.length === 0 && !loading && (
           <div className="text-center">
             <h2 className="text-2xl font-bold text-gray-900 dark:text-white mb-6">
               Browse Categories

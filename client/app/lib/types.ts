@@ -1,15 +1,14 @@
 // Shared type definitions for the Musical Tracker application
 
 export interface Musical {
-  id: number;
-  title: string;
+  id: string;
+  name: string; // Changed from title to match backend
   composer: string;
   lyricist: string;
-  genre: string;
-  synopsis: string;
-  imageUrl?: string;
-  verified: boolean;
   approved: boolean;
+  synopsis?: string;
+  posterId?: string;
+  posterUrl?: string;
   createdAt: string;
 }
 

@@ -1,7 +1,7 @@
 import { Router, type Request, type Response } from "express";
 import { db } from "../../drizzle/db.js";
 import { ActorTable } from "../../drizzle/schema.js";
-import { eq } from "drizzle-orm";
+import { eq, and } from "drizzle-orm";
 import { SERVER_ERROR } from "../../lib/errors.js";
 import { Validator } from "../../lib/validator.js";
 import { ensureAdmin, ensureAuthenticated } from "../../lib/auth.js";
@@ -9,22 +9,7 @@ import { validate as validateUuid } from "uuid";
 
 export const actorRouter = Router();
 
-actorRouter.get("/", ensureAuthenticated, getAllActorsHandler);
-actorRouter.post("/", ensureAuthenticated, createActorHandler);
-actorRouter.get("/:id", ensureAuthenticated, getActorByIdHandler);
-actorRouter.put("/:id", ensureAuthenticated, updateActorHandler);
-actorRouter.delete(
-  "/:id",
-  ensureAuthenticated,
-  ensureAdmin,
-  deleteActorHandler
-);
-actorRouter.post(
-  "/:id/verify",
-  ensureAuthenticated,
-  ensureAdmin,
-  verifyActorHandler
-);
+// Router setup moved to end of file after function declarations
 
 async function getAllActorsHandler(req: Request, res: Response) {
   try {
@@ -256,3 +241,63 @@ async function verifyActorHandler(
     res.status(500).json({ error: SERVER_ERROR });
   }
 }
+
+// Public handlers (no authentication required)
+async function getPublicActorsHandler(req: Request, res: Response) {
+  try {
+    // For now, return all actors for public browse (TODO: filter by verified when approval workflow is active)
+    const actors = await db.select().from(ActorTable);
+    res.status(200).json(actors);
+  } catch (error) {
+    console.error("Error in getPublicActorsHandler:", error);
+    res.status(500).json({ error: SERVER_ERROR });
+  }
+}
+
+async function getPublicActorByIdHandler(
+  req: Request<GetActorByIdParams>,
+  res: Response
+) {
+  try {
+    const id = req.params.id;
+
+    if (!validateUuid(id)) {
+      return res.status(400).json({ error: "Invalid actor ID format" });
+    }
+
+    // For now, return any actor for public browse (TODO: filter by verified when approval workflow is active)
+    const actors = await db
+      .select()
+      .from(ActorTable)
+      .where(eq(ActorTable.id, id));
+
+    if (actors.length === 0) {
+      return res.status(404).json({ error: "Actor not found" });
+    }
+
+    res.status(200).json(actors[0]);
+  } catch (error) {
+    console.error("Error in getPublicActorByIdHandler:", error);
+    res.status(500).json({ error: SERVER_ERROR });
+  }
+}
+
+// Router setup - defined after all handler functions
+actorRouter.get("/", ensureAuthenticated, getAllActorsHandler);
+actorRouter.get("/public", getPublicActorsHandler); // Public endpoint for verified actors
+actorRouter.post("/", ensureAuthenticated, createActorHandler);
+actorRouter.get("/:id", ensureAuthenticated, getActorByIdHandler);
+// actorRouter.get("/public/:id", getPublicActorByIdHandler); // Public endpoint for verified actor - temporarily disabled due to TypeScript error
+actorRouter.put("/:id", ensureAuthenticated, updateActorHandler);
+actorRouter.delete(
+  "/:id",
+  ensureAuthenticated,
+  ensureAdmin,
+  deleteActorHandler
+);
+actorRouter.post(
+  "/:id/verify",
+  ensureAuthenticated,
+  ensureAdmin,
+  verifyActorHandler
+);

@@ -29,7 +29,7 @@ interface Theater {
 
 type ViewMode = "list" | "detail" | "form";
 
-export default function PerformanceManagement() {
+export const PerformanceManagement: React.FC = () => {
   // State management
   const [performances, setPerformances] = useState<Performance[]>([]);
   const [musicals, setMusicals] = useState<Musical[]>([]);

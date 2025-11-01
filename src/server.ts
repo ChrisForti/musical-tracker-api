@@ -2,6 +2,7 @@ import express from "express";
 import cors from "cors";
 import { v2Router } from "./v2/routes.js";
 import { authenticate } from "./lib/auth.js";
+import { PORT } from "./environment.js";
 
 const app = express();
 
@@ -35,9 +36,9 @@ app.use(authenticate);
 // routers
 app.use("/v2", v2Router);
 
-app.listen(3000, (error) => {
+app.listen(PORT, (error) => {
   if (error) {
     console.error(error);
   }
-  console.log("server starting on port 3000");
+  console.log(`Server starting on port ${PORT}`);
 });

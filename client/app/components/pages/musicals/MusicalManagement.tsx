@@ -16,7 +16,7 @@ import { BackToDashboardButton } from "~/components/common/BackToDashboardButton
 
 interface Musical {
   id: string;
-  title: string;
+  name: string;
   composer: string;
   lyricist: string;
   approved: boolean;
@@ -54,7 +54,7 @@ export const MusicalManagement: React.FC = () => {
 
   // Form data
   const [formData, setFormData] = useState({
-    title: "",
+    name: "",
     composer: "",
     lyricist: "",
     synopsis: "",
@@ -129,7 +129,7 @@ export const MusicalManagement: React.FC = () => {
     if (musical) {
       setSelectedMusical(musical);
       setFormData({
-        title: musical.title,
+        name: musical.name,
         composer: musical.composer,
         lyricist: musical.lyricist,
         synopsis: musical.synopsis || "",
@@ -140,7 +140,7 @@ export const MusicalManagement: React.FC = () => {
     } else {
       setSelectedMusical(null);
       setFormData({
-        title: "",
+        name: "",
         composer: "",
         lyricist: "",
         synopsis: "",
@@ -233,7 +233,7 @@ export const MusicalManagement: React.FC = () => {
 
   // Delete musical
   const handleDelete = async (musical: Musical) => {
-    if (!confirm(`Are you sure you want to delete ${musical.title}?`)) return;
+    if (!confirm(`Are you sure you want to delete ${musical.name}?`)) return;
 
     try {
       const token = localStorage.getItem("authToken");
@@ -272,7 +272,7 @@ export const MusicalManagement: React.FC = () => {
   const filteredMusicals = musicals.filter((musical) => {
     const matchesSearch =
       !searchTerm ||
-      musical.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      musical.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
       musical.composer.toLowerCase().includes(searchTerm.toLowerCase()) ||
       musical.lyricist.toLowerCase().includes(searchTerm.toLowerCase());
 
@@ -426,7 +426,7 @@ export const MusicalManagement: React.FC = () => {
                             onClick={() => showDetail(musical)}
                             className="text-teal-600 hover:text-teal-500 font-medium"
                           >
-                            {musical.title}
+                            {musical.name}
                           </button>
                         </td>
                         <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900 dark:text-gray-100">
@@ -519,7 +519,7 @@ export const MusicalManagement: React.FC = () => {
           <div className="px-6 py-4 border-b border-gray-200 dark:border-gray-700">
             <div className="flex items-center justify-between">
               <h2 className="text-2xl font-bold text-gray-900 dark:text-white">
-                {selectedMusical.title}
+                {selectedMusical.name}
               </h2>
               <StatusBadge verified={selectedMusical.approved} />
             </div>
@@ -564,7 +564,7 @@ export const MusicalManagement: React.FC = () => {
                 </label>
                 <img
                   src={selectedMusical.posterUrl}
-                  alt={`${selectedMusical.title} poster`}
+                  alt={`${selectedMusical.name} poster`}
                   className="max-w-xs rounded-lg shadow-md"
                 />
               </div>
@@ -610,9 +610,9 @@ export const MusicalManagement: React.FC = () => {
             <div className="p-6 space-y-6">
               <FormField
                 label="Title"
-                name="title"
+                name="name"
                 type="text"
-                value={formData.title}
+                value={formData.name}
                 onChange={handleInputChange}
                 error={errors.title}
                 required
