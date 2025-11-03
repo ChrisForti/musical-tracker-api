@@ -31,17 +31,19 @@ export const PublicSearch: React.FC = () => {
 
       // Search musicals if type is 'all' or 'musicals'
       if (searchType === "all" || searchType === "musicals") {
-        const musicalsResponse = await fetch("http://localhost:3000/v2/musical/public");
+        const musicalsResponse = await fetch(
+          "http://localhost:3000/v2/musical/public"
+        );
         if (musicalsResponse.ok) {
           const musicals = await musicalsResponse.json();
           const filteredMusicals = musicals
             .filter(
               (musical: Musical) =>
                 // Public endpoint already returns only verified musicals
-                (musical.name?.toLowerCase().includes(query.toLowerCase()) ||
-                  musical.composer?.toLowerCase().includes(query.toLowerCase()) ||
-                  musical.lyricist?.toLowerCase().includes(query.toLowerCase()) ||
-                  musical.synopsis?.toLowerCase().includes(query.toLowerCase()))
+                musical.name?.toLowerCase().includes(query.toLowerCase()) ||
+                musical.composer?.toLowerCase().includes(query.toLowerCase()) ||
+                musical.lyricist?.toLowerCase().includes(query.toLowerCase()) ||
+                musical.synopsis?.toLowerCase().includes(query.toLowerCase())
             )
             .map((musical: Musical) => ({
               type: "musical" as const,
@@ -54,14 +56,15 @@ export const PublicSearch: React.FC = () => {
 
       // Search actors if type is 'all' or 'actors'
       if (searchType === "all" || searchType === "actors") {
-        const actorsResponse = await fetch("http://localhost:3000/v2/actor/public");
+        const actorsResponse = await fetch(
+          "http://localhost:3000/v2/actor/public"
+        );
         if (actorsResponse.ok) {
           const actors = await actorsResponse.json();
           const filteredActors = actors
-            .filter(
-              (actor: Actor) =>
-                // Public endpoint already returns only verified actors
-                actor.name?.toLowerCase().includes(query.toLowerCase())
+            .filter((actor: Actor) =>
+              // Public endpoint already returns only verified actors
+              actor.name?.toLowerCase().includes(query.toLowerCase())
             )
             .map((actor: Actor) => ({
               type: "actor" as const,
@@ -113,7 +116,9 @@ export const PublicSearch: React.FC = () => {
       const searchResults: SearchResult[] = [];
 
       // Load all musicals from public endpoint (no auth needed)
-      const musicalsResponse = await fetch("http://localhost:3000/v2/musical/public");
+      const musicalsResponse = await fetch(
+        "http://localhost:3000/v2/musical/public"
+      );
       if (musicalsResponse.ok) {
         const musicals = await musicalsResponse.json();
         musicals.forEach((musical: Musical) => {
@@ -122,7 +127,9 @@ export const PublicSearch: React.FC = () => {
       }
 
       // Load all actors from public endpoint (no auth needed)
-      const actorsResponse = await fetch("http://localhost:3000/v2/actor/public");
+      const actorsResponse = await fetch(
+        "http://localhost:3000/v2/actor/public"
+      );
       if (actorsResponse.ok) {
         const actors = await actorsResponse.json();
         actors.forEach((actor: Actor) => {
@@ -275,12 +282,20 @@ export const PublicSearch: React.FC = () => {
               <p className="text-gray-600 dark:text-gray-400">
                 {hasSearched ? (
                   <>
-                    {results.length} result{results.length !== 1 ? "s" : ""} found
+                    {results.length} result{results.length !== 1 ? "s" : ""}{" "}
+                    found
                     {searchTerm && ` for "${searchTerm}"`}
                   </>
                 ) : (
                   <>
-                    Showing all {results.length} musical{results.filter(r => r.type === "musical").length !== 1 ? "s" : ""} and actor{results.filter(r => r.type === "actor").length !== 1 ? "s" : ""}
+                    Showing all {results.length} musical
+                    {results.filter((r) => r.type === "musical").length !== 1
+                      ? "s"
+                      : ""}{" "}
+                    and actor
+                    {results.filter((r) => r.type === "actor").length !== 1
+                      ? "s"
+                      : ""}
                   </>
                 )}
               </p>

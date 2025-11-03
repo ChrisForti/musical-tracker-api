@@ -2,7 +2,7 @@ import "dotenv/config";
 import assert from "assert";
 
 // Default port for the API server
-export const PORT = process.env.PORT ? parseInt(process.env.PORT) : 8000;
+export const PORT = process.env.PORT ? parseInt(process.env.PORT) : 3000;
 
 // Check for various Railway database URL patterns
 export const connectionString =

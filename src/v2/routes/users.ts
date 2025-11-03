@@ -108,24 +108,37 @@ async function loginUserHandler(
   res: Response
 ) {
   const { email, password } = req.body;
-  const validator = new Validator();
+  console.log("Login attempt received:", {
+    email,
+    hasPassword: !!password,
+    contentType: req.headers["content-type"],
+  });
 
+  const validator = new Validator();
   validator.check(!!email, "email", "is required");
   validator.check(!!password, "password", "is required");
 
   if (!validator.valid) {
+    console.log("Login validation failed:", validator.errors);
     res.status(400).json({ errors: validator.errors });
     return;
   }
 
   try {
+    console.log("Attempting to find user in database:", { email });
     const user = await db.query.UserTable.findFirst({
       where: (users, { eq }) => {
         return eq(users.email, email);
       },
     });
+    console.log("Database query result:", {
+      found: !!user,
+      userId: user?.id,
+      userRole: user?.role,
+    });
 
     if (!user) {
+      console.log("Login failed: User not found");
       res
         .status(401)
         .json({ errors: { message: "Invalid email or password" } });
@@ -134,6 +147,7 @@ async function loginUserHandler(
 
     const isPasswordValid = await compare(password, user.passwordHash);
     if (!isPasswordValid) {
+      console.log("Login failed: Invalid password for user:", { email });
       res
         .status(401)
         .json({ errors: { message: "Invalid email or password" } });
@@ -144,11 +158,12 @@ async function loginUserHandler(
 
     res.status(200).json({ message: "Login successful", token });
   } catch (error) {
-    if (error instanceof Error) {
-      res.status(500).json(validator.errors);
-    }
     console.error("Error in loginUserHandler:", error);
-    res.status(500).json({ error: SERVER_ERROR });
+    res.status(500).json({
+      errors: {
+        message: SERVER_ERROR,
+      },
+    });
     return;
   }
 }

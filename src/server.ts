@@ -2,8 +2,9 @@ import express from "express";
 import cors from "cors";
 import { v2Router } from "./v2/routes.js";
 import { authenticate } from "./lib/auth.js";
-import { PORT } from "./environment.js";
 
+// Port configuration - allow override via environment variable
+const APP_PORT = process.env.PORT ? parseInt(process.env.PORT) : 3000;
 const app = express();
 
 // middleware
@@ -31,14 +32,30 @@ app.use(
 );
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
+
+// Apply authentication middleware before routes
 app.use(authenticate);
 
 // routers
 app.use("/v2", v2Router);
 
-app.listen(PORT, (error) => {
-  if (error) {
-    console.error(error);
-  }
-  console.log(`Server starting on port ${PORT}`);
-});
+const server = app
+  .listen(APP_PORT, () => {
+    console.log(`Server starting on port ${APP_PORT}`);
+  })
+  .on("error", (error: NodeJS.ErrnoException) => {
+    if (error.code === "EADDRINUSE") {
+      console.error(`Port ${APP_PORT} is already in use. Try these steps:`);
+      console.error("1. Check if another instance of the server is running");
+      console.error(
+        "2. Use a different port by setting the PORT environment variable"
+      );
+      console.error("3. Or kill the process using the port with:");
+      console.error(
+        `   lsof -i :${APP_PORT} | grep LISTEN | awk '{print $2}' | xargs kill -9`
+      );
+    } else {
+      console.error("Server error:", error);
+    }
+    process.exit(1);
+  });
