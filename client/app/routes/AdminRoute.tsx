@@ -7,6 +7,7 @@ import { SchedulingCalendar } from "../components/pages/scheduling/SchedulingCal
 import EmailNotifications from "../components/pages/admin/EmailNotifications";
 import ImportExportSystem from "../components/pages/admin/ImportExportSystem";
 import PendingApprovalsPage from "../components/pages/admin/PendingApprovalsPage";
+import PerformanceManagement from "../components/pages/performances/PerformanceManagement";
 import { UserPage } from "./UserPage";
 import { useAuth } from "../hooks/useAuth";
 
@@ -61,6 +62,7 @@ export default function AdminRoute() {
         <Route path="/scheduling" element={<SchedulingCalendar />} />
         <Route path="/notifications" element={<EmailNotifications />} />
         <Route path="/import-export" element={<ImportExportSystem />} />
+        <Route path="/performances" element={<PerformanceManagement />} />
       </Routes>
     </AppLayout>
   );

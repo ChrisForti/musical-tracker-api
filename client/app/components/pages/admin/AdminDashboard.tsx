@@ -6,7 +6,7 @@ import { UserPage } from "~/routes/UserPage";
 import { ActorManagement } from "~/components/pages/actors/ActorManagement";
 import { MusicalManagement } from "~/components/pages/musicals/MusicalManagement";
 import { TheaterManagement } from "~/components/pages/theaters/TheaterManagement";
-import { PerformanceManagement } from "~/components/pages/performances/PerformanceManagement";
+import PerformanceManagement from "~/components/pages/performances/PerformanceManagement";
 import RoleManagement from "~/components/pages/roles/RoleManagement";
 import { CastingManagement } from "~/components/pages/castings/CastingManagement";
 import PendingApprovalsPage from "~/components/pages/admin/PendingApprovalsPage";

@@ -10,7 +10,7 @@ import PendingApprovalsPage from "./admin/PendingApprovalsPage";
 import { ActorManagement } from "./actors/ActorManagement";
 import { MusicalManagement } from "./musicals/MusicalManagement";
 import { TheaterManagement } from "./theaters/TheaterManagement";
-import { PerformanceManagement } from "./performances/PerformanceManagement";
+import PerformanceManagement from "./performances/PerformanceManagement";
 import { PublicSearch } from "./public/PublicSearch";
 import { UserPage } from "../../routes/UserPage";
 

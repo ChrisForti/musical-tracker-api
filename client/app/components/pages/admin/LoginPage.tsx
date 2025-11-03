@@ -44,9 +44,7 @@ export function LoginPage({ onLoginSuccess }: LoginPageProps = {}) {
       });
 
       const data = await response.json();
-
       if (response.ok) {
-        console.log("Login successful:", data);
         // Store the token in localStorage for future API calls
         localStorage.setItem("authToken", data.token);
 
@@ -56,15 +54,11 @@ export function LoginPage({ onLoginSuccess }: LoginPageProps = {}) {
         onLoginSuccess?.();
 
         // Refresh auth state and navigate
-        console.log("About to call refreshAuth...");
         await refreshAuth();
-        console.log("refreshAuth completed");
         setTimeout(() => {
-          console.log("Navigating to home...");
           navigate("/");
         }, 100);
       } else {
-        console.error("Login failed:", data);
         showError(
           "Login Failed",
           data.errors?.message ||
@@ -73,7 +67,6 @@ export function LoginPage({ onLoginSuccess }: LoginPageProps = {}) {
         );
       }
     } catch (error) {
-      console.error("Login error:", error);
       showError(
         "Login Failed",
         "Network error. Please check your connection and try again."

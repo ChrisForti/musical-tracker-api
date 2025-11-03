@@ -29,7 +29,7 @@ interface Theater {
 
 type ViewMode = "list" | "detail" | "form";
 
-export const PerformanceManagement: React.FC = () => {
+const PerformanceManagement: React.FC = () => {
   // State management
   const [performances, setPerformances] = useState<Performance[]>([]);
   const [musicals, setMusicals] = useState<Musical[]>([]);
@@ -48,7 +48,7 @@ export const PerformanceManagement: React.FC = () => {
   // Form state
   const [formData, setFormData] = useState({
     date: "",
-    productionId: "",
+    musicalId: "",
     theaterId: "",
     posterId: "",
     posterUrl: "",
@@ -128,7 +128,7 @@ export const PerformanceManagement: React.FC = () => {
         const data = await response.json();
         setFormData({
           date: data.date || "",
-          productionId: data.productionId || "",
+          musicalId: data.musicalId || "",
           theaterId: data.theaterId || "",
           posterId: data.posterId || "",
           posterUrl: data.posterUrl || "",
@@ -238,7 +238,7 @@ export const PerformanceManagement: React.FC = () => {
   const resetForm = () => {
     setFormData({
       date: "",
-      productionId: "",
+      musicalId: "",
       theaterId: "",
       posterId: "",
       posterUrl: "",
@@ -351,15 +351,15 @@ export const PerformanceManagement: React.FC = () => {
 
           <div>
             <label
-              htmlFor="productionId"
+              htmlFor="musicalId"
               className="block text-sm font-medium text-gray-700 mb-1"
             >
               Musical
             </label>
             <select
-              id="productionId"
-              name="productionId"
-              value={formData.productionId}
+              id="musicalId"
+              name="musicalId"
+              value={formData.musicalId}
               onChange={handleInputChange}
               required
               className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
@@ -621,4 +621,6 @@ export const PerformanceManagement: React.FC = () => {
       )}
     </div>
   );
-}
+};
+
+export default PerformanceManagement;
