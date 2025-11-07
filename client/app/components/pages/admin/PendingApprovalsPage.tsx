@@ -178,7 +178,7 @@ export default function PendingApprovalsPage() {
         ([type, ids]) =>
           ids.map((id) =>
             fetch(`http://localhost:3000/v2/${type}/${id}/verify`, {
-              method: "PUT",
+              method: "POST",
               headers,
             })
           )

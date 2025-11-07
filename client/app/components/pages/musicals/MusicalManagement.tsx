@@ -20,7 +20,6 @@ interface Musical {
   composer: string;
   lyricist: string;
   approved: boolean;
-  synopsis?: string;
   posterId?: string;
   posterUrl?: string;
   createdAt: string;
@@ -29,8 +28,17 @@ interface Musical {
 type ViewMode = "list" | "detail" | "form";
 type FormMode = "create" | "edit";
 
+interface FormData {
+  name: string;
+  composer: string;
+  lyricist: string;
+  approved: boolean;
+  posterId: string;
+  posterUrl: string;
+}
+
 const musicalValidationSchema = {
-  title: { required: true, minLength: 1 },
+  name: { required: true, minLength: 1 },
   composer: { required: true, minLength: 1 },
   lyricist: { required: true, minLength: 1 },
 };
@@ -53,11 +61,10 @@ export const MusicalManagement: React.FC = () => {
   }>({});
 
   // Form data
-  const [formData, setFormData] = useState({
+  const [formData, setFormData] = useState<FormData>({
     name: "",
     composer: "",
     lyricist: "",
-    synopsis: "",
     approved: false,
     posterId: "",
     posterUrl: "",
@@ -132,7 +139,6 @@ export const MusicalManagement: React.FC = () => {
         name: musical.name,
         composer: musical.composer,
         lyricist: musical.lyricist,
-        synopsis: musical.synopsis || "",
         approved: musical.approved,
         posterId: musical.posterId || "",
         posterUrl: musical.posterUrl || "",
@@ -143,7 +149,6 @@ export const MusicalManagement: React.FC = () => {
         name: "",
         composer: "",
         lyricist: "",
-        synopsis: "",
         approved: false,
         posterId: "",
         posterUrl: "",
@@ -203,26 +208,39 @@ export const MusicalManagement: React.FC = () => {
         return;
       }
 
+      const requestData = {
+        name: formData.name.trim(),
+        composer: formData.composer,
+        lyricist: formData.lyricist,
+        posterId: formData.posterId || undefined,
+      };
+
+      console.log("Sending musical data:", requestData);
       const response = await fetch(url, {
         method,
         headers: {
           "Content-Type": "application/json",
           Authorization: `Bearer ${token}`,
         },
-        body: JSON.stringify(formData),
+        body: JSON.stringify(requestData),
       });
 
-      if (response.ok) {
-        const message =
-          formMode === "create"
-            ? "Musical created successfully"
-            : "Musical updated successfully";
-        addToast({ type: "success", title: message });
-        await fetchMusicals(); // Refresh list
-        showList(); // Back to list view
-      } else {
-        addToast({ type: "error", title: "Failed to save musical" });
+      const data = await response.json();
+
+      if (!response.ok) {
+        console.error("Server error:", data);
+        const errorMessage = data.error || "Failed to save musical";
+        addToast({ type: "error", title: errorMessage });
+        return;
       }
+
+      const message =
+        formMode === "create"
+          ? "Musical created successfully"
+          : "Musical updated successfully";
+      addToast({ type: "success", title: message });
+      await fetchMusicals();
+      showList();
     } catch (error) {
       console.error("Error saving musical:", error);
       addToast({ type: "error", title: "Error saving musical" });
@@ -546,17 +564,6 @@ export const MusicalManagement: React.FC = () => {
               </div>
             </div>
 
-            {selectedMusical.synopsis && (
-              <div>
-                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
-                  Synopsis
-                </label>
-                <p className="text-gray-900 dark:text-gray-100 whitespace-pre-wrap">
-                  {selectedMusical.synopsis}
-                </p>
-              </div>
-            )}
-
             {selectedMusical.posterUrl && (
               <div>
                 <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
@@ -614,7 +621,7 @@ export const MusicalManagement: React.FC = () => {
                 type="text"
                 value={formData.name}
                 onChange={handleInputChange}
-                error={errors.title}
+                error={errors.name}
                 required
               />
 
@@ -639,43 +646,17 @@ export const MusicalManagement: React.FC = () => {
                   required
                 />
               </div>
+            </div>
 
-              <FormField
-                label="Synopsis"
-                name="synopsis"
-                type="textarea"
-                rows={4}
-                value={formData.synopsis}
-                onChange={handleInputChange}
-                error={errors.synopsis}
-              />
-
-              {isAdmin && (
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-                    Status
-                  </label>
-                  <select
-                    name="approved"
-                    value={formData.approved?.toString() || "false"}
-                    onChange={handleInputChange}
-                    className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md focus:ring-teal-500 focus:border-teal-500 dark:bg-gray-700 dark:text-white"
-                  >
-                    <option value="false">Pending Approval</option>
-                    <option value="true">Approved</option>
-                  </select>
-                </div>
-              )}
-
+            {/* Poster Image Upload Section */}
+            <div className="px-6 pb-6 space-y-4">
               <div>
                 <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
                   Poster Image
                 </label>
                 <ImageUpload
                   imageType="poster"
-                  currentImageUrl={
-                    selectedMusical?.posterUrl || formData.posterUrl
-                  }
+                  currentImageUrl={formData.posterUrl}
                   onUploadSuccess={(imageData) => {
                     setFormData((prev) => ({
                       ...prev,
@@ -688,13 +669,6 @@ export const MusicalManagement: React.FC = () => {
                       type: "error",
                       title: `Image upload failed: ${error}`,
                     });
-                  }}
-                  onDeleteImage={() => {
-                    setFormData((prev) => ({
-                      ...prev,
-                      posterId: "",
-                      posterUrl: "",
-                    }));
                   }}
                 />
               </div>

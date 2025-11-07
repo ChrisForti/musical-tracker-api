@@ -1,6 +1,7 @@
 import { db } from "../drizzle/db.js";
 import { UploadedImagesTable } from "../drizzle/schema.js";
 import { eq, and } from "drizzle-orm";
+import { s3Service } from "./s3.js";
 
 export interface CreateImageParams {
   originalFilename: string;
@@ -80,6 +81,30 @@ export class ImageDb {
   }
 
   /**
+   * Get image by ID with a fresh signed URL
+   */
+  static async getImageByIdWithFreshUrl(
+    id: string
+  ): Promise<ImageRecord | null> {
+    try {
+      const image = await this.getImageById(id);
+      if (!image) {
+        return null;
+      }
+
+      // Generate fresh signed URL
+      const freshUrl = await s3Service.getSignedUrl(image.s3Key);
+      return {
+        ...image,
+        s3Url: freshUrl,
+      };
+    } catch (error) {
+      console.error("Error fetching image with fresh URL:", error);
+      throw new Error("Failed to fetch image with fresh URL");
+    }
+  }
+
+  /**
    * Get images by user (uploaded by specific user)
    */
   static async getImagesByUser(
@@ -103,6 +128,41 @@ export class ImageDb {
     } catch (error) {
       console.error("Error fetching images by user:", error);
       throw new Error("Failed to fetch user images");
+    }
+  }
+
+  /**
+   * Refresh signed URL for a single image record
+   */
+  static async refreshImageUrl(image: ImageRecord): Promise<ImageRecord> {
+    try {
+      const freshUrl = await s3Service.getSignedUrl(image.s3Key);
+      return {
+        ...image,
+        s3Url: freshUrl,
+      };
+    } catch (error) {
+      console.error("Error refreshing image URL:", error);
+      // Return original image if URL refresh fails
+      return image;
+    }
+  }
+
+  /**
+   * Refresh signed URLs for an array of images
+   */
+  static async refreshImageUrls(
+    images: ImageRecord[]
+  ): Promise<ImageRecord[]> {
+    try {
+      const refreshPromises = images.map((image) =>
+        this.refreshImageUrl(image)
+      );
+      return await Promise.all(refreshPromises);
+    } catch (error) {
+      console.error("Error refreshing image URLs:", error);
+      // Return original images if refresh fails
+      return images;
     }
   }
 

@@ -2,5 +2,5 @@
   "watch": ["src"],
   "ext": ".ts,.js",
   "ignore": [],
-  "exec": "tsc && NODE_ENV=development node ./build/server.js"
+  "exec": "tsc && NODE_ENV=development node -r dotenv/config ./build/server.js"
 }

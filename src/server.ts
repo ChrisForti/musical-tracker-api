@@ -1,3 +1,4 @@
+import "./environment.js"; // Must be first import to load environment variables
 import express from "express";
 import cors from "cors";
 import { v2Router } from "./v2/routes.js";
