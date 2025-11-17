@@ -231,24 +231,25 @@ export class S3Service {
     }
 
     try {
-      // Upload without ACL - rely on bucket policy for access control
+      // Upload to public bucket - objects are publicly accessible via direct URL
       const command = new PutObjectCommand({
         Bucket: this.bucketName,
         Key: key,
         Body: buffer,
         ContentType: contentType,
         Metadata: metadata,
-        // Removed ACL: "public-read" - bucket doesn't allow ACLs
+        // Note: Bucket policy allows public reads - no ACL needed
       });
 
       await this.s3Client.send(command);
 
-      // Since bucket doesn't allow ACLs, generate a signed URL for access
-      const signedUrl = await this.getSignedUrl(key);
+      // Return direct URL for public bucket
+      // TODO: For profile images in private bucket, use getSignedUrl() instead
+      const directUrl = `${this.getBucketBaseUrl()}/${key}`;
 
       return {
         key,
-        url: signedUrl,
+        url: directUrl,
         contentType,
         size: buffer.length,
       };

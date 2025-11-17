@@ -36,8 +36,8 @@ export const PublicActorDetail: React.FC = () => {
 
   const fetchActorData = async () => {
     try {
-      // Fetch actor details
-      const actorResponse = await fetch(`http://localhost:3000/v2/actor/${id}`);
+      // Fetch actor details from public endpoint
+      const actorResponse = await fetch(`http://localhost:3000/v2/actor/public/${id}`);
       if (!actorResponse.ok) {
         throw new Error("Actor not found");
       }

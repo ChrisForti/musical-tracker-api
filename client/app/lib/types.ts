@@ -9,7 +9,6 @@ export interface Musical {
   synopsis?: string;
   posterId?: string;
   posterUrl?: string;
-  createdAt: string;
 }
 
 export interface Actor {

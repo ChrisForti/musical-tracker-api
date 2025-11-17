@@ -421,13 +421,6 @@ export const MusicalManagement: React.FC = () => {
                       <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">
                         Status
                       </th>
-                      <SortableHeader
-                        sortKey="createdAt"
-                        currentSort={sortConfig}
-                        onSort={handleSort}
-                      >
-                        Created
-                      </SortableHeader>
                       <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">
                         Actions
                       </th>
@@ -455,9 +448,6 @@ export const MusicalManagement: React.FC = () => {
                         </td>
                         <td className="px-6 py-4 whitespace-nowrap">
                           <StatusBadge verified={musical.approved} />
-                        </td>
-                        <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500 dark:text-gray-400">
-                          {new Date(musical.createdAt).toLocaleDateString()}
                         </td>
                         <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500 dark:text-gray-400 space-x-2">
                           <button
@@ -576,12 +566,6 @@ export const MusicalManagement: React.FC = () => {
                 />
               </div>
             )}
-
-            <div className="pt-4 border-t border-gray-200 dark:border-gray-700">
-              <p className="text-sm text-gray-500 dark:text-gray-400">
-                Created: {new Date(selectedMusical.createdAt).toLocaleString()}
-              </p>
-            </div>
           </div>
         </div>
       </div>

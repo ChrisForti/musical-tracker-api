@@ -6,38 +6,8 @@ import { eq, and } from "drizzle-orm";
 import { Validator } from "../../lib/validator.js";
 import { ensureAdmin, ensureAuthenticated } from "../../lib/auth.js";
 import { validate as validateUuid } from "uuid";
-import { s3Service } from "../../lib/s3.js";
 
 export const musicalRouter = Router();
-
-/**
- * Helper function to refresh poster URLs in musical records
- */
-async function refreshPosterUrls<T extends { posterUrl?: string | null; posterId?: string | null }>(
-  musicals: T[]
-): Promise<T[]> {
-  const refreshPromises = musicals.map(async (musical) => {
-    if (musical.posterUrl && musical.posterId) {
-      try {
-        // Extract s3Key from the posterId by querying the image
-        const image = await db.query.UploadedImagesTable.findFirst({
-          where: eq(UploadedImagesTable.id, musical.posterId),
-        });
-        
-        if (image?.s3Key) {
-          const freshUrl = await s3Service.getSignedUrl(image.s3Key);
-          return { ...musical, posterUrl: freshUrl };
-        }
-      } catch (error) {
-        console.error("Error refreshing poster URL:", error);
-        // Return original if refresh fails
-      }
-    }
-    return musical;
-  });
-
-  return Promise.all(refreshPromises);
-}
 
 musicalRouter.get("/", ensureAuthenticated, getAllMusicalsHandler);
 musicalRouter.get("/public", getPublicMusicalsHandler); // Public endpoint for verified musicals
@@ -80,9 +50,7 @@ async function getAllMusicalsHandler(req: Request, res: Response) {
         )
         .where(eq(MusicalTable.verified, false));
 
-      // Refresh poster URLs
-      const musicalsWithFreshUrls = await refreshPosterUrls(pendingMusicals);
-      res.status(200).json(musicalsWithFreshUrls);
+      res.status(200).json(pendingMusicals);
     } else {
       const musicals = await db
         .select({
@@ -100,9 +68,7 @@ async function getAllMusicalsHandler(req: Request, res: Response) {
           eq(MusicalTable.posterId, UploadedImagesTable.id)
         );
 
-      // Refresh poster URLs
-      const musicalsWithFreshUrls = await refreshPosterUrls(musicals);
-      res.status(200).json(musicalsWithFreshUrls);
+      res.status(200).json(musicals);
     }
   } catch (error) {
     console.error("Error in getAllMusicalsHandler:", error);
@@ -199,9 +165,7 @@ async function getMusicalByIdHandler(
       return;
     }
 
-    // Refresh poster URL
-    const musicalsWithFreshUrls = await refreshPosterUrls(musical);
-    res.status(200).json(musicalsWithFreshUrls[0]);
+    res.status(200).json(musical[0]);
   } catch (error) {
     console.error("Error in getMusicalByIdHandler:", error);
     res.status(500).json({ error: SERVER_ERROR });
@@ -379,10 +343,7 @@ async function getPublicMusicalsHandler(req: Request, res: Response) {
         eq(MusicalTable.posterId, UploadedImagesTable.id)
       )
       .where(eq(MusicalTable.verified, true));
-
-    // Refresh poster URLs
-    const musicalsWithFreshUrls = await refreshPosterUrls(musicals);
-    res.status(200).json(musicalsWithFreshUrls);
+    res.status(200).json(musicals);
   } catch (error) {
     console.error("Error in getPublicMusicalsHandler:", error);
     res.status(500).json({ error: SERVER_ERROR });
@@ -421,9 +382,7 @@ async function getPublicMusicalByIdHandler(req: Request, res: Response) {
       return;
     }
 
-    // Refresh poster URL
-    const musicalsWithFreshUrls = await refreshPosterUrls(musicals);
-    res.status(200).json(musicalsWithFreshUrls[0]);
+    res.status(200).json(musicals[0]);
   } catch (error) {
     console.error("Error in getPublicMusicalByIdHandler:", error);
     res.status(500).json({ error: SERVER_ERROR });

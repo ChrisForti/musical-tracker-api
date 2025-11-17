@@ -26,7 +26,6 @@ interface ApiMusical {
   verified: boolean;
   composer?: string;
   year?: number;
-  createdAt?: string;
 }
 
 interface ApiTheater {
@@ -95,7 +94,6 @@ export default function PendingApprovalsPage() {
           id: musical.id,
           name: musical.title,
           type: "musical" as const,
-          dateCreated: musical.createdAt,
           description: `${musical.composer ? `By ${musical.composer}` : ""}${musical.year ? ` (${musical.year})` : ""}`,
         }));
 

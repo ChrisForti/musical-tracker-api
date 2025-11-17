@@ -255,14 +255,15 @@ async function getPublicActorsHandler(req: Request, res: Response) {
 }
 
 async function getPublicActorByIdHandler(
-  req: Request<GetActorByIdParams>,
+  req: Request<{ id: string }>,
   res: Response
 ) {
   try {
     const id = req.params.id;
 
     if (!validateUuid(id)) {
-      return res.status(400).json({ error: "Invalid actor ID format" });
+      res.status(400).json({ error: "Invalid actor ID format" });
+      return;
     }
 
     // For now, return any actor for public browse (TODO: filter by verified when approval workflow is active)
@@ -272,7 +273,8 @@ async function getPublicActorByIdHandler(
       .where(eq(ActorTable.id, id));
 
     if (actors.length === 0) {
-      return res.status(404).json({ error: "Actor not found" });
+      res.status(404).json({ error: "Actor not found" });
+      return;
     }
 
     res.status(200).json(actors[0]);
@@ -285,9 +287,9 @@ async function getPublicActorByIdHandler(
 // Router setup - defined after all handler functions
 actorRouter.get("/", ensureAuthenticated, getAllActorsHandler);
 actorRouter.get("/public", getPublicActorsHandler); // Public endpoint for verified actors
+actorRouter.get("/public/:id", getPublicActorByIdHandler); // Public endpoint for verified actor - MUST be before /:id
 actorRouter.post("/", ensureAuthenticated, createActorHandler);
 actorRouter.get("/:id", ensureAuthenticated, getActorByIdHandler);
-// actorRouter.get("/public/:id", getPublicActorByIdHandler); // Public endpoint for verified actor - temporarily disabled due to TypeScript error
 actorRouter.put("/:id", ensureAuthenticated, updateActorHandler);
 actorRouter.delete(
   "/:id",
