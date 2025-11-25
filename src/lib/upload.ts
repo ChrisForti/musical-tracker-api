@@ -64,7 +64,9 @@ const fileFilter = (
 
     if (!ext || !allowedExtensions.includes(ext)) {
       throw createFileValidationError(
-        `Invalid file extension. Allowed extensions: ${allowedExtensions.join(", ")}`,
+        `Invalid file extension. Allowed extensions: ${allowedExtensions.join(
+          ", "
+        )}`,
         "INVALID_FILE_EXTENSION"
       );
     }
@@ -103,15 +105,20 @@ const fileFilter = (
 };
 
 // Function to create a middleware with the multer instance
-const wrapMulterInstance = (instance: ReturnType<typeof multer>): EnhancedMulterInstance => {
+const wrapMulterInstance = (
+  instance: ReturnType<typeof multer>
+): EnhancedMulterInstance => {
   const wrapped = instance as EnhancedMulterInstance;
-  
+
   wrapped.handler = (req: Request, res: Response, next: NextFunction) => {
     const uploadSingle = instance.single("file");
     uploadSingle(req, res, (err: any) => {
       if (err) {
         console.error("Multer upload error:", {
-          errorType: err instanceof multer.MulterError ? "MulterError" : "ValidationError",
+          errorType:
+            err instanceof multer.MulterError
+              ? "MulterError"
+              : "ValidationError",
           name: err.name,
           code: err.code,
           message: err.message,
@@ -122,10 +129,12 @@ const wrapMulterInstance = (instance: ReturnType<typeof multer>): EnhancedMulter
           },
         });
 
-        const statusCode = err instanceof multer.MulterError || err.code ? 400 : 500;
-        const errorMessage = err instanceof multer.MulterError || err.code
-          ? handleMulterError(err)
-          : "File upload failed. Please try again.";
+        const statusCode =
+          err instanceof multer.MulterError || err.code ? 400 : 500;
+        const errorMessage =
+          err instanceof multer.MulterError || err.code
+            ? handleMulterError(err)
+            : "File upload failed. Please try again.";
 
         res.status(statusCode).json({ error: errorMessage });
         return;
@@ -146,22 +155,26 @@ const wrapMulterInstance = (instance: ReturnType<typeof multer>): EnhancedMulter
       next();
     });
   };
-  
+
   return wrapped;
 };
 
 // Create multer upload middleware with different size limits
-export const createUploadMiddleware = (maxSizeBytes: number): EnhancedMulterInstance => {
-  return wrapMulterInstance(multer({
-    storage,
-    fileFilter,
-    limits: {
-      fileSize: maxSizeBytes,
-      files: 1,
-      fields: 10, // Allow multiple form fields
-      // Remove parts limit - it's too restrictive
-    },
-  }));
+export const createUploadMiddleware = (
+  maxSizeBytes: number
+): EnhancedMulterInstance => {
+  return wrapMulterInstance(
+    multer({
+      storage,
+      fileFilter,
+      limits: {
+        fileSize: maxSizeBytes,
+        files: 1,
+        fields: 10, // Allow multiple form fields
+        // Remove parts limit - it's too restrictive
+      },
+    })
+  );
 };
 
 // Predefined upload middlewares for different image types

@@ -137,7 +137,9 @@ async function uploadMediaHandler(
       );
     } catch (error) {
       console.error("S3 upload failed:", error);
-      res.status(500).json({ error: "Failed to store image. Please try again." });
+      res
+        .status(500)
+        .json({ error: "Failed to store image. Please try again." });
       return;
     }
 
@@ -163,7 +165,9 @@ async function uploadMediaHandler(
       } catch (cleanupError) {
         console.error("Failed to cleanup S3 file after database error");
       }
-      res.status(500).json({ error: "Failed to save image metadata. Please try again." });
+      res
+        .status(500)
+        .json({ error: "Failed to save image metadata. Please try again." });
       return;
     }
 
@@ -215,11 +219,9 @@ async function uploadMediaHandler(
         error.message.includes("process") ||
         error.message.includes("image")
       ) {
-        res
-          .status(500)
-          .json({
-            error: "Image processing failed. Please try a different image.",
-          });
+        res.status(500).json({
+          error: "Image processing failed. Please try a different image.",
+        });
       } else if (
         error.message.includes("database") ||
         error.message.includes("SQL")
@@ -228,22 +230,18 @@ async function uploadMediaHandler(
           .status(500)
           .json({ error: "Failed to save image metadata. Please try again." });
       } else if (error.message.includes("configuration")) {
-        res
-          .status(500)
-          .json({
-            error: "Server configuration error. Please contact support.",
-          });
+        res.status(500).json({
+          error: "Server configuration error. Please contact support.",
+        });
       } else {
         res
           .status(500)
           .json({ error: "Failed to upload media. Please try again." });
       }
     } else {
-      res
-        .status(500)
-        .json({
-          error: "An unexpected error occurred. Please try again later.",
-        });
+      res.status(500).json({
+        error: "An unexpected error occurred. Please try again later.",
+      });
     }
   }
 }
