@@ -1,6 +1,7 @@
 import { db } from "../drizzle/db.js";
 import { UploadedImagesTable } from "../drizzle/schema.js";
 import { eq, and } from "drizzle-orm";
+import { s3Service } from "./s3.js";
 
 export interface CreateImageParams {
   originalFilename: string;

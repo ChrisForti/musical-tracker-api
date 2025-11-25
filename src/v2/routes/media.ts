@@ -13,7 +13,15 @@ export const mediaRouter = Router();
 mediaRouter.post(
   "/",
   ensureAuthenticated,
-  uploadMiddleware.poster.single("file"),
+  uploadMiddleware.poster.handler,
+  (req, res, next) => {
+    // Validate file after multer
+    if (!req.file) {
+      res.status(400).json({ error: "No file uploaded" });
+      return;
+    }
+    next();
+  },
   uploadMediaHandler
 );
 
@@ -25,7 +33,7 @@ mediaRouter.get("/debug", debugConfigHandler);
 
 // Interfaces for request bodies
 interface UploadMediaBody {
-  imageType: "poster" | "profile";
+  imageType: "poster" | "profile" | "thumbnail";
 }
 
 /**
@@ -38,6 +46,7 @@ async function uploadMediaHandler(
   try {
     // Check if file was uploaded
     if (!req.file) {
+      console.error("No file uploaded");
       res.status(400).json({ error: "No file uploaded" });
       return;
     }
@@ -49,9 +58,9 @@ async function uploadMediaHandler(
     // Simple validation - just imageType required
     validator.check(!!imageType, "imageType", "is required");
     validator.check(
-      ["poster", "profile"].includes(imageType),
+      ["poster", "profile", "thumbnail"].includes(imageType),
       "imageType",
-      "must be 'poster' or 'profile'"
+      "must be 'poster', 'profile', or 'thumbnail'"
     );
 
     if (!validator.valid) {
@@ -70,6 +79,7 @@ async function uploadMediaHandler(
       !process.env.AWS_SECRET_ACCESS_KEY ||
       !process.env.AWS_S3_BUCKET
     ) {
+      console.error("Missing AWS configuration");
       res.status(500).json({ error: "Server configuration error" });
       return;
     }
@@ -87,10 +97,19 @@ async function uploadMediaHandler(
     }
 
     // Process image
-    const processedImage = await imageProcessor.processImage(
-      req.file.buffer,
-      imageType
-    );
+    let processedImage;
+    try {
+      processedImage = await imageProcessor.processImage(
+        req.file.buffer,
+        imageType
+      );
+    } catch (error) {
+      console.error("Image processing failed:", error);
+      res.status(500).json({
+        error: "Failed to process image. Please try a different image.",
+      });
+      return;
+    }
 
     // Generate S3 key - simplified, use "user" for both types
     const fileExtension = imageProcessor.getFileExtension(
@@ -103,30 +122,50 @@ async function uploadMediaHandler(
       fileExtension
     );
 
-    // Upload to S3 and get direct URL
-    const s3Url = await s3Service.uploadFileWithDirectUrl(
-      processedImage.buffer,
-      s3Key,
-      imageProcessor.getMimeType(processedImage.format),
-      {
-        originalName: req.file.originalname,
-        uploadedBy: userId,
-        imageType: imageType,
-      }
-    );
+    // Upload to S3 and get signed URL
+    let s3Url;
+    try {
+      s3Url = await s3Service.uploadFileWithDirectUrl(
+        processedImage.buffer,
+        s3Key,
+        imageProcessor.getMimeType(processedImage.format),
+        {
+          originalName: req.file.originalname,
+          uploadedBy: userId,
+          imageType: imageType,
+        }
+      );
+    } catch (error) {
+      console.error("S3 upload failed:", error);
+      res.status(500).json({ error: "Failed to store image. Please try again." });
+      return;
+    }
 
     // Save to database
-    const imageRecord = await imageDb.createImage({
-      originalFilename: req.file.originalname,
-      s3Key,
-      s3Url,
-      fileSize: processedImage.size,
-      mimeType: validation.mimeType!,
-      width: processedImage.width,
-      height: processedImage.height,
-      uploadedBy: userId,
-      imageType: imageType,
-    });
+    let imageRecord;
+    try {
+      imageRecord = await imageDb.createImage({
+        originalFilename: req.file.originalname,
+        s3Key,
+        s3Url,
+        fileSize: processedImage.size,
+        mimeType: validation.mimeType!,
+        width: processedImage.width,
+        height: processedImage.height,
+        uploadedBy: userId,
+        imageType: imageType,
+      });
+    } catch (error) {
+      console.error("Database save failed:", error);
+      // Attempt to clean up the uploaded S3 file
+      try {
+        await s3Service.deleteFile(s3Key);
+      } catch (cleanupError) {
+        console.error("Failed to cleanup S3 file after database error");
+      }
+      res.status(500).json({ error: "Failed to save image metadata. Please try again." });
+      return;
+    }
 
     res.status(201).json({
       success: true,
@@ -138,8 +177,74 @@ async function uploadMediaHandler(
       imageType: imageType,
     });
   } catch (error) {
-    console.error("Error in uploadMediaHandler:", error);
-    res.status(500).json({ error: "Failed to upload media" });
+    console.error("Error in uploadMediaHandler:", {
+      error:
+        error instanceof Error
+          ? {
+              name: error.name,
+              message: error.message,
+              stack: error.stack,
+            }
+          : error,
+      context: {
+        userId: req.user?.id,
+        imageType: req.body.imageType,
+        fileName: req.file?.originalname,
+        fileSize: req.file?.size,
+        mimeType: req.file?.mimetype,
+        awsConfig: {
+          hasAccessKeyId: !!process.env.AWS_ACCESS_KEY_ID,
+          hasSecretKey: !!process.env.AWS_SECRET_ACCESS_KEY,
+          hasBucket: !!process.env.AWS_S3_BUCKET,
+          region: process.env.AWS_REGION,
+        },
+      },
+    });
+
+    // Handle specific error types
+    if (error instanceof Error) {
+      if (
+        error.message.includes("S3") ||
+        error.message.includes("storage") ||
+        error.message.includes("bucket")
+      ) {
+        res
+          .status(500)
+          .json({ error: "Storage service error. Please try again later." });
+      } else if (
+        error.message.includes("process") ||
+        error.message.includes("image")
+      ) {
+        res
+          .status(500)
+          .json({
+            error: "Image processing failed. Please try a different image.",
+          });
+      } else if (
+        error.message.includes("database") ||
+        error.message.includes("SQL")
+      ) {
+        res
+          .status(500)
+          .json({ error: "Failed to save image metadata. Please try again." });
+      } else if (error.message.includes("configuration")) {
+        res
+          .status(500)
+          .json({
+            error: "Server configuration error. Please contact support.",
+          });
+      } else {
+        res
+          .status(500)
+          .json({ error: "Failed to upload media. Please try again." });
+      }
+    } else {
+      res
+        .status(500)
+        .json({
+          error: "An unexpected error occurred. Please try again later.",
+        });
+    }
   }
 }
 

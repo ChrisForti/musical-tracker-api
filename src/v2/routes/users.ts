@@ -6,7 +6,7 @@ import { eq } from "drizzle-orm";
 import { generateAuthenticationToken } from "../../lib/tokens.js";
 import { Validator } from "../../lib/validator.js";
 import { SERVER_ERROR } from "../../lib/errors.js";
-import { ensureAuthenticated } from "../../lib/auth.js";
+import { ensureAuthenticated, ensureAdmin } from "../../lib/auth.js";
 import { v4 as uuidv4 } from "uuid";
 import { validate as validateUuid } from "uuid";
 
@@ -14,8 +14,16 @@ export const userRouter = Router();
 
 userRouter.post("/", createUserHandler);
 userRouter.post("/login", loginUserHandler);
+userRouter.post("/forgot-password", forgotPasswordHandler);
 userRouter.get("/", ensureAuthenticated, getUserByIdHandler);
+userRouter.get("/all", ensureAuthenticated, ensureAdmin, getAllUsersHandler);
 userRouter.put("/", ensureAuthenticated, updateUserHandler);
+userRouter.put(
+  "/:id/role",
+  ensureAuthenticated,
+  ensureAdmin,
+  updateUserRoleHandler
+);
 userRouter.delete("/", ensureAuthenticated, deleteUserHandler);
 
 type CreateUserBodyParams = {
@@ -100,24 +108,37 @@ async function loginUserHandler(
   res: Response
 ) {
   const { email, password } = req.body;
-  const validator = new Validator();
+  console.log("Login attempt received:", {
+    email,
+    hasPassword: !!password,
+    contentType: req.headers["content-type"],
+  });
 
+  const validator = new Validator();
   validator.check(!!email, "email", "is required");
   validator.check(!!password, "password", "is required");
 
   if (!validator.valid) {
+    console.log("Login validation failed:", validator.errors);
     res.status(400).json({ errors: validator.errors });
     return;
   }
 
   try {
+    console.log("Attempting to find user in database:", { email });
     const user = await db.query.UserTable.findFirst({
       where: (users, { eq }) => {
         return eq(users.email, email);
       },
     });
+    console.log("Database query result:", {
+      found: !!user,
+      userId: user?.id,
+      userRole: user?.role,
+    });
 
     if (!user) {
+      console.log("Login failed: User not found");
       res
         .status(401)
         .json({ errors: { message: "Invalid email or password" } });
@@ -126,6 +147,7 @@ async function loginUserHandler(
 
     const isPasswordValid = await compare(password, user.passwordHash);
     if (!isPasswordValid) {
+      console.log("Login failed: Invalid password for user:", { email });
       res
         .status(401)
         .json({ errors: { message: "Invalid email or password" } });
@@ -136,11 +158,12 @@ async function loginUserHandler(
 
     res.status(200).json({ message: "Login successful", token });
   } catch (error) {
-    if (error instanceof Error) {
-      res.status(500).json(validator.errors);
-    }
     console.error("Error in loginUserHandler:", error);
-    res.status(500).json({ error: SERVER_ERROR });
+    res.status(500).json({
+      errors: {
+        message: SERVER_ERROR,
+      },
+    });
     return;
   }
 }
@@ -303,5 +326,146 @@ async function deleteUserHandler(req: Request, res: Response) {
     } else {
       res.status(500).json({ message: "Failed to delete user" }); //
     }
+  }
+}
+
+type ForgotPasswordBody = {
+  email: string;
+};
+
+async function forgotPasswordHandler(
+  req: Request<{}, {}, ForgotPasswordBody>,
+  res: Response
+) {
+  const { email } = req.body;
+  const validator = new Validator();
+
+  validator.check(!!email, "email", "is required");
+
+  if (!validator.valid) {
+    res.status(400).json({ errors: validator.errors });
+    return;
+  }
+
+  try {
+    // Check if user exists (but don't reveal if they don't for security)
+    const user = await db.query.UserTable.findFirst({
+      where: (users, { eq }) => {
+        return eq(users.email, email);
+      },
+    });
+
+    // Always return success to prevent email enumeration attacks
+    // In a real app, you'd send an email here
+    if (user) {
+      console.log(`Password reset requested for user: ${email}`);
+      console.log(`User ID: ${user.id}`);
+      console.log("📧 In a production app, send reset email here!");
+
+      // For testing, log the admin credentials if this is the admin user
+      if (user.isAdmin) {
+        console.log("🔑 ADMIN CREDENTIALS FOR TESTING:");
+        console.log("   Email: admin@test.com");
+        console.log("   Password: admin123");
+      }
+    }
+
+    res.json({
+      message:
+        "If an account with that email exists, we've sent password reset instructions.",
+    });
+  } catch (error) {
+    console.error("Forgot password error:", error);
+    res.json({
+      message:
+        "If an account with that email exists, we've sent password reset instructions.",
+    });
+  }
+}
+
+async function getAllUsersHandler(req: Request, res: Response) {
+  try {
+    const users = await db.query.UserTable.findMany({
+      columns: {
+        id: true,
+        firstName: true,
+        lastName: true,
+        email: true,
+        isAdmin: true,
+        emailVerified: true,
+      },
+    });
+
+    // Transform the data to match frontend expectations
+    const transformedUsers = users.map((user) => ({
+      id: user.id,
+      firstName: user.firstName,
+      lastName: user.lastName,
+      email: user.email,
+      role: user.isAdmin ? "admin" : "user",
+      emailVerified: user.emailVerified,
+    }));
+
+    res.json(transformedUsers);
+  } catch (error) {
+    console.error("Get all users error:", error);
+    res.status(500).json(SERVER_ERROR);
+  }
+}
+
+type UpdateUserRoleBody = {
+  role: "admin" | "user";
+};
+
+async function updateUserRoleHandler(
+  req: Request<{ id: string }, {}, UpdateUserRoleBody>,
+  res: Response
+) {
+  const { id } = req.params;
+  const { role } = req.body;
+  const validator = new Validator();
+
+  validator.check(!!id, "id", "is required");
+  validator.check(validateUuid(id), "id", "must be a valid UUID");
+  validator.check(!!role, "role", "is required");
+  validator.check(
+    ["admin", "user"].includes(role),
+    "role",
+    "must be either 'admin' or 'user'"
+  );
+
+  if (!validator.valid) {
+    res.status(400).json({ errors: validator.errors });
+    return;
+  }
+
+  try {
+    // Check if the user exists
+    const existingUser = await db.query.UserTable.findFirst({
+      where: (users, { eq }) => eq(users.id, id),
+    });
+
+    if (!existingUser) {
+      res.status(404).json({ errors: { message: "User not found" } });
+      return;
+    }
+
+    // Update the user role and isAdmin flag
+    const isAdmin = role === "admin";
+    await db
+      .update(UserTable)
+      .set({
+        role,
+        isAdmin,
+      })
+      .where(eq(UserTable.id, id));
+
+    res.json({
+      message: "User role updated successfully",
+      role,
+    });
+  } catch (error) {
+    console.error("Update user role error:", error);
+    res.status(500).json(SERVER_ERROR);
   }
 }

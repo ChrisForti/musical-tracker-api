@@ -4,14 +4,18 @@ export default [
   // Home page
   index("routes/home.tsx"),
 
-  // Actor routes (using catch-all)
-  route("actors/*", "routes/ActorRoute.tsx"),
+  // Admin routes (using catch-all)
+  route("admin/*", "routes/AdminRoute.tsx"),
 
-  // Musical  routes (using catch-all)
-  route("musicals/*", "routes/MusicalRoute.tsx"),
+  // Public routes (using catch-all)
+  route("public/*", "routes/PublicRoute.tsx"),
 
-  // Performance routes (using catch-all)
-  route("performances/*", "routes/PerformanceRoute.tsx"),
+  // Login route
+  route("login", "routes/LoginRoute.tsx"),
 
-  // Other routes...
+  // Register route
+  route("register", "routes/RegisterRoute.tsx"),
+
+  // 404 catch-all route - must be last
+  route("*", "routes/404.tsx"),
 ] satisfies RouteConfig;

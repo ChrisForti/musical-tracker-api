@@ -8,6 +8,11 @@ import {
 } from "react-router";
 
 import type { Route } from "./+types/root";
+import { GlobalSearchProvider } from "./components/layout/ui/GlobalSearchProvider";
+import { NavigationProvider } from "./components/layout/NavigationProvider";
+import { ToastProvider } from "./components/common/ToastProvider";
+import { ToastContainer } from "./components/common/ToastContainer";
+import { AuthProvider } from "./hooks/useAuth";
 import "./app.css";
 
 export const links: Route.LinksFunction = () => [
@@ -42,7 +47,18 @@ export function Layout({ children }: { children: React.ReactNode }) {
 }
 
 export default function App() {
-  return <Outlet />;
+  return (
+    <AuthProvider>
+      <ToastProvider>
+        <NavigationProvider>
+          <GlobalSearchProvider>
+            <Outlet />
+            <ToastContainer />
+          </GlobalSearchProvider>
+        </NavigationProvider>
+      </ToastProvider>
+    </AuthProvider>
+  );
 }
 
 export function ErrorBoundary({ error }: Route.ErrorBoundaryProps) {

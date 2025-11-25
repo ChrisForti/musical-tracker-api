@@ -30,6 +30,12 @@ npm install
 cp .env.example .env
 ```
 
+The API server runs on port 8000 by default. You can override this by setting the `PORT` environment variable in your `.env` file:
+
+```sh
+PORT=8000  # Default port for the API server
+```
+
 **Edit the `.env` file and configure:**
 
 - **DATABASE_URL** - Your PostgreSQL connection string
