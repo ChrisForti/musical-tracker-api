@@ -8,6 +8,20 @@ import { authenticate } from "./lib/auth.js";
 const APP_PORT = process.env.PORT ? parseInt(process.env.PORT) : 3000;
 const app = express();
 
+// Health check endpoints FIRST - before ANY middleware
+app.get("/", (req, res) => {
+  res.status(200).json({
+    status: "ok",
+    message: "Musical Tracker API",
+    version: "2.0",
+    timestamp: new Date().toISOString(),
+  });
+});
+
+app.get("/health", (req, res) => {
+  res.status(200).json({ status: "healthy", timestamp: new Date().toISOString() });
+});
+
 // middleware
 app.use(
   cors({
@@ -33,20 +47,6 @@ app.use(
 );
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
-
-// Health check endpoints (no auth required)
-app.get("/", (req, res) => {
-  res.json({
-    status: "ok",
-    message: "Musical Tracker API",
-    version: "2.0",
-    timestamp: new Date().toISOString(),
-  });
-});
-
-app.get("/health", (req, res) => {
-  res.json({ status: "healthy" });
-});
 
 // Apply authentication middleware before protected routes
 app.use(authenticate);
