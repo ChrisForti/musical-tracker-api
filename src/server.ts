@@ -34,10 +34,7 @@ app.use(
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
-// Apply authentication middleware before routes
-app.use(authenticate);
-
-// Health check endpoint (no auth required)
+// Health check endpoints (no auth required)
 app.get("/", (req, res) => {
   res.json({
     status: "ok",
@@ -50,6 +47,9 @@ app.get("/", (req, res) => {
 app.get("/health", (req, res) => {
   res.json({ status: "healthy" });
 });
+
+// Apply authentication middleware before protected routes
+app.use(authenticate);
 
 // routers
 app.use("/v2", v2Router);
