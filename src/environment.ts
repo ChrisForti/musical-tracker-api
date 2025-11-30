@@ -13,30 +13,35 @@ export const connectionString =
 
 // Validate required environment variables
 export function validateEnv() {
-  const requiredVars = {
-    DATABASE_URL: connectionString,
-    AWS_ACCESS_KEY_ID: process.env.AWS_ACCESS_KEY_ID,
-    AWS_SECRET_ACCESS_KEY: process.env.AWS_SECRET_ACCESS_KEY,
-    AWS_S3_BUCKET: process.env.AWS_S3_BUCKET,
-  };
-
-  const missing = Object.entries(requiredVars)
-    .filter(([_, value]) => !value)
-    .map(([key]) => key);
-
-  if (missing.length > 0) {
+  // Only DATABASE_URL is critical for startup
+  if (!connectionString) {
     throw new Error(
-      `Missing required environment variables: ${missing.join(", ")}\n` +
-        "Please check your .env file and ensure all required variables are set."
+      "Missing required environment variable: DATABASE_URL\n" +
+        "Please check your .env file and ensure DATABASE_URL is set."
     );
+  }
+
+  // Warn about missing AWS config but don't crash
+  const hasAwsConfig =
+    process.env.AWS_ACCESS_KEY_ID &&
+    process.env.AWS_SECRET_ACCESS_KEY &&
+    process.env.AWS_S3_BUCKET;
+
+  if (!hasAwsConfig) {
+    console.warn("⚠️  WARNING: AWS S3 configuration is incomplete. Image uploads will fail.");
+    console.warn("Missing:", {
+      AWS_ACCESS_KEY_ID: !process.env.AWS_ACCESS_KEY_ID,
+      AWS_SECRET_ACCESS_KEY: !process.env.AWS_SECRET_ACCESS_KEY,
+      AWS_S3_BUCKET: !process.env.AWS_S3_BUCKET,
+    });
   }
 
   console.log("Environment validation successful:", {
     port: PORT,
     hasDbConnection: !!connectionString,
-    hasAwsConfig: true,
+    hasAwsConfig: !!hasAwsConfig,
     region: process.env.AWS_REGION || "us-east-1",
-    bucket: process.env.AWS_S3_BUCKET,
+    bucket: process.env.AWS_S3_BUCKET || "(not set)",
   });
 }
 

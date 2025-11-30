@@ -37,6 +37,20 @@ app.use(express.urlencoded({ extended: true }));
 // Apply authentication middleware before routes
 app.use(authenticate);
 
+// Health check endpoint (no auth required)
+app.get("/", (req, res) => {
+  res.json({
+    status: "ok",
+    message: "Musical Tracker API",
+    version: "2.0",
+    timestamp: new Date().toISOString(),
+  });
+});
+
+app.get("/health", (req, res) => {
+  res.json({ status: "healthy" });
+});
+
 // routers
 app.use("/v2", v2Router);
 
