@@ -28,7 +28,9 @@ export function validateEnv() {
     process.env.AWS_S3_BUCKET;
 
   if (!hasAwsConfig) {
-    console.warn("⚠️  WARNING: AWS S3 configuration is incomplete. Image uploads will fail.");
+    console.warn(
+      "⚠️  WARNING: AWS S3 configuration is incomplete. Image uploads will fail."
+    );
     console.warn("Missing:", {
       AWS_ACCESS_KEY_ID: !process.env.AWS_ACCESS_KEY_ID,
       AWS_SECRET_ACCESS_KEY: !process.env.AWS_SECRET_ACCESS_KEY,
