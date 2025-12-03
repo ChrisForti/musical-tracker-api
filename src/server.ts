@@ -1,12 +1,24 @@
 import "./environment.js"; // Must be first import to load environment variables
+console.log("✅ Environment loaded");
+
 import express from "express";
+console.log("✅ Express imported");
+
 import cors from "cors";
+console.log("✅ CORS imported");
+
 import { v2Router } from "./v2/routes.js";
+console.log("✅ Routes imported");
+
 import { authenticate } from "./lib/auth.js";
+console.log("✅ Auth middleware imported");
 
 // Port configuration - allow override via environment variable
 const APP_PORT = process.env.PORT ? parseInt(process.env.PORT) : 3000;
+console.log(`📝 Configured to listen on port: ${APP_PORT}`);
+
 const app = express();
+console.log("✅ Express app created");
 
 // Health check endpoints FIRST - before ANY middleware
 app.get("/", (req, res) => {
@@ -23,6 +35,7 @@ app.get("/health", (req, res) => {
     .status(200)
     .json({ status: "healthy", timestamp: new Date().toISOString() });
 });
+console.log("✅ Health check routes registered");
 
 // middleware
 app.use(
@@ -47,20 +60,29 @@ app.use(
     credentials: true, // Allow credentials (cookies, authorization headers, etc.)
   })
 );
+console.log("✅ CORS middleware configured");
+
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
+console.log("✅ Body parsing middleware configured");
 
 // Apply authentication middleware before protected routes
 app.use(authenticate);
+console.log("✅ Authentication middleware configured");
 
 // routers
 app.use("/v2", v2Router);
+console.log("✅ API routes registered");
 
 const server = app
   .listen(APP_PORT, "0.0.0.0", () => {
-    console.log(`Server starting on port ${APP_PORT}`);
-    console.log(`Environment: ${process.env.NODE_ENV || "development"}`);
-    console.log(`Health check available at: http://0.0.0.0:${APP_PORT}/health`);
+    console.log("=".repeat(50));
+    console.log(`🚀 Server successfully started!`);
+    console.log(`📍 Port: ${APP_PORT}`);
+    console.log(`🌍 Host: 0.0.0.0`);
+    console.log(`🔧 Environment: ${process.env.NODE_ENV || "development"}`);
+    console.log(`💚 Health check: http://0.0.0.0:${APP_PORT}/health`);
+    console.log("=".repeat(50));
   })
   .on("error", (error: NodeJS.ErrnoException) => {
     if (error.code === "EADDRINUSE") {
