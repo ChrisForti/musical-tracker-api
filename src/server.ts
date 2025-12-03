@@ -57,8 +57,10 @@ app.use(authenticate);
 app.use("/v2", v2Router);
 
 const server = app
-  .listen(APP_PORT, () => {
+  .listen(APP_PORT, "0.0.0.0", () => {
     console.log(`Server starting on port ${APP_PORT}`);
+    console.log(`Environment: ${process.env.NODE_ENV || "development"}`);
+    console.log(`Health check available at: http://0.0.0.0:${APP_PORT}/health`);
   })
   .on("error", (error: NodeJS.ErrnoException) => {
     if (error.code === "EADDRINUSE") {
