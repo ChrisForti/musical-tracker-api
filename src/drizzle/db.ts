@@ -3,8 +3,6 @@ import * as schema from "./schema.js";
 import { Pool } from "pg";
 import { connectionString } from "../environment.js";
 
-console.log("🔌 Initializing database connection pool...");
-
 const pool = new Pool({
   connectionString,
   connectionTimeoutMillis: 5000,
@@ -14,13 +12,7 @@ const pool = new Pool({
 
 // Log connection errors
 pool.on("error", (err) => {
-  console.error("❌ Unexpected database pool error:", err);
-});
-
-pool.on("connect", () => {
-  console.log("✅ Database client connected to pool");
+  console.error("Unexpected database pool error:", err);
 });
 
 export const db = drizzle(pool, { schema });
-
-console.log("✅ Database connection pool initialized");
